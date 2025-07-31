@@ -2,14 +2,20 @@
 #define CPU
 
 #include <functional>
-#include <random>
+#include <type_traits>
 class Cpu {
+public:
+    Cpu();
+    ~Cpu();
+
 protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
-    //static const unsigned char ZF = 0b0001;
-    //static const unsigned char NF = 0b0010;
-    //static const unsigned char HF = 0b0100;
-    //static const unsigned char CF = 0b1000;
+    static const unsigned char ZF_MASK = 0b00011111u;
+    static const unsigned char NF_MASK = 0b00101111u;
+    static const unsigned char HF_MASK = 0b01001111u;
+    static const unsigned char CF_MASK = 0b10001111u;
+    static const unsigned char NULLF_MASK = 0b00001111u;
+    static const unsigned char ALLF_MASK = 0b11111111u;
 
     unsigned char A;
     unsigned char F;
@@ -19,11 +25,10 @@ protected:
     unsigned char E;
     unsigned char H;
     unsigned char L;
-    unsigned short SP;
-    unsigned short PC;
-
-    unsigned short WRAM[8 * 1024 * 1024];
-    unsigned short VRAM[8 * 1024 * 1024];
+    unsigned short SP = 0xa000u;
+  //unsigned short SP = 0xdfffu;
+    unsigned short PC = 0;
+    bool IME = false;
 
     inline unsigned short getAF();
     inline unsigned short getBC();
@@ -42,56 +47,90 @@ protected:
     inline void setHF(bool);
     inline void setCF(bool);
 
-    inline void execute_regular(unsigned char opcode);
-    inline void execute_BC(unsigned char opcode);
+    inline unsigned char getIF();
+    inline unsigned char getIE();
+
+    inline void stackStep();
+    inline void stackStepBack();
+    inline void programCounterStep();
+
+    inline void executeRegular(unsigned char);
+    inline void executeBC(unsigned char);
 
     // load
     inline void ld(unsigned char&, unsigned char);
+    inline void ld(unsigned short&, unsigned short);
 
     // arithmetic
-    inline void op_add(unsigned char); 
-    inline void op_adc(unsigned char);
-    inline void op_sub(unsigned char);
-    inline void op_sbc(unsigned char);
-    inline void op_cp(unsigned char);
-    inline void op_dec(unsigned char&);
-    inline void op_inc(unsigned char&);
-    inline void op_add(unsigned short);
-    inline void op_inc(std::function<unsigned short()>, std::function<void(unsigned short)>);
-    inline void op_dec(std::function<unsigned short()>, std::function<void(unsigned short)>);
+    inline void opAdd(unsigned char); 
+    inline void opAdd(unsigned short);
+    inline void opAdc(unsigned char);
+    inline void opSub(unsigned char);
+    inline void opSbc(unsigned char);
+    inline void opCp(unsigned char);
+    inline void opInc(unsigned char&);
+    inline void opInc(unsigned short&);
+    inline void opInc(unsigned char&, unsigned char&);
+    // TODO: decide what to do with these)
+    //inline void opInc(std::function<unsigned short()>, std::function<void(unsigned short)>);
+    inline void opDec(unsigned char&);
+    inline void opDec(unsigned short&);
+    inline void opDec(unsigned char&, unsigned char&);
+    // TODO: like above
+    //inline void opDec(std::function<unsigned short()>, std::function<void(unsigned short)>);
 
     // logic
-    inline void op_and(unsigned char);
-    inline void op_or(unsigned char);
-    inline void op_xor(unsigned char);
-    inline void op_cpl(unsigned char);
+    inline void opAnd(unsigned char);
+    inline void opOr(unsigned char);
+    inline void opXor(unsigned char);
+    inline void opCpl(unsigned char);
 
     // bit
-    inline void op_bit(unsigned char);
-    inline void op_res(unsigned char&);
-    inline void op_set(unsigned char&);
+    // the first char of this should be a number between 0-7
+    inline void opBit(unsigned char, unsigned char);
+    inline void opRes(unsigned char, unsigned char&);
+    inline void opSet(unsigned char, unsigned char&);
 
     // bitshift
-    inline void op_rl(unsigned char&);
-    inline void op_rla();
-    inline void op_rlc(unsigned char&);
-    inline void op_rlca();
-    inline void op_rr(unsigned char&);
-    inline void op_rra();
-    inline void op_rrc(unsigned char&);
-    inline void op_rrca(unsigned char&);
-    inline void op_sla(unsigned char&);
-    inline void op_sra(unsigned char&);
-    inline void op_srl(unsigned char&);
-    inline void swap(unsigned char&);
+    inline void opRl(unsigned char&);
+    inline void opRla();
+    inline void opRlc(unsigned char&);
+    inline void opRlca();
+    inline void opRr(unsigned char&);
+    inline void opRra();
+    inline void opRrc(unsigned char&);
+    inline void opRrca(unsigned char&);
+    inline void opSla(unsigned char&);
+    inline void opSra(unsigned char&);
+    inline void opSrl(unsigned char&);
+    inline void opSwap(unsigned char&);
 
     // jump and subroutine
-    inline void op_call(unsigned short);
-    inline void op_jp(unsigned short);
-    inline void op_jr(unsigned short);
-    inline void op_ret();
-    inline void op_reti();
-    inline void op_rst();
+    inline void opCall(unsigned short);
+    inline void opJp(unsigned short);
+    inline void opJr(unsigned short);
+    inline void opRet();
+    inline void opReti();
+    inline void opRst();
+
+    // carry flag
+    inline void opCcf();
+    inline void opScf();
+
+    // stack manipulation
+    inline void opAdd(char);  //signed offset add to SP
+    inline void opPop(unsigned short&);
+    inline void opPush(unsigned short);
+    
+    // interrup-related
+    inline void opDi();
+    inline void opEi();
+    inline void opHalt();
+
+    // misc
+    inline void opDaa();
+    inline void opNop();
+    inline void opStop();
 
     // yup, i'll be implementing this shit
     inline void op_0x00(); inline void op_0x01(); inline void op_0x02(); inline void op_0x03(); inline void op_0x04(); inline void op_0x05(); inline void op_0x06(); inline void op_0x07(); 
@@ -159,10 +198,6 @@ protected:
     inline void op_cb_0xe8(); inline void op_cb_0xe9(); inline void op_cb_0xea(); inline void op_cb_0xeb(); inline void op_cb_0xec(); inline void op_cb_0xed(); inline void op_cb_0xee(); inline void op_cb_0xef(); 
     inline void op_cb_0xf0(); inline void op_cb_0xf1(); inline void op_cb_0xf2(); inline void op_cb_0xf3(); inline void op_cb_0xf4(); inline void op_cb_0xf5(); inline void op_cb_0xf6(); inline void op_cb_0xf7(); 
     inline void op_cb_0xf8(); inline void op_cb_0xf9(); inline void op_cb_0xfa(); inline void op_cb_0xfb(); inline void op_cb_0xfc(); inline void op_cb_0xfd(); inline void op_cb_0xfe(); inline void op_cb_0xff(); 
-
-public:
-    Cpu();
-    ~Cpu();
 };
 
 #endif
