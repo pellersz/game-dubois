@@ -22,15 +22,6 @@ protected:
     unsigned short SP;
     unsigned short PC;
 
-    //enum class r16 {
-    //    AF,
-    //    BC,
-    //    DE,
-    //    HF,
-    //    PC,
-    //    SP
-    //};
-
     unsigned short WRAM[8 * 1024 * 1024];
     unsigned short VRAM[8 * 1024 * 1024];
 
@@ -93,6 +84,14 @@ protected:
     inline void op_sra(unsigned char&);
     inline void op_srl(unsigned char&);
     inline void swap(unsigned char&);
+
+    // jump and subroutine
+    inline void op_call(unsigned short);
+    inline void op_jp(unsigned short);
+    inline void op_jr(unsigned short);
+    inline void op_ret();
+    inline void op_reti();
+    inline void op_rst();
 
     // yup, i'll be implementing this shit
     inline void op_0x00(); inline void op_0x01(); inline void op_0x02(); inline void op_0x03(); inline void op_0x04(); inline void op_0x05(); inline void op_0x06(); inline void op_0x07(); 
