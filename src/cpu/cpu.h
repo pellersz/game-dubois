@@ -1,15 +1,20 @@
 #ifndef CPU 
 #define CPU
 
-union AF {
-    unsigned short AF;
-    unsigned char A;
-};
-
+#include <functional>
+#include <random>
 class Cpu {
-public:
+protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
-    AF AF;
+    //static const unsigned char ZF = 0b0001;
+    //static const unsigned char NF = 0b0010;
+    //static const unsigned char HF = 0b0100;
+    //static const unsigned char CF = 0b1000;
+
+    unsigned char A;
+    unsigned char F;
+    unsigned char B;
+    unsigned char C;
     unsigned char D;
     unsigned char E;
     unsigned char H;
@@ -17,16 +22,78 @@ public:
     unsigned short SP;
     unsigned short PC;
 
+    //enum class r16 {
+    //    AF,
+    //    BC,
+    //    DE,
+    //    HF,
+    //    PC,
+    //    SP
+    //};
+
     unsigned short WRAM[8 * 1024 * 1024];
     unsigned short VRAM[8 * 1024 * 1024];
 
+    inline unsigned short getAF();
+    inline unsigned short getBC();
     inline unsigned short getDE();
     inline unsigned short getHL();
+    inline bool getZF();
+    inline bool getNF();
+    inline bool getHF();
+    inline bool getCF();
+    inline void setAF(unsigned short);
+    inline void setBC(unsigned short);
     inline void setDE(unsigned short);
-    inline void setHL(unsigned short);
+    inline void setHL(unsigned short); 
+    inline void setZF(bool);
+    inline void setNF(bool);
+    inline void setHF(bool);
+    inline void setCF(bool);
+
     inline void execute_regular(unsigned char opcode);
     inline void execute_BC(unsigned char opcode);
-    
+
+    // load
+    inline void ld(unsigned char&, unsigned char);
+
+    // arithmetic
+    inline void op_add(unsigned char); 
+    inline void op_adc(unsigned char);
+    inline void op_sub(unsigned char);
+    inline void op_sbc(unsigned char);
+    inline void op_cp(unsigned char);
+    inline void op_dec(unsigned char&);
+    inline void op_inc(unsigned char&);
+    inline void op_add(unsigned short);
+    inline void op_inc(std::function<unsigned short()>, std::function<void(unsigned short)>);
+    inline void op_dec(std::function<unsigned short()>, std::function<void(unsigned short)>);
+
+    // logic
+    inline void op_and(unsigned char);
+    inline void op_or(unsigned char);
+    inline void op_xor(unsigned char);
+    inline void op_cpl(unsigned char);
+
+    // bit
+    inline void op_bit(unsigned char);
+    inline void op_res(unsigned char&);
+    inline void op_set(unsigned char&);
+
+    // bitshift
+    inline void op_rl(unsigned char&);
+    inline void op_rla();
+    inline void op_rlc(unsigned char&);
+    inline void op_rlca();
+    inline void op_rr(unsigned char&);
+    inline void op_rra();
+    inline void op_rrc(unsigned char&);
+    inline void op_rrca(unsigned char&);
+    inline void op_sla(unsigned char&);
+    inline void op_sra(unsigned char&);
+    inline void op_srl(unsigned char&);
+    inline void swap(unsigned char&);
+
     // yup, i'll be implementing this shit
     inline void op_0x00(); inline void op_0x01(); inline void op_0x02(); inline void op_0x03(); inline void op_0x04(); inline void op_0x05(); inline void op_0x06(); inline void op_0x07(); 
     inline void op_0x08(); inline void op_0x09(); inline void op_0x0a(); inline void op_0x0b(); inline void op_0x0c(); inline void op_0x0d(); inline void op_0x0e(); inline void op_0x0f(); 
@@ -94,8 +161,9 @@ public:
     inline void op_cb_0xf0(); inline void op_cb_0xf1(); inline void op_cb_0xf2(); inline void op_cb_0xf3(); inline void op_cb_0xf4(); inline void op_cb_0xf5(); inline void op_cb_0xf6(); inline void op_cb_0xf7(); 
     inline void op_cb_0xf8(); inline void op_cb_0xf9(); inline void op_cb_0xfa(); inline void op_cb_0xfb(); inline void op_cb_0xfc(); inline void op_cb_0xfd(); inline void op_cb_0xfe(); inline void op_cb_0xff(); 
 
-private:
-    inline void op_add(unsigned char); 
+public:
+    Cpu();
+    ~Cpu();
 };
 
 #endif
