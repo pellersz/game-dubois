@@ -12,105 +12,105 @@ public:
 
 protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
-    static const unsigned char ZF_MASK = 0b00011111u;
-    static const unsigned char NF_MASK = 0b00101111u;
-    static const unsigned char HF_MASK = 0b01001111u;
-    static const unsigned char CF_MASK = 0b10001111u;
-    static const unsigned char NULLF_MASK = 0b00001111u;
-    static const unsigned char ALLF_MASK = 0b11111111u;
+    static const byte ZF_MASK = 0b00011111u;
+    static const byte NF_MASK = 0b00101111u;
+    static const byte HF_MASK = 0b01001111u;
+    static const byte CF_MASK = 0b10001111u;
+    static const byte NULLF_MASK = 0b00001111u;
+    static const byte ALLF_MASK = 0b11111111u;
 
-    unsigned char A;
-    unsigned char F;
-    unsigned char B;
-    unsigned char C;
-    unsigned char D;
-    unsigned char E;
-    unsigned char H;
-    unsigned char L;
-    unsigned short SP = 0xa000u;
-  //unsigned short SP = 0xdfffu;
-    unsigned short PC = 0;
+    byte A;
+    byte F;
+    byte B;
+    byte C;
+    byte D;
+    byte E;
+    byte H;
+    byte L;
+    word SP = 0xa000u;
+  //word SP = 0xdfffu;
+    word PC = 0;
     bool IME = false;
 
-    unsigned short getAF();
-    unsigned short getBC();
-    unsigned short getDE();
-    unsigned short getHL();
+    word getAF();
+    word getBC();
+    word getDE();
+    word getHL();
     bool getZF();
     bool getNF();
     bool getHF();
     bool getCF();
-    void setAF(unsigned short);
-    void setBC(unsigned short);
-    void setDE(unsigned short);
-    void setHL(unsigned short); 
+    void setAF(word);
+    void setBC(word);
+    void setDE(word);
+    void setHL(word); 
     void setZF(bool);
     void setNF(bool);
     void setHF(bool);
     void setCF(bool);
 
-    unsigned char getIF();
-    unsigned char getIE();
+    byte getIF();
+    byte getIE();
 
     void stackStep();
     void stackStepBack();
     void programCounterStep();
 
-    void executeRegular(unsigned char);
-    void executeBC(unsigned char);
+    void executeRegular(byte);
+    void executeBC(byte);
 
     // load
-    void ld(unsigned char&, unsigned char);
-    void ld(unsigned short&, unsigned short);
+    void ld(byte&, byte);
+    void ld(word&, word);
 
     // arithmetic
-    void opAdd(unsigned char); 
-    void opAdd(unsigned short);
-    void opAdc(unsigned char);
-    void opSub(unsigned char);
-    void opSbc(unsigned char);
-    void opCp(unsigned char);
-    void opInc(unsigned char&);
-    void opInc(unsigned short&);
-    void opInc(unsigned char&, unsigned char&);
+    void opAdd(byte); 
+    void opAdd(word);
+    void opAdc(byte);
+    void opSub(byte);
+    void opSbc(byte);
+    void opCp(byte);
+    void opInc(byte&);
+    void opInc(word&);
+    void opInc(byte&, byte&);
     // TODO: decide what to do with these)
-    // void opInc(std::function<unsigned short()>, std::function<void(unsigned short)>);
-    void opDec(unsigned char&);
-    void opDec(unsigned short&);
-    void opDec(unsigned char&, unsigned char&);
+    // void opInc(std::function<word()>, std::function<void(word)>);
+    void opDec(byte&);
+    void opDec(word&);
+    void opDec(byte&, byte&);
     // TODO: like above
-    // void opDec(std::function<unsigned short()>, std::function<void(unsigned short)>);
+    // void opDec(std::function<word()>, std::function<void(word)>);
 
     // logic
-    void opAnd(unsigned char);
-    void opOr(unsigned char);
-    void opXor(unsigned char);
-    void opCpl(unsigned char);
+    void opAnd(byte);
+    void opOr(byte);
+    void opXor(byte);
+    void opCpl(byte);
 
     // bit
     // the first char of this should be a number between 0-7
-    void opBit(unsigned char, unsigned char);
-    void opRes(unsigned char, unsigned char&);
-    void opSet(unsigned char, unsigned char&);
+    void opBit(byte, byte);
+    void opRes(byte, byte&);
+    void opSet(byte, byte&);
 
     // bitshift
-    void opRl(unsigned char&);
+    void opRl(byte&);
     void opRla();
-    void opRlc(unsigned char&);
+    void opRlc(byte&);
     void opRlca();
-    void opRr(unsigned char&);
+    void opRr(byte&);
     void opRra();
-    void opRrc(unsigned char&);
-    void opRrca(unsigned char&);
-    void opSla(unsigned char&);
-    void opSra(unsigned char&);
-    void opSrl(unsigned char&);
-    void opSwap(unsigned char&);
+    void opRrc(byte&);
+    void opRrca(byte&);
+    void opSla(byte&);
+    void opSra(byte&);
+    void opSrl(byte&);
+    void opSwap(byte&);
 
     // jump and subroutine
-    void opCall(unsigned short);
-    void opJp(unsigned short);
-    void opJr(unsigned short);
+    void opCall(word);
+    void opJp(word);
+    void opJr(word);
     void opRet();
     void opReti();
     void opRst();
@@ -121,8 +121,8 @@ protected:
 
     // stack manipulation
     void opAdd(char);  //signed offset add to SP
-    void opPop(unsigned short&);
-    void opPush(unsigned short);
+    void opPop(word&);
+    void opPush(word);
     
     // interrup-related
     void opDi();
