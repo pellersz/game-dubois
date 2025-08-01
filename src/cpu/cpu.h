@@ -1,8 +1,10 @@
 #ifndef CPU 
 #define CPU
 
-#include <functional>
-#include <type_traits>
+typedef unsigned char byte;
+typedef unsigned short word;
+typedef char offs;
+
 class Cpu {
 public:
     Cpu();
@@ -30,174 +32,174 @@ protected:
     unsigned short PC = 0;
     bool IME = false;
 
-    inline unsigned short getAF();
-    inline unsigned short getBC();
-    inline unsigned short getDE();
-    inline unsigned short getHL();
-    inline bool getZF();
-    inline bool getNF();
-    inline bool getHF();
-    inline bool getCF();
-    inline void setAF(unsigned short);
-    inline void setBC(unsigned short);
-    inline void setDE(unsigned short);
-    inline void setHL(unsigned short); 
-    inline void setZF(bool);
-    inline void setNF(bool);
-    inline void setHF(bool);
-    inline void setCF(bool);
+    unsigned short getAF();
+    unsigned short getBC();
+    unsigned short getDE();
+    unsigned short getHL();
+    bool getZF();
+    bool getNF();
+    bool getHF();
+    bool getCF();
+    void setAF(unsigned short);
+    void setBC(unsigned short);
+    void setDE(unsigned short);
+    void setHL(unsigned short); 
+    void setZF(bool);
+    void setNF(bool);
+    void setHF(bool);
+    void setCF(bool);
 
-    inline unsigned char getIF();
-    inline unsigned char getIE();
+    unsigned char getIF();
+    unsigned char getIE();
 
-    inline void stackStep();
-    inline void stackStepBack();
-    inline void programCounterStep();
+    void stackStep();
+    void stackStepBack();
+    void programCounterStep();
 
-    inline void executeRegular(unsigned char);
-    inline void executeBC(unsigned char);
+    void executeRegular(unsigned char);
+    void executeBC(unsigned char);
 
     // load
-    inline void ld(unsigned char&, unsigned char);
-    inline void ld(unsigned short&, unsigned short);
+    void ld(unsigned char&, unsigned char);
+    void ld(unsigned short&, unsigned short);
 
     // arithmetic
-    inline void opAdd(unsigned char); 
-    inline void opAdd(unsigned short);
-    inline void opAdc(unsigned char);
-    inline void opSub(unsigned char);
-    inline void opSbc(unsigned char);
-    inline void opCp(unsigned char);
-    inline void opInc(unsigned char&);
-    inline void opInc(unsigned short&);
-    inline void opInc(unsigned char&, unsigned char&);
+    void opAdd(unsigned char); 
+    void opAdd(unsigned short);
+    void opAdc(unsigned char);
+    void opSub(unsigned char);
+    void opSbc(unsigned char);
+    void opCp(unsigned char);
+    void opInc(unsigned char&);
+    void opInc(unsigned short&);
+    void opInc(unsigned char&, unsigned char&);
     // TODO: decide what to do with these)
-    //inline void opInc(std::function<unsigned short()>, std::function<void(unsigned short)>);
-    inline void opDec(unsigned char&);
-    inline void opDec(unsigned short&);
-    inline void opDec(unsigned char&, unsigned char&);
+    // void opInc(std::function<unsigned short()>, std::function<void(unsigned short)>);
+    void opDec(unsigned char&);
+    void opDec(unsigned short&);
+    void opDec(unsigned char&, unsigned char&);
     // TODO: like above
-    //inline void opDec(std::function<unsigned short()>, std::function<void(unsigned short)>);
+    // void opDec(std::function<unsigned short()>, std::function<void(unsigned short)>);
 
     // logic
-    inline void opAnd(unsigned char);
-    inline void opOr(unsigned char);
-    inline void opXor(unsigned char);
-    inline void opCpl(unsigned char);
+    void opAnd(unsigned char);
+    void opOr(unsigned char);
+    void opXor(unsigned char);
+    void opCpl(unsigned char);
 
     // bit
     // the first char of this should be a number between 0-7
-    inline void opBit(unsigned char, unsigned char);
-    inline void opRes(unsigned char, unsigned char&);
-    inline void opSet(unsigned char, unsigned char&);
+    void opBit(unsigned char, unsigned char);
+    void opRes(unsigned char, unsigned char&);
+    void opSet(unsigned char, unsigned char&);
 
     // bitshift
-    inline void opRl(unsigned char&);
-    inline void opRla();
-    inline void opRlc(unsigned char&);
-    inline void opRlca();
-    inline void opRr(unsigned char&);
-    inline void opRra();
-    inline void opRrc(unsigned char&);
-    inline void opRrca(unsigned char&);
-    inline void opSla(unsigned char&);
-    inline void opSra(unsigned char&);
-    inline void opSrl(unsigned char&);
-    inline void opSwap(unsigned char&);
+    void opRl(unsigned char&);
+    void opRla();
+    void opRlc(unsigned char&);
+    void opRlca();
+    void opRr(unsigned char&);
+    void opRra();
+    void opRrc(unsigned char&);
+    void opRrca(unsigned char&);
+    void opSla(unsigned char&);
+    void opSra(unsigned char&);
+    void opSrl(unsigned char&);
+    void opSwap(unsigned char&);
 
     // jump and subroutine
-    inline void opCall(unsigned short);
-    inline void opJp(unsigned short);
-    inline void opJr(unsigned short);
-    inline void opRet();
-    inline void opReti();
-    inline void opRst();
+    void opCall(unsigned short);
+    void opJp(unsigned short);
+    void opJr(unsigned short);
+    void opRet();
+    void opReti();
+    void opRst();
 
     // carry flag
-    inline void opCcf();
-    inline void opScf();
+    void opCcf();
+    void opScf();
 
     // stack manipulation
-    inline void opAdd(char);  //signed offset add to SP
-    inline void opPop(unsigned short&);
-    inline void opPush(unsigned short);
+    void opAdd(char);  //signed offset add to SP
+    void opPop(unsigned short&);
+    void opPush(unsigned short);
     
     // interrup-related
-    inline void opDi();
-    inline void opEi();
-    inline void opHalt();
+    void opDi();
+    void opEi();
+    void opHalt();
 
     // misc
-    inline void opDaa();
-    inline void opNop();
-    inline void opStop();
+    void opDaa();
+    void opNop();
+    void opStop();
 
     // yup, i'll be implementing this shit
-    inline void op_0x00(); inline void op_0x01(); inline void op_0x02(); inline void op_0x03(); inline void op_0x04(); inline void op_0x05(); inline void op_0x06(); inline void op_0x07(); 
-    inline void op_0x08(); inline void op_0x09(); inline void op_0x0a(); inline void op_0x0b(); inline void op_0x0c(); inline void op_0x0d(); inline void op_0x0e(); inline void op_0x0f(); 
-    inline void op_0x10(); inline void op_0x11(); inline void op_0x12(); inline void op_0x13(); inline void op_0x14(); inline void op_0x15(); inline void op_0x16(); inline void op_0x17(); 
-    inline void op_0x18(); inline void op_0x19(); inline void op_0x1a(); inline void op_0x1b(); inline void op_0x1c(); inline void op_0x1d(); inline void op_0x1e(); inline void op_0x1f(); 
-    inline void op_0x20(); inline void op_0x21(); inline void op_0x22(); inline void op_0x23(); inline void op_0x24(); inline void op_0x25(); inline void op_0x26(); inline void op_0x27(); 
-    inline void op_0x28(); inline void op_0x29(); inline void op_0x2a(); inline void op_0x2b(); inline void op_0x2c(); inline void op_0x2d(); inline void op_0x2e(); inline void op_0x2f(); 
-    inline void op_0x30(); inline void op_0x31(); inline void op_0x32(); inline void op_0x33(); inline void op_0x34(); inline void op_0x35(); inline void op_0x36(); inline void op_0x37(); 
-    inline void op_0x38(); inline void op_0x39(); inline void op_0x3a(); inline void op_0x3b(); inline void op_0x3c(); inline void op_0x3d(); inline void op_0x3e(); inline void op_0x3f(); 
-    inline void op_0x40(); inline void op_0x41(); inline void op_0x42(); inline void op_0x43(); inline void op_0x44(); inline void op_0x45(); inline void op_0x46(); inline void op_0x47(); 
-    inline void op_0x48(); inline void op_0x49(); inline void op_0x4a(); inline void op_0x4b(); inline void op_0x4c(); inline void op_0x4d(); inline void op_0x4e(); inline void op_0x4f(); 
-    inline void op_0x50(); inline void op_0x51(); inline void op_0x52(); inline void op_0x53(); inline void op_0x54(); inline void op_0x55(); inline void op_0x56(); inline void op_0x57(); 
-    inline void op_0x58(); inline void op_0x59(); inline void op_0x5a(); inline void op_0x5b(); inline void op_0x5c(); inline void op_0x5d(); inline void op_0x5e(); inline void op_0x5f(); 
-    inline void op_0x60(); inline void op_0x61(); inline void op_0x62(); inline void op_0x63(); inline void op_0x64(); inline void op_0x65(); inline void op_0x66(); inline void op_0x67(); 
-    inline void op_0x68(); inline void op_0x69(); inline void op_0x6a(); inline void op_0x6b(); inline void op_0x6c(); inline void op_0x6d(); inline void op_0x6e(); inline void op_0x6f(); 
-    inline void op_0x70(); inline void op_0x71(); inline void op_0x72(); inline void op_0x73(); inline void op_0x74(); inline void op_0x75(); inline void op_0x76(); inline void op_0x77(); 
-    inline void op_0x78(); inline void op_0x79(); inline void op_0x7a(); inline void op_0x7b(); inline void op_0x7c(); inline void op_0x7d(); inline void op_0x7e(); inline void op_0x7f(); 
-    inline void op_0x80(); inline void op_0x81(); inline void op_0x82(); inline void op_0x83(); inline void op_0x84(); inline void op_0x85(); inline void op_0x86(); inline void op_0x87(); 
-    inline void op_0x88(); inline void op_0x89(); inline void op_0x8a(); inline void op_0x8b(); inline void op_0x8c(); inline void op_0x8d(); inline void op_0x8e(); inline void op_0x8f(); 
-    inline void op_0x90(); inline void op_0x91(); inline void op_0x92(); inline void op_0x93(); inline void op_0x94(); inline void op_0x95(); inline void op_0x96(); inline void op_0x97(); 
-    inline void op_0x98(); inline void op_0x99(); inline void op_0x9a(); inline void op_0x9b(); inline void op_0x9c(); inline void op_0x9d(); inline void op_0x9e(); inline void op_0x9f(); 
-    inline void op_0xa0(); inline void op_0xa1(); inline void op_0xa2(); inline void op_0xa3(); inline void op_0xa4(); inline void op_0xa5(); inline void op_0xa6(); inline void op_0xa7(); 
-    inline void op_0xa8(); inline void op_0xa9(); inline void op_0xaa(); inline void op_0xab(); inline void op_0xac(); inline void op_0xad(); inline void op_0xae(); inline void op_0xaf(); 
-    inline void op_0xb0(); inline void op_0xb1(); inline void op_0xb2(); inline void op_0xb3(); inline void op_0xb4(); inline void op_0xb5(); inline void op_0xb6(); inline void op_0xb7(); 
-    inline void op_0xb8(); inline void op_0xb9(); inline void op_0xba(); inline void op_0xbb(); inline void op_0xbc(); inline void op_0xbd(); inline void op_0xbe(); inline void op_0xbf(); 
-    inline void op_0xc0(); inline void op_0xc1(); inline void op_0xc2(); inline void op_0xc3(); inline void op_0xc4(); inline void op_0xc5(); inline void op_0xc6(); inline void op_0xc7(); 
-    inline void op_0xc8(); inline void op_0xc9(); inline void op_0xca(); inline void op_0xcb(); inline void op_0xcc(); inline void op_0xcd(); inline void op_0xce(); inline void op_0xcf(); 
-    inline void op_0xd0(); inline void op_0xd1(); inline void op_0xd2(); inline void op_0xd3(); inline void op_0xd4(); inline void op_0xd5(); inline void op_0xd6(); inline void op_0xd7(); 
-    inline void op_0xd8(); inline void op_0xd9(); inline void op_0xda(); inline void op_0xdb(); inline void op_0xdc(); inline void op_0xdd(); inline void op_0xde(); inline void op_0xdf(); 
-    inline void op_0xe0(); inline void op_0xe1(); inline void op_0xe2(); inline void op_0xe3(); inline void op_0xe4(); inline void op_0xe5(); inline void op_0xe6(); inline void op_0xe7(); 
-    inline void op_0xe8(); inline void op_0xe9(); inline void op_0xea(); inline void op_0xeb(); inline void op_0xec(); inline void op_0xed(); inline void op_0xee(); inline void op_0xef(); 
-    inline void op_0xf0(); inline void op_0xf1(); inline void op_0xf2(); inline void op_0xf3(); inline void op_0xf4(); inline void op_0xf5(); inline void op_0xf6(); inline void op_0xf7(); 
-    inline void op_0xf8(); inline void op_0xf9(); inline void op_0xfa(); inline void op_0xfb(); inline void op_0xfc(); inline void op_0xfd(); inline void op_0xfe(); inline void op_0xff(); 
+    void op_0x00();  void op_0x01();  void op_0x02();  void op_0x03();  void op_0x04();  void op_0x05();  void op_0x06();  void op_0x07(); 
+    void op_0x08();  void op_0x09();  void op_0x0a();  void op_0x0b();  void op_0x0c();  void op_0x0d();  void op_0x0e();  void op_0x0f(); 
+    void op_0x10();  void op_0x11();  void op_0x12();  void op_0x13();  void op_0x14();  void op_0x15();  void op_0x16();  void op_0x17(); 
+    void op_0x18();  void op_0x19();  void op_0x1a();  void op_0x1b();  void op_0x1c();  void op_0x1d();  void op_0x1e();  void op_0x1f(); 
+    void op_0x20();  void op_0x21();  void op_0x22();  void op_0x23();  void op_0x24();  void op_0x25();  void op_0x26();  void op_0x27(); 
+    void op_0x28();  void op_0x29();  void op_0x2a();  void op_0x2b();  void op_0x2c();  void op_0x2d();  void op_0x2e();  void op_0x2f(); 
+    void op_0x30();  void op_0x31();  void op_0x32();  void op_0x33();  void op_0x34();  void op_0x35();  void op_0x36();  void op_0x37(); 
+    void op_0x38();  void op_0x39();  void op_0x3a();  void op_0x3b();  void op_0x3c();  void op_0x3d();  void op_0x3e();  void op_0x3f(); 
+    void op_0x40();  void op_0x41();  void op_0x42();  void op_0x43();  void op_0x44();  void op_0x45();  void op_0x46();  void op_0x47(); 
+    void op_0x48();  void op_0x49();  void op_0x4a();  void op_0x4b();  void op_0x4c();  void op_0x4d();  void op_0x4e();  void op_0x4f(); 
+    void op_0x50();  void op_0x51();  void op_0x52();  void op_0x53();  void op_0x54();  void op_0x55();  void op_0x56();  void op_0x57(); 
+    void op_0x58();  void op_0x59();  void op_0x5a();  void op_0x5b();  void op_0x5c();  void op_0x5d();  void op_0x5e();  void op_0x5f(); 
+    void op_0x60();  void op_0x61();  void op_0x62();  void op_0x63();  void op_0x64();  void op_0x65();  void op_0x66();  void op_0x67(); 
+    void op_0x68();  void op_0x69();  void op_0x6a();  void op_0x6b();  void op_0x6c();  void op_0x6d();  void op_0x6e();  void op_0x6f(); 
+    void op_0x70();  void op_0x71();  void op_0x72();  void op_0x73();  void op_0x74();  void op_0x75();  void op_0x76();  void op_0x77(); 
+    void op_0x78();  void op_0x79();  void op_0x7a();  void op_0x7b();  void op_0x7c();  void op_0x7d();  void op_0x7e();  void op_0x7f(); 
+    void op_0x80();  void op_0x81();  void op_0x82();  void op_0x83();  void op_0x84();  void op_0x85();  void op_0x86();  void op_0x87(); 
+    void op_0x88();  void op_0x89();  void op_0x8a();  void op_0x8b();  void op_0x8c();  void op_0x8d();  void op_0x8e();  void op_0x8f(); 
+    void op_0x90();  void op_0x91();  void op_0x92();  void op_0x93();  void op_0x94();  void op_0x95();  void op_0x96();  void op_0x97(); 
+    void op_0x98();  void op_0x99();  void op_0x9a();  void op_0x9b();  void op_0x9c();  void op_0x9d();  void op_0x9e();  void op_0x9f(); 
+    void op_0xa0();  void op_0xa1();  void op_0xa2();  void op_0xa3();  void op_0xa4();  void op_0xa5();  void op_0xa6();  void op_0xa7(); 
+    void op_0xa8();  void op_0xa9();  void op_0xaa();  void op_0xab();  void op_0xac();  void op_0xad();  void op_0xae();  void op_0xaf(); 
+    void op_0xb0();  void op_0xb1();  void op_0xb2();  void op_0xb3();  void op_0xb4();  void op_0xb5();  void op_0xb6();  void op_0xb7(); 
+    void op_0xb8();  void op_0xb9();  void op_0xba();  void op_0xbb();  void op_0xbc();  void op_0xbd();  void op_0xbe();  void op_0xbf(); 
+    void op_0xc0();  void op_0xc1();  void op_0xc2();  void op_0xc3();  void op_0xc4();  void op_0xc5();  void op_0xc6();  void op_0xc7(); 
+    void op_0xc8();  void op_0xc9();  void op_0xca();  void op_0xcb();  void op_0xcc();  void op_0xcd();  void op_0xce();  void op_0xcf(); 
+    void op_0xd0();  void op_0xd1();  void op_0xd2();  void op_0xd3();  void op_0xd4();  void op_0xd5();  void op_0xd6();  void op_0xd7(); 
+    void op_0xd8();  void op_0xd9();  void op_0xda();  void op_0xdb();  void op_0xdc();  void op_0xdd();  void op_0xde();  void op_0xdf(); 
+    void op_0xe0();  void op_0xe1();  void op_0xe2();  void op_0xe3();  void op_0xe4();  void op_0xe5();  void op_0xe6();  void op_0xe7(); 
+    void op_0xe8();  void op_0xe9();  void op_0xea();  void op_0xeb();  void op_0xec();  void op_0xed();  void op_0xee();  void op_0xef(); 
+    void op_0xf0();  void op_0xf1();  void op_0xf2();  void op_0xf3();  void op_0xf4();  void op_0xf5();  void op_0xf6();  void op_0xf7(); 
+    void op_0xf8();  void op_0xf9();  void op_0xfa();  void op_0xfb();  void op_0xfc();  void op_0xfd();  void op_0xfe();  void op_0xff(); 
 
-    inline void op_cb_0x00(); inline void op_cb_0x01(); inline void op_cb_0x02(); inline void op_cb_0x03(); inline void op_cb_0x04(); inline void op_cb_0x05(); inline void op_cb_0x06(); inline void op_cb_0x07(); 
-    inline void op_cb_0x08(); inline void op_cb_0x09(); inline void op_cb_0x0a(); inline void op_cb_0x0b(); inline void op_cb_0x0c(); inline void op_cb_0x0d(); inline void op_cb_0x0e(); inline void op_cb_0x0f(); 
-    inline void op_cb_0x10(); inline void op_cb_0x11(); inline void op_cb_0x12(); inline void op_cb_0x13(); inline void op_cb_0x14(); inline void op_cb_0x15(); inline void op_cb_0x16(); inline void op_cb_0x17(); 
-    inline void op_cb_0x18(); inline void op_cb_0x19(); inline void op_cb_0x1a(); inline void op_cb_0x1b(); inline void op_cb_0x1c(); inline void op_cb_0x1d(); inline void op_cb_0x1e(); inline void op_cb_0x1f(); 
-    inline void op_cb_0x20(); inline void op_cb_0x21(); inline void op_cb_0x22(); inline void op_cb_0x23(); inline void op_cb_0x24(); inline void op_cb_0x25(); inline void op_cb_0x26(); inline void op_cb_0x27(); 
-    inline void op_cb_0x28(); inline void op_cb_0x29(); inline void op_cb_0x2a(); inline void op_cb_0x2b(); inline void op_cb_0x2c(); inline void op_cb_0x2d(); inline void op_cb_0x2e(); inline void op_cb_0x2f(); 
-    inline void op_cb_0x30(); inline void op_cb_0x31(); inline void op_cb_0x32(); inline void op_cb_0x33(); inline void op_cb_0x34(); inline void op_cb_0x35(); inline void op_cb_0x36(); inline void op_cb_0x37(); 
-    inline void op_cb_0x38(); inline void op_cb_0x39(); inline void op_cb_0x3a(); inline void op_cb_0x3b(); inline void op_cb_0x3c(); inline void op_cb_0x3d(); inline void op_cb_0x3e(); inline void op_cb_0x3f(); 
-    inline void op_cb_0x40(); inline void op_cb_0x41(); inline void op_cb_0x42(); inline void op_cb_0x43(); inline void op_cb_0x44(); inline void op_cb_0x45(); inline void op_cb_0x46(); inline void op_cb_0x47(); 
-    inline void op_cb_0x48(); inline void op_cb_0x49(); inline void op_cb_0x4a(); inline void op_cb_0x4b(); inline void op_cb_0x4c(); inline void op_cb_0x4d(); inline void op_cb_0x4e(); inline void op_cb_0x4f(); 
-    inline void op_cb_0x50(); inline void op_cb_0x51(); inline void op_cb_0x52(); inline void op_cb_0x53(); inline void op_cb_0x54(); inline void op_cb_0x55(); inline void op_cb_0x56(); inline void op_cb_0x57(); 
-    inline void op_cb_0x58(); inline void op_cb_0x59(); inline void op_cb_0x5a(); inline void op_cb_0x5b(); inline void op_cb_0x5c(); inline void op_cb_0x5d(); inline void op_cb_0x5e(); inline void op_cb_0x5f(); 
-    inline void op_cb_0x60(); inline void op_cb_0x61(); inline void op_cb_0x62(); inline void op_cb_0x63(); inline void op_cb_0x64(); inline void op_cb_0x65(); inline void op_cb_0x66(); inline void op_cb_0x67(); 
-    inline void op_cb_0x68(); inline void op_cb_0x69(); inline void op_cb_0x6a(); inline void op_cb_0x6b(); inline void op_cb_0x6c(); inline void op_cb_0x6d(); inline void op_cb_0x6e(); inline void op_cb_0x6f(); 
-    inline void op_cb_0x70(); inline void op_cb_0x71(); inline void op_cb_0x72(); inline void op_cb_0x73(); inline void op_cb_0x74(); inline void op_cb_0x75(); inline void op_cb_0x76(); inline void op_cb_0x77(); 
-    inline void op_cb_0x78(); inline void op_cb_0x79(); inline void op_cb_0x7a(); inline void op_cb_0x7b(); inline void op_cb_0x7c(); inline void op_cb_0x7d(); inline void op_cb_0x7e(); inline void op_cb_0x7f(); 
-    inline void op_cb_0x80(); inline void op_cb_0x81(); inline void op_cb_0x82(); inline void op_cb_0x83(); inline void op_cb_0x84(); inline void op_cb_0x85(); inline void op_cb_0x86(); inline void op_cb_0x87(); 
-    inline void op_cb_0x88(); inline void op_cb_0x89(); inline void op_cb_0x8a(); inline void op_cb_0x8b(); inline void op_cb_0x8c(); inline void op_cb_0x8d(); inline void op_cb_0x8e(); inline void op_cb_0x8f(); 
-    inline void op_cb_0x90(); inline void op_cb_0x91(); inline void op_cb_0x92(); inline void op_cb_0x93(); inline void op_cb_0x94(); inline void op_cb_0x95(); inline void op_cb_0x96(); inline void op_cb_0x97(); 
-    inline void op_cb_0x98(); inline void op_cb_0x99(); inline void op_cb_0x9a(); inline void op_cb_0x9b(); inline void op_cb_0x9c(); inline void op_cb_0x9d(); inline void op_cb_0x9e(); inline void op_cb_0x9f(); 
-    inline void op_cb_0xa0(); inline void op_cb_0xa1(); inline void op_cb_0xa2(); inline void op_cb_0xa3(); inline void op_cb_0xa4(); inline void op_cb_0xa5(); inline void op_cb_0xa6(); inline void op_cb_0xa7(); 
-    inline void op_cb_0xa8(); inline void op_cb_0xa9(); inline void op_cb_0xaa(); inline void op_cb_0xab(); inline void op_cb_0xac(); inline void op_cb_0xad(); inline void op_cb_0xae(); inline void op_cb_0xaf(); 
-    inline void op_cb_0xb0(); inline void op_cb_0xb1(); inline void op_cb_0xb2(); inline void op_cb_0xb3(); inline void op_cb_0xb4(); inline void op_cb_0xb5(); inline void op_cb_0xb6(); inline void op_cb_0xb7(); 
-    inline void op_cb_0xb8(); inline void op_cb_0xb9(); inline void op_cb_0xba(); inline void op_cb_0xbb(); inline void op_cb_0xbc(); inline void op_cb_0xbd(); inline void op_cb_0xbe(); inline void op_cb_0xbf(); 
-    inline void op_cb_0xc0(); inline void op_cb_0xc1(); inline void op_cb_0xc2(); inline void op_cb_0xc3(); inline void op_cb_0xc4(); inline void op_cb_0xc5(); inline void op_cb_0xc6(); inline void op_cb_0xc7(); 
-    inline void op_cb_0xc8(); inline void op_cb_0xc9(); inline void op_cb_0xca(); inline void op_cb_0xcb(); inline void op_cb_0xcc(); inline void op_cb_0xcd(); inline void op_cb_0xce(); inline void op_cb_0xcf(); 
-    inline void op_cb_0xd0(); inline void op_cb_0xd1(); inline void op_cb_0xd2(); inline void op_cb_0xd3(); inline void op_cb_0xd4(); inline void op_cb_0xd5(); inline void op_cb_0xd6(); inline void op_cb_0xd7(); 
-    inline void op_cb_0xd8(); inline void op_cb_0xd9(); inline void op_cb_0xda(); inline void op_cb_0xdb(); inline void op_cb_0xdc(); inline void op_cb_0xdd(); inline void op_cb_0xde(); inline void op_cb_0xdf(); 
-    inline void op_cb_0xe0(); inline void op_cb_0xe1(); inline void op_cb_0xe2(); inline void op_cb_0xe3(); inline void op_cb_0xe4(); inline void op_cb_0xe5(); inline void op_cb_0xe6(); inline void op_cb_0xe7(); 
-    inline void op_cb_0xe8(); inline void op_cb_0xe9(); inline void op_cb_0xea(); inline void op_cb_0xeb(); inline void op_cb_0xec(); inline void op_cb_0xed(); inline void op_cb_0xee(); inline void op_cb_0xef(); 
-    inline void op_cb_0xf0(); inline void op_cb_0xf1(); inline void op_cb_0xf2(); inline void op_cb_0xf3(); inline void op_cb_0xf4(); inline void op_cb_0xf5(); inline void op_cb_0xf6(); inline void op_cb_0xf7(); 
-    inline void op_cb_0xf8(); inline void op_cb_0xf9(); inline void op_cb_0xfa(); inline void op_cb_0xfb(); inline void op_cb_0xfc(); inline void op_cb_0xfd(); inline void op_cb_0xfe(); inline void op_cb_0xff(); 
+    void op_cb_0x00();  void op_cb_0x01();  void op_cb_0x02();  void op_cb_0x03();  void op_cb_0x04();  void op_cb_0x05();  void op_cb_0x06();  void op_cb_0x07(); 
+    void op_cb_0x08();  void op_cb_0x09();  void op_cb_0x0a();  void op_cb_0x0b();  void op_cb_0x0c();  void op_cb_0x0d();  void op_cb_0x0e();  void op_cb_0x0f(); 
+    void op_cb_0x10();  void op_cb_0x11();  void op_cb_0x12();  void op_cb_0x13();  void op_cb_0x14();  void op_cb_0x15();  void op_cb_0x16();  void op_cb_0x17(); 
+    void op_cb_0x18();  void op_cb_0x19();  void op_cb_0x1a();  void op_cb_0x1b();  void op_cb_0x1c();  void op_cb_0x1d();  void op_cb_0x1e();  void op_cb_0x1f(); 
+    void op_cb_0x20();  void op_cb_0x21();  void op_cb_0x22();  void op_cb_0x23();  void op_cb_0x24();  void op_cb_0x25();  void op_cb_0x26();  void op_cb_0x27(); 
+    void op_cb_0x28();  void op_cb_0x29();  void op_cb_0x2a();  void op_cb_0x2b();  void op_cb_0x2c();  void op_cb_0x2d();  void op_cb_0x2e();  void op_cb_0x2f(); 
+    void op_cb_0x30();  void op_cb_0x31();  void op_cb_0x32();  void op_cb_0x33();  void op_cb_0x34();  void op_cb_0x35();  void op_cb_0x36();  void op_cb_0x37(); 
+    void op_cb_0x38();  void op_cb_0x39();  void op_cb_0x3a();  void op_cb_0x3b();  void op_cb_0x3c();  void op_cb_0x3d();  void op_cb_0x3e();  void op_cb_0x3f(); 
+    void op_cb_0x40();  void op_cb_0x41();  void op_cb_0x42();  void op_cb_0x43();  void op_cb_0x44();  void op_cb_0x45();  void op_cb_0x46();  void op_cb_0x47(); 
+    void op_cb_0x48();  void op_cb_0x49();  void op_cb_0x4a();  void op_cb_0x4b();  void op_cb_0x4c();  void op_cb_0x4d();  void op_cb_0x4e();  void op_cb_0x4f(); 
+    void op_cb_0x50();  void op_cb_0x51();  void op_cb_0x52();  void op_cb_0x53();  void op_cb_0x54();  void op_cb_0x55();  void op_cb_0x56();  void op_cb_0x57(); 
+    void op_cb_0x58();  void op_cb_0x59();  void op_cb_0x5a();  void op_cb_0x5b();  void op_cb_0x5c();  void op_cb_0x5d();  void op_cb_0x5e();  void op_cb_0x5f(); 
+    void op_cb_0x60();  void op_cb_0x61();  void op_cb_0x62();  void op_cb_0x63();  void op_cb_0x64();  void op_cb_0x65();  void op_cb_0x66();  void op_cb_0x67(); 
+    void op_cb_0x68();  void op_cb_0x69();  void op_cb_0x6a();  void op_cb_0x6b();  void op_cb_0x6c();  void op_cb_0x6d();  void op_cb_0x6e();  void op_cb_0x6f(); 
+    void op_cb_0x70();  void op_cb_0x71();  void op_cb_0x72();  void op_cb_0x73();  void op_cb_0x74();  void op_cb_0x75();  void op_cb_0x76();  void op_cb_0x77(); 
+    void op_cb_0x78();  void op_cb_0x79();  void op_cb_0x7a();  void op_cb_0x7b();  void op_cb_0x7c();  void op_cb_0x7d();  void op_cb_0x7e();  void op_cb_0x7f(); 
+    void op_cb_0x80();  void op_cb_0x81();  void op_cb_0x82();  void op_cb_0x83();  void op_cb_0x84();  void op_cb_0x85();  void op_cb_0x86();  void op_cb_0x87(); 
+    void op_cb_0x88();  void op_cb_0x89();  void op_cb_0x8a();  void op_cb_0x8b();  void op_cb_0x8c();  void op_cb_0x8d();  void op_cb_0x8e();  void op_cb_0x8f(); 
+    void op_cb_0x90();  void op_cb_0x91();  void op_cb_0x92();  void op_cb_0x93();  void op_cb_0x94();  void op_cb_0x95();  void op_cb_0x96();  void op_cb_0x97(); 
+    void op_cb_0x98();  void op_cb_0x99();  void op_cb_0x9a();  void op_cb_0x9b();  void op_cb_0x9c();  void op_cb_0x9d();  void op_cb_0x9e();  void op_cb_0x9f(); 
+    void op_cb_0xa0();  void op_cb_0xa1();  void op_cb_0xa2();  void op_cb_0xa3();  void op_cb_0xa4();  void op_cb_0xa5();  void op_cb_0xa6();  void op_cb_0xa7(); 
+    void op_cb_0xa8();  void op_cb_0xa9();  void op_cb_0xaa();  void op_cb_0xab();  void op_cb_0xac();  void op_cb_0xad();  void op_cb_0xae();  void op_cb_0xaf(); 
+    void op_cb_0xb0();  void op_cb_0xb1();  void op_cb_0xb2();  void op_cb_0xb3();  void op_cb_0xb4();  void op_cb_0xb5();  void op_cb_0xb6();  void op_cb_0xb7(); 
+    void op_cb_0xb8();  void op_cb_0xb9();  void op_cb_0xba();  void op_cb_0xbb();  void op_cb_0xbc();  void op_cb_0xbd();  void op_cb_0xbe();  void op_cb_0xbf(); 
+    void op_cb_0xc0();  void op_cb_0xc1();  void op_cb_0xc2();  void op_cb_0xc3();  void op_cb_0xc4();  void op_cb_0xc5();  void op_cb_0xc6();  void op_cb_0xc7(); 
+    void op_cb_0xc8();  void op_cb_0xc9();  void op_cb_0xca();  void op_cb_0xcb();  void op_cb_0xcc();  void op_cb_0xcd();  void op_cb_0xce();  void op_cb_0xcf(); 
+    void op_cb_0xd0();  void op_cb_0xd1();  void op_cb_0xd2();  void op_cb_0xd3();  void op_cb_0xd4();  void op_cb_0xd5();  void op_cb_0xd6();  void op_cb_0xd7(); 
+    void op_cb_0xd8();  void op_cb_0xd9();  void op_cb_0xda();  void op_cb_0xdb();  void op_cb_0xdc();  void op_cb_0xdd();  void op_cb_0xde();  void op_cb_0xdf(); 
+    void op_cb_0xe0();  void op_cb_0xe1();  void op_cb_0xe2();  void op_cb_0xe3();  void op_cb_0xe4();  void op_cb_0xe5();  void op_cb_0xe6();  void op_cb_0xe7(); 
+    void op_cb_0xe8();  void op_cb_0xe9();  void op_cb_0xea();  void op_cb_0xeb();  void op_cb_0xec();  void op_cb_0xed();  void op_cb_0xee();  void op_cb_0xef(); 
+    void op_cb_0xf0();  void op_cb_0xf1();  void op_cb_0xf2();  void op_cb_0xf3();  void op_cb_0xf4();  void op_cb_0xf5();  void op_cb_0xf6();  void op_cb_0xf7(); 
+    void op_cb_0xf8();  void op_cb_0xf9();  void op_cb_0xfa();  void op_cb_0xfb();  void op_cb_0xfc();  void op_cb_0xfd();  void op_cb_0xfe();  void op_cb_0xff(); 
 };
 
 #endif

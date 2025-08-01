@@ -2,11 +2,11 @@
 #include "cpu.cc"
 
 // load 
-inline void Cpu::ld(unsigned char& dest, unsigned char src) { dest = src; } 
+void Cpu::ld(unsigned char& dest, unsigned char src) { dest = src; } 
 
 // arithmetic
 
-inline void Cpu::opAdd(unsigned char val) 
+void Cpu::opAdd(unsigned char val) 
 {
     unsigned char tmp = A;
     A += val;
@@ -16,7 +16,7 @@ inline void Cpu::opAdd(unsigned char val)
     setNF(false);
 }
 
-inline void Cpu::opAdd(unsigned short val) 
+void Cpu::opAdd(unsigned short val) 
 {
     unsigned char tmp = getHL();
     unsigned char new_val = tmp + val;
@@ -27,7 +27,7 @@ inline void Cpu::opAdd(unsigned short val)
     setNF(false);
 }
 
-inline void Cpu::opAdc(unsigned char val) 
+void Cpu::opAdc(unsigned char val) 
 {
     unsigned char tmp = A;
     A += val + getCF(); 
@@ -38,7 +38,7 @@ inline void Cpu::opAdc(unsigned char val)
     setNF(false);
 }
 
-inline void Cpu::opSub(unsigned char val) 
+void Cpu::opSub(unsigned char val) 
 {
     unsigned char tmp = A;
     A -= val; 
@@ -48,7 +48,7 @@ inline void Cpu::opSub(unsigned char val)
     setNF(true);
 }
 
-inline void Cpu::opSbc(unsigned char val) 
+void Cpu::opSbc(unsigned char val) 
 {
     unsigned char tmp = A;
     A -= val + getCF(); 
@@ -59,7 +59,7 @@ inline void Cpu::opSbc(unsigned char val)
 }
 
 
-inline void Cpu::opCp(unsigned char val) 
+void Cpu::opCp(unsigned char val) 
 {
     unsigned char tmp = A - val;
     setCF(A < tmp); 
@@ -68,22 +68,22 @@ inline void Cpu::opCp(unsigned char val)
     setNF(true);
 }
 
-inline void Cpu::opInc(unsigned char& dest) {
+void Cpu::opInc(unsigned char& dest) {
     unsigned char tmp = dest++;
     setZF(!dest); 
     setHF((dest & 0b1111u) < (tmp & 0b1111u));
     setNF(false);
 }
 
-inline void Cpu::opInc(unsigned short& dest) { ++dest; }
+void Cpu::opInc(unsigned short& dest) { ++dest; }
 
-inline void Cpu::opInc(unsigned char& lo, unsigned char& hi) { hi += !(lo += 1); }
+void Cpu::opInc(unsigned char& lo, unsigned char& hi) { hi += !(lo += 1); }
 
 // TODO: decide what to do with this
-//inline void Cpu::opInc(std::function<unsigned short()> get, std::function<void(unsigned short)> set) { set(get() + 1); }
+//void Cpu::opInc(std::function<unsigned short()> get, std::function<void(unsigned short)> set) { set(get() + 1); }
 
 
-inline void Cpu::opDec(unsigned char& dest) {
+void Cpu::opDec(unsigned char& dest) {
     unsigned char tmp = dest--;
     dest -= 1; 
     setZF(!dest); 
@@ -91,16 +91,16 @@ inline void Cpu::opDec(unsigned char& dest) {
     setNF(true);
 }
 
-inline void Cpu::opDec(unsigned short& dest) { ++dest; }
+void Cpu::opDec(unsigned short& dest) { ++dest; }
 
-inline void Cpu::opDec(unsigned char& lo, unsigned char& hi) { hi -= ((lo -= 1) == (unsigned char)(-1)); }
+void Cpu::opDec(unsigned char& lo, unsigned char& hi) { hi -= ((lo -= 1) == (unsigned char)(-1)); }
 // TODO: like above
-//inline void Cpu::opDec(std::function<unsigned short()> get, std::function<void(unsigned short)> set) { set(get() - 1); }
+//void Cpu::opDec(std::function<unsigned short()> get, std::function<void(unsigned short)> set) { set(get() - 1); }
 
 
 // logic
 
-inline void Cpu::opAnd(unsigned char val) 
+void Cpu::opAnd(unsigned char val) 
 {
     A &= val; 
     F &= NULLF_MASK;
@@ -108,41 +108,41 @@ inline void Cpu::opAnd(unsigned char val)
     setZF(!A); 
 }
 
-inline void Cpu::opOr(unsigned char val) 
+void Cpu::opOr(unsigned char val) 
 {
     A &= val; 
     F &= NULLF_MASK;
     setZF(!A); 
 }
 
-inline void Cpu::opXor(unsigned char val)
+void Cpu::opXor(unsigned char val)
 {
     A ^= val; 
     F &= NULLF_MASK;
     setZF(!A); 
 }
 
-inline void Cpu::opCpl(unsigned char)
+void Cpu::opCpl(unsigned char)
 {
     A = ~A;
     F |= NF_MASK | HF_MASK;
 }
 
 //bit
-inline void Cpu::opBit(unsigned char shift, unsigned char val) 
+void Cpu::opBit(unsigned char shift, unsigned char val) 
 {
     setZF(val & 1u << shift);
     setNF(false);
     setHF(false);
 }
 
-inline void Cpu::opRes(unsigned char shift, unsigned char& dest) { dest &= ~(1u << shift); } 
+void Cpu::opRes(unsigned char shift, unsigned char& dest) { dest &= ~(1u << shift); } 
 
-inline void Cpu::opSet(unsigned char shift, unsigned char& dest) { dest |= (1u << shift); }
+void Cpu::opSet(unsigned char shift, unsigned char& dest) { dest |= (1u << shift); }
 
 // bitshift
 
-inline void Cpu::opRl(unsigned char& dest) 
+void Cpu::opRl(unsigned char& dest) 
 {
     bool new_CF = dest & 0b10000000u;
     dest = (dest << 1) + getCF();
@@ -151,7 +151,7 @@ inline void Cpu::opRl(unsigned char& dest)
     F &= ZF_MASK | CF_MASK;
 }
 
-inline void Cpu::opRla()
+void Cpu::opRla()
 {
     bool new_CF = A & 0b10000000u;
     A = (A << 1) + getCF();
@@ -160,7 +160,7 @@ inline void Cpu::opRla()
     F &= CF_MASK;
 }
 
-inline void Cpu::opRlc(unsigned char& dest)
+void Cpu::opRlc(unsigned char& dest)
 {
     bool last_set = dest & 0b10000000u;
     dest = (dest << 1) + last_set;
@@ -169,7 +169,7 @@ inline void Cpu::opRlc(unsigned char& dest)
     F &= ZF_MASK | CF_MASK;
 }
 
-inline void Cpu::opRlca()
+void Cpu::opRlca()
 {
     bool last_set = A & 0b10000000u;
     A = (A << 1) + last_set;
@@ -178,7 +178,7 @@ inline void Cpu::opRlca()
     F &= CF_MASK;
 }
 
-inline void Cpu::opRr(unsigned char& dest)
+void Cpu::opRr(unsigned char& dest)
 {
     bool new_CF = dest & 0b00000001u;
     dest = (dest >> 1) + getCF() * 0b10000000u;
@@ -187,7 +187,7 @@ inline void Cpu::opRr(unsigned char& dest)
     F &= ZF_MASK | CF_MASK;
 }
 
-inline void Cpu::opRra()
+void Cpu::opRra()
 {
     bool new_CF = A & 0b00000001u;
     A = (A >> 1) + getCF() * 0b10000000u;
@@ -196,7 +196,7 @@ inline void Cpu::opRra()
     F &= CF_MASK;
 }
 
-inline void Cpu::opRrc(unsigned char& dest)
+void Cpu::opRrc(unsigned char& dest)
 {
     bool last_set = dest & 0b00000001u;
     dest = (dest >> 1) + last_set * 0b10000000u;
@@ -205,7 +205,7 @@ inline void Cpu::opRrc(unsigned char& dest)
     F &= ZF_MASK | CF_MASK;
 }
 
-inline void Cpu::opRrca(unsigned char&)
+void Cpu::opRrca(unsigned char&)
 {
     bool new_CF = A & 0b00000001u;
     A = (A >> 1) + getCF() * 0b10000000u;
@@ -214,7 +214,7 @@ inline void Cpu::opRrca(unsigned char&)
     F &= CF_MASK;
 }
 
-inline void Cpu::opSla(unsigned char& dest)
+void Cpu::opSla(unsigned char& dest)
 {
     setCF(dest & 0b10000000u);
     dest <<= 1;
@@ -222,7 +222,7 @@ inline void Cpu::opSla(unsigned char& dest)
     F &= ZF_MASK | CF_MASK;
 }
 
-inline void Cpu::opSra(unsigned char& dest)
+void Cpu::opSra(unsigned char& dest)
 {
     setCF(dest & 0b00000001u);
     dest = (dest & 0b10000000u) + (dest >> 1);
@@ -230,7 +230,7 @@ inline void Cpu::opSra(unsigned char& dest)
     F &= ZF_MASK | CF_MASK;
 }
 
-inline void Cpu::opSrl(unsigned char& dest)
+void Cpu::opSrl(unsigned char& dest)
 {
     setCF(dest & 0b00000001u);
     dest >>= 1;
@@ -238,7 +238,7 @@ inline void Cpu::opSrl(unsigned char& dest)
     F &= ZF_MASK | CF_MASK;
 }
 
-inline void Cpu::opSwap(unsigned char& dest)
+void Cpu::opSwap(unsigned char& dest)
 {
     dest = (dest << 4) + (dest >> 4);
     setZF(!dest);
@@ -247,46 +247,46 @@ inline void Cpu::opSwap(unsigned char& dest)
 
 // jumps and subroutine
 
-inline void Cpu::opCall(unsigned short addr)
+void Cpu::opCall(unsigned short addr)
 {
     
 }   
 
-inline void Cpu::opJp(unsigned short addr)
+void Cpu::opJp(unsigned short addr)
 {
 
 }
 
-inline void Cpu::opJr(unsigned short addr)
+void Cpu::opJr(unsigned short addr)
 {
 
 }
 
-inline void Cpu::opRet()
+void Cpu::opRet()
 {
     
 }
 
-inline void Cpu::opReti()
+void Cpu::opReti()
 {
 
 }
 
-inline void Cpu::opRst()
+void Cpu::opRst()
 {
     
 }
 
 // carry flag
 
-inline void Cpu::opCcf()
+void Cpu::opCcf()
 {
     setCF(~getCF());
     setNF(false);
     setHF(false);
 }
 
-inline void Cpu::opScf()
+void Cpu::opScf()
 {
     setCF(true);
     F &= ZF_MASK | CF_MASK;
@@ -294,7 +294,7 @@ inline void Cpu::opScf()
 
 // stack manipulation
 
-inline void Cpu::opAdd(char val)
+void Cpu::opAdd(char val)
 {
     unsigned short tmp = SP;
     SP += val;
@@ -304,23 +304,23 @@ inline void Cpu::opAdd(char val)
 }
 
 // TODO: do this after memory management is done
-inline void Cpu::opPop(unsigned short& reg)
+void Cpu::opPop(unsigned short& reg)
 {
     
 }
 
 // TODO: do this after memory management is done
-inline void Cpu::opPush(unsigned short reg)
+void Cpu::opPush(unsigned short reg)
 {
     
 }
 
-inline void Cpu::opDi() { IME = false; }
+void Cpu::opDi() { IME = false; }
 
-inline void Cpu::opEi() { IME = true; }
+void Cpu::opEi() { IME = true; }
 
 // TODO: do this after handler is done
-inline void Cpu::opHalt()
+void Cpu::opHalt()
 {
     if (IME) 
     {
@@ -338,7 +338,7 @@ inline void Cpu::opHalt()
 
 // misc  
 
-inline void Cpu::opDaa()
+void Cpu::opDaa()
 {
     unsigned char tmp = A;
     setHF(false);
@@ -360,6 +360,6 @@ inline void Cpu::opDaa()
     setCF(A < tmp);
 }
 
-inline void Cpu::opNop() {}
+void Cpu::opNop() {}
 
-inline void Cpu::opStop() {/*most likely not gonna use*/}
+void Cpu::opStop() {/*most likely not gonna use*/}

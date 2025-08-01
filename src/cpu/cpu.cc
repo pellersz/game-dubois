@@ -1,46 +1,49 @@
 #include "cpu.h"
 
-inline unsigned short Cpu::getAF() { return (((short) A) << 8) + F; }
+unsigned short Cpu::getAF() { return (((short) A) << 8) + F; }
 
-inline unsigned short Cpu::getBC() { return (((short) B) << 8) + C; }
+unsigned short Cpu::getBC() { return (((short) B) << 8) + C; }
 
-inline unsigned short Cpu::getDE() { return (((short) D) << 8) + E; }
+unsigned short Cpu::getDE() { return (((short) D) << 8) + E; }
 
-inline unsigned short Cpu::getHL() { return (((short) H) << 8) + L; }
+unsigned short Cpu::getHL() { return (((short) H) << 8) + L; }
 
-inline bool Cpu::getZF() { return F & ZF_MASK; }
+bool Cpu::getZF() { return F & ZF_MASK; }
 
-inline bool Cpu::getNF() { return F & NF_MASK; }
+bool Cpu::getNF() { return F & NF_MASK; }
 
-inline bool Cpu::getHF() { return F & HF_MASK; }
+bool Cpu::getHF() { return F & HF_MASK; }
 
-inline bool Cpu::getCF() { return F & CF_MASK; }
+bool Cpu::getCF() { return F & CF_MASK; }
 
-inline void Cpu::setAF(unsigned short val) { F = val; A = val >> 8; }
+void Cpu::setAF(unsigned short val) { F = val; A = val >> 8; }
 
-inline void Cpu::setBC(unsigned short val) { C = val; B = val >> 8; }
+void Cpu::setBC(unsigned short val) { C = val; B = val >> 8; }
 
-inline void Cpu::setDE(unsigned short val) { E = val; D = val >> 8; }
+void Cpu::setDE(unsigned short val) { E = val; D = val >> 8; }
 
-inline void Cpu::setHL(unsigned short val) { L = val; H = val >> 8; }
+void Cpu::setHL(unsigned short val) { L = val; H = val >> 8; }
 
-inline void Cpu::setZF(bool val) { F |= val * 0b0001; } 
+void Cpu::setZF(bool val) { F |= val * 0b0001; } 
 
-inline void Cpu::setNF(bool val) { F |= val * 0b0010; }
+void Cpu::setNF(bool val) { F |= val * 0b0010; }
 
-inline void Cpu::setHF(bool val) { F |= val * 0b0100; }
+void Cpu::setHF(bool val) { F |= val * 0b0100; }
 
-inline void Cpu::setCF(bool val) { F |= val * 0b1000; }
+void Cpu::setCF(bool val) { F |= val * 0b1000; }
 
 // TODO: check if this is where the stack is supposed to go
-inline void Cpu::stackStep() { --SP; }
+void Cpu::stackStep() { --SP; }
 
-inline void Cpu::stackStepBack() { ++SP; }
+void Cpu::stackStepBack() { ++SP; }
 
-inline void Cpu::programCounterStep() { ++PC; }
+void Cpu::programCounterStep() { ++PC; }
 
 // TODO: getIF and getIE to implement
-inline unsigned char Cpu::getIF () { return 0; }
+unsigned char Cpu::getIF () { return 0; }
 
-inline unsigned char Cpu::getIE () { return 0; }
+unsigned char Cpu::getIE () { return 0; }
 
+void Cpu::executeRegular(unsigned char v) {
+
+}
