@@ -374,7 +374,7 @@ void Cpu::opStop() {/*most likely not gonna use*/}
 /////////////////////////////////////////////////////////////////
 
 
-void Cpu::op_0x00() {} 
+void Cpu::op_0x00() { opNop(); } 
 
 void Cpu::op_0x01() {} 
 
