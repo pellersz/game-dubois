@@ -1,5 +1,9 @@
 #include "cpu.h"
 
+Cpu::Cpu() {}
+
+Cpu::~Cpu() {}
+
 word Cpu::getAF() { return (((word) A) << 8) + F; }
 
 word Cpu::getBC() { return (((word) B) << 8) + C; }
