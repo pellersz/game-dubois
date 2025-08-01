@@ -1,11 +1,11 @@
 #ifndef MEM 
 #define MEM
 
+#include "types.h"
 
 class Memory {
 public:
-    Memory();
-    ~Memory();
+    byte& operator[](unsigned short);
 
 private:
     // starting addresses for memory sectors

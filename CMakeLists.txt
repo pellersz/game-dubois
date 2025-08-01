@@ -4,8 +4,17 @@ project(game_boi)
 add_executable(${PROJECT_NAME} src/main.cc)
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
+add_subdirectory(src/general)
+target_include_directories(${PROJECT_NAME} PUBLIC src/general)
+target_link_directories(${PROJECT_NAME} PRIVATE src/general)
+
 add_subdirectory(src/cpu)
 target_include_directories(${PROJECT_NAME} PUBLIC src/cpu)
 target_link_directories(${PROJECT_NAME} PRIVATE src/cpu)
 target_link_libraries(${PROJECT_NAME} cpu)
+
+add_subdirectory(src/mem)
+target_include_directories(${PROJECT_NAME} PUBLIC src/mem)
+target_link_directories(${PROJECT_NAME} PRIVATE src/mem)
+target_link_libraries(${PROJECT_NAME} mem)
 

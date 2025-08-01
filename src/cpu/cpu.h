@@ -1,11 +1,12 @@
 #ifndef CPU 
 #define CPU
 
-#include "../general/types.h"
+#include "types.h"
+#include "mem.h"
 
 class Cpu {
 public:
-    Cpu();
+    Cpu(Memory&);
     ~Cpu();
 
 protected:
@@ -29,6 +30,8 @@ protected:
   //word SP = 0xdfffu;
     word PC = 0;
     bool IME = false;
+
+    Memory& memory;
 
     word getAF();
     word getBC();

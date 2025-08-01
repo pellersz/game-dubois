@@ -1,6 +1,7 @@
 #include "cpu.h"
+#include "mem.h"
 
-Cpu::Cpu() {}
+Cpu::Cpu(Memory& memory) : memory(memory) {}
 
 Cpu::~Cpu() {}
 
