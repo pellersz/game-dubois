@@ -1,7 +1,9 @@
 #include "cpu.h"
 #include "mem.h"
+#include "scheduler.h"
+#include "types.h"
 
-Cpu::Cpu(Memory& memory) : memory(memory) {}
+Cpu::Cpu(Memory& memory, Scheduler& scheduler) : memory(memory), scheduler(scheduler) {}
 
 Cpu::~Cpu() {}
 
@@ -52,6 +54,30 @@ void Cpu::programCounterStep() { ++PC; }
 byte Cpu::getIF () { return 0; }
 
 byte Cpu::getIE () { return 0; }
+
+void Cpu::executeNext() { 
+    executeRegular(memory[PC]); 
+    programCounterStep();
+}
+
+u8 regular_cycles[] = {
+    1, 3, 2, 2, 1, 1, 2, 1, 3, 2, 2, 2, 1, 1, 2, 1,
+    1, 3, 2, 2, 1, 1, 2, 1, 3, 2, 2, 2, 1, 1, 2, 1, 
+    9, 3, 2, 2, 1, 1, 2, 1, 9, 2, 2, 2, 1, 1, 2, 1,
+    9, 3, 2, 2, 3, 3, 3, 1, 9, 2, 2, 2, 1, 1, 2, 1,
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1,
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1,
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1,
+    2, 2, 2, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1,
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1,
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1,
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1,
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1,
+    9, 3, 9, 4, 9, 4, 2, 4, 9, 4, 9, 0, 9, 6, 2, 4,
+    9, 3, 9, 0, 9, 4, 2, 4, 9, 4, 9, 0, 9, 0, 2, 4,
+    3, 3, 2, 0, 0, 4, 2, 4, 4, 1, 4, 0, 0, 0, 2, 4,
+    3, 3, 2, 1, 0, 4, 2, 4, 3, 2, 4, 1, 0, 0, 2, 4
+};
 
 // you might not like it, but this is peak instruction handling
 void Cpu::executeRegular(byte op_code) {
@@ -104,7 +130,7 @@ void Cpu::executeRegular(byte op_code) {
         case 0xb0: {op_0xb0(); break;} case 0xb1: {op_0xb1(); break;} case 0xb2: {op_0xb2(); break;} case 0xb3: {op_0xb3(); break;} 
         case 0xb4: {op_0xb4(); break;} case 0xb5: {op_0xb5(); break;} case 0xb6: {op_0xb6(); break;} case 0xb7: {op_0xb7(); break;} 
         case 0xb8: {op_0xb8(); break;} case 0xb9: {op_0xb9(); break;} case 0xba: {op_0xba(); break;} case 0xbb: {op_0xbb(); break;} 
-        case 0xbc: {op_0xbc(); break;} case 0xbd: {op_0xbd(); break;} case 0xbe: {op_0xbe(); break;} case 0xbf: {op_0xbf(); break;} 
+        case 0xbc: {op_0xbc();return;} case 0xbd: {op_0xbd(); break;} case 0xbe: {op_0xbe(); break;} case 0xbf: {op_0xbf(); break;} 
         case 0xc0: {op_0xc0(); break;} case 0xc1: {op_0xc1(); break;} case 0xc2: {op_0xc2(); break;} case 0xc3: {op_0xc3(); break;} 
         case 0xc4: {op_0xc4(); break;} case 0xc5: {op_0xc5(); break;} case 0xc6: {op_0xc6(); break;} case 0xc7: {op_0xc7(); break;} 
         case 0xc8: {op_0xc8(); break;} case 0xc9: {op_0xc9(); break;} case 0xca: {op_0xca(); break;} case 0xcb: {op_0xcb(); break;} 
@@ -122,7 +148,27 @@ void Cpu::executeRegular(byte op_code) {
         case 0xf8: {op_0xf8(); break;} case 0xf9: {op_0xf9(); break;} case 0xfa: {op_0xfa(); break;} case 0xfb: {op_0xfb(); break;} 
         case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {op_0xff(); break;}     
     }
+    scheduler.push(regular_cycles[op_code], CPU_EXEC);
 }
+
+u8 cb_cycles[] = {
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2
+};
 
 // you might not like it, but this is peak instruction handling
 void Cpu::executeBC(byte op_code) {
@@ -192,4 +238,5 @@ void Cpu::executeBC(byte op_code) {
         case 0xf8: {opCb_0xf8(); break;} case 0xf9: {opCb_0xf9(); break;} case 0xfa: {opCb_0xfa(); break;} case 0xfb: {opCb_0xfb(); break;} 
         case 0xfc: {opCb_0xfc(); break;} case 0xfd: {opCb_0xfd(); break;} case 0xfe: {opCb_0xfe(); break;} case 0xff: {opCb_0xff(); break;} 
     }
+    scheduler.push(cb_cycles[op_code], CPU_EXEC);
 }

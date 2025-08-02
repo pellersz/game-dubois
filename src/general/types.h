@@ -1,9 +1,10 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-typedef unsigned char byte;
-typedef unsigned short word;
 typedef char offs;
+typedef unsigned char byte;
+typedef unsigned char u8;
+typedef unsigned short word;
 
 class Word {
 

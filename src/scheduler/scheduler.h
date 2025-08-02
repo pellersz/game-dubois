@@ -3,20 +3,45 @@
 
 #include "cpu.h"
 #include "mem.h"
+#include <memory>
+#include <queue>
+#include <utility>
+#include <vector>
+
+typedef std::pair<unsigned long long, unsigned short> ProcessStart;
+
+enum Process {
+    CPU_EXEC,
+    UPDATE_TIME
+};
 
 class Scheduler {
-public:
-    enum class Ticks {
-        ONE = 1,
-        TWO = 2,
-        FOUR = 4
+public: 
+    Scheduler(Memory&);
+    void init(std::shared_ptr<Cpu>);
+    void push(u8, u8);
+    void pop();
+    void start();
+    void stop();
+
+private: 
+    class ProcessGreater
+    {
+    public:
+        bool operator()(ProcessStart a, ProcessStart b) { return a.first > b.first; }
     };
-    Scheduler(Cpu&, Memory&);
-    void tick(Ticks);
-private:
+
+    std::priority_queue<
+        ProcessStart,
+        std::vector<ProcessStart>,
+        ProcessGreater 
+    > schedule;
+
     unsigned long long time = 0;
-    Cpu& cpu;
+    std::shared_ptr<Cpu> cpu;
     Memory& memory;
+
+    void tick();
 };
 
 #endif

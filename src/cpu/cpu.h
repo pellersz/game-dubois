@@ -8,9 +8,10 @@ class Scheduler;
 
 class Cpu {
 public:
-    Cpu(Memory&);
+    Cpu(Memory&, Scheduler&);
     ~Cpu();
-
+    void executeNext();
+        
 protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
     static const byte ZF_MASK    = 0b00011111u;
