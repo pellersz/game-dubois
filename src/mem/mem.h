@@ -6,6 +6,8 @@
 class Memory {
 public:
     byte& operator[](unsigned short);
+    word operator()(unsigned short);
+    void writeWord(unsigned short, word);
 
 private:
     // starting addresses for memory sectors

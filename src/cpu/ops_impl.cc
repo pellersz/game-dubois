@@ -37,7 +37,6 @@ void Cpu::opAdc(byte val)
     A += val + getCF(); 
     setCF((A < tmp) || (A == tmp && getCF()));
     setZF(!A);
-    // TODO: see if this actually does what you want it to
     setHF((A & 0b1111u) < (tmp & 0b1111u));
     setNF(false);
 }
@@ -83,10 +82,6 @@ void Cpu::opInc(word& dest) { ++dest; }
 
 void Cpu::opInc(byte& lo, byte& hi) { hi += !(lo += 1); }
 
-// TODO: decide what to do with this
-//void Cpu::opInc(std::function<word()> get, std::function<void(word)> set) { set(get() + 1); }
-
-
 void Cpu::opDec(byte& dest) {
     byte tmp = dest--;
     dest -= 1; 
@@ -95,7 +90,7 @@ void Cpu::opDec(byte& dest) {
     setNF(true);
 }
 
-void Cpu::opDec(word& dest) { ++dest; }
+void Cpu::opDec(word& dest) { --dest; }
 
 void Cpu::opDec(byte& lo, byte& hi) { hi -= ((lo -= 1) == (byte)(-1)); }
 // TODO: like above
@@ -298,7 +293,7 @@ void Cpu::opScf()
 
 // stack manipulation
 
-void Cpu::opAdd(char val)
+void Cpu::opAdd(offs val)
 {
     word tmp = SP;
     SP += val;
@@ -307,16 +302,16 @@ void Cpu::opAdd(char val)
     setHF((SP & 0b1111u) < (tmp & 0b1111u));
 }
 
-// TODO: do this after memory management is done
 void Cpu::opPop(word& reg)
 {
-    
+    reg = memory(SP);
+    stack2StepBack();
 }
 
-// TODO: do this after memory management is done
 void Cpu::opPush(word reg)
 {
-    
+    memory.writeWord(SP, reg);
+    stack2Step();
 }
 
 void Cpu::opDi() { IME = false; }
@@ -328,7 +323,7 @@ void Cpu::opHalt()
 {
     if (IME) 
     {
-
+        
     }
     else if (!(getIE() & getIF()))
     {

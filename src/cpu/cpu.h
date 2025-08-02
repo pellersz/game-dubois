@@ -55,6 +55,8 @@ protected:
 
     void stackStep();
     void stackStepBack();
+    void stack2Step();
+    void stack2StepBack();
     void programCounterStep();
 
     void executeRegular(byte);
@@ -74,13 +76,9 @@ protected:
     void opInc(byte&);
     void opInc(word&);
     void opInc(byte&, byte&);
-    // TODO: decide what to do with these)
-    // void opInc(std::function<word()>, std::function<void(word)>);
     void opDec(byte&);
     void opDec(word&);
     void opDec(byte&, byte&);
-    // TODO: like above
-    // void opDec(std::function<word()>, std::function<void(word)>);
 
     // logic
     void opAnd(byte);
@@ -89,7 +87,7 @@ protected:
     void opCpl(byte);
 
     // bit
-    // the first char of this should be a number between 0-7
+    // the first byte of these should be a number between 0-7
     void opBit(byte, byte);
     void opRes(byte, byte&);
     void opSet(byte, byte&);
@@ -121,7 +119,7 @@ protected:
     void opScf();
 
     // stack manipulation
-    void opAdd(char);  //signed offset add to SP
+    void opAdd(offs);  //signed offset add to SP
     void opPop(word&);
     void opPush(word);
     

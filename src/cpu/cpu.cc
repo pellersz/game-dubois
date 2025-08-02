@@ -42,6 +42,10 @@ void Cpu::stackStep() { --SP; }
 
 void Cpu::stackStepBack() { ++SP; }
 
+void Cpu::stack2Step() { SP -= 2; }
+
+void Cpu::stack2StepBack() { SP += 2; }
+
 void Cpu::programCounterStep() { ++PC; }
 
 // TODO: getIF and getIE to implement
