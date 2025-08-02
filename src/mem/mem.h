@@ -1,5 +1,5 @@
-#ifndef MEM 
-#define MEM
+#ifndef MEM_H 
+#define MEM_H
 
 #include "types.h"
 
@@ -27,8 +27,11 @@ private:
     // IO ranges
     static const unsigned short JOYPAD           = 0xff00;
     static const unsigned short SERIAL_TRANSFER  = 0xff01;  // ends before 0xff03
-    static const unsigned short TIME_DIVISION    = 0xff04;  // ends before 0xff08
-    static const unsigned short INTERRUPTS       = 0xff0f;
+    static const unsigned short DIVIDER_REGISTER = 0xff04;  
+    static const unsigned short TIMER_COUNTER    = 0xff05;  
+    static const unsigned short TIMER_MODULO     = 0xff06;  
+    static const unsigned short TIMER_CONTROL    = 0xff07;  // just one byte  
+    static const unsigned short INTERRUPT_FLAG   = 0xff0f;
     static const unsigned short AUDIO            = 0xff10;  // ends before 0xff27
     static const unsigned short WAVE_PATTERN     = 0xff30;  
     static const unsigned short MISC             = 0xff40;  // ends before 0xff4c
@@ -36,7 +39,7 @@ private:
     static const unsigned short BOOT_ROM_MAPPING = 0xff50;
     static const unsigned short VRAM_DMA         = 0xff51;  //ends before 0xff56
     static const unsigned short BG_OBJ_PALLETTES = 0xff69;  //ends before 0xff6b
-    static const unsigned short WRAM_BANJ_SELECT = 0xff70; 
+    static const unsigned short WRAM_BANK_SELECT = 0xff70; 
 
     byte memory[0x10000];
 };

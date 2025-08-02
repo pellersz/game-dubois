@@ -1,8 +1,10 @@
-#ifndef CPU 
-#define CPU
+#ifndef CPU_H 
+#define CPU_H
 
 #include "types.h"
 #include "mem.h"
+
+class Scheduler;
 
 class Cpu {
 public:
@@ -11,12 +13,12 @@ public:
 
 protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
-    static const byte ZF_MASK = 0b00011111u;
-    static const byte NF_MASK = 0b00101111u;
-    static const byte HF_MASK = 0b01001111u;
-    static const byte CF_MASK = 0b10001111u;
+    static const byte ZF_MASK    = 0b00011111u;
+    static const byte NF_MASK    = 0b00101111u;
+    static const byte HF_MASK    = 0b01001111u;
+    static const byte CF_MASK    = 0b10001111u;
     static const byte NULLF_MASK = 0b00001111u;
-    static const byte ALLF_MASK = 0b11111111u;
+    static const byte ALLF_MASK  = 0b11111111u;
 
     byte A;
     byte F;
@@ -32,6 +34,7 @@ protected:
     bool IME = false;
 
     Memory& memory;
+    Scheduler& scheduler;
 
     word getAF();
     word getBC();

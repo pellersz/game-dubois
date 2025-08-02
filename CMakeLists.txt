@@ -18,3 +18,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC src/mem)
 target_link_directories(${PROJECT_NAME} PRIVATE src/mem)
 target_link_libraries(${PROJECT_NAME} mem)
 
+add_subdirectory(src/scheduler)
+target_include_directories(${PROJECT_NAME} PUBLIC src/scheduler)
+target_link_directories(${PROJECT_NAME} PRIVATE src/scheduler)
+target_link_libraries(${PROJECT_NAME} scheduler)
+
+
