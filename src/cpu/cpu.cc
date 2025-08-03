@@ -240,3 +240,4 @@ void Cpu::executeBC(byte op_code) {
     }
     scheduler.push(cb_cycles[op_code], CPU_EXEC);
 }
+

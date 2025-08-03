@@ -21,7 +21,7 @@ public:
     void init(std::shared_ptr<Cpu>);
     void push(u8, u8);
     void pop();
-    void start();
+    void run();
     void stop();
 
 private: 

@@ -3,7 +3,7 @@
 #include "mem.h"
 #include <memory>
 
-Scheduler::Scheduler(Memory& memory) : memory(memory) {}
+Scheduler::Scheduler(Memory& memory) : memory(memory) { schedule.push(ProcessStart(time, CPU_EXEC)); }
 
 void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
 
@@ -18,15 +18,20 @@ void Scheduler::pop()
     schedule.pop(); 
 }
 
-void Scheduler::start() {
-    
+void Scheduler::run() 
+{
+    while (true) {
+        if (schedule.top().first == time)
+            schedule.pop();
+        else
+            tick();
+    }
 }
 
-void Scheduler::stop() {
+void Scheduler::stop() {}
 
-}
-
-void Scheduler::tick() { 
+void Scheduler::tick() 
+{
     ++time;
 }
 
