@@ -9,7 +9,6 @@ public:
     word operator()(unsigned short);
     void writeWord(unsigned short, word);
 
-private:
     // starting addresses for memory sectors
     static const unsigned short ROMBANK0 = 0x0000;
     static const unsigned short ROMBANK1 = 0x4000;  // RombanK0 cannot be used 
@@ -41,6 +40,7 @@ private:
     static const unsigned short BG_OBJ_PALLETTES = 0xff69;  //ends before 0xff6b
     static const unsigned short WRAM_BANK_SELECT = 0xff70; 
 
+private: 
     byte memory[0x10000];
 };
 

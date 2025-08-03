@@ -22,7 +22,7 @@ void Scheduler::run()
 {
     while (true) {
         if (schedule.top().first == time)
-            schedule.pop();
+            pop();
         else
             tick();
     }

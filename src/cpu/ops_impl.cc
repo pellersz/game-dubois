@@ -263,7 +263,8 @@ void Cpu::opSwap(byte& dest)
 // TODO: implement these
 void Cpu::opCall(word addr)
 {
-    
+    opPush(PC);   
+    PC = addr;
 }
 
 void Cpu::opCall(bool jump, word addr)
@@ -277,10 +278,7 @@ void Cpu::opCall(bool jump, word addr)
     programCounterStep(3);
 }
 
-void Cpu::opJp(word addr)
-{
-
-}
+void Cpu::opJp(word addr) { PC = addr; }
 
 void Cpu::opJp(bool jump, word addr)
 {
@@ -293,10 +291,7 @@ void Cpu::opJp(bool jump, word addr)
     programCounterStep(3);
 }
 
-void Cpu::opJr(offs addr)
-{
-
-}
+void Cpu::opJr(offs addr) { PC += addr; }
 
 void Cpu::opJr(bool jump, offs addr)
 {
@@ -309,10 +304,7 @@ void Cpu::opJr(bool jump, offs addr)
     programCounterStep(2);
 }
 
-void Cpu::opRet()
-{
-    
-}
+void Cpu::opRet() { opPop(PC); }
 
 void Cpu::opRet(bool jump)
 {
@@ -327,13 +319,11 @@ void Cpu::opRet(bool jump)
 
 void Cpu::opReti()
 {
-
+    opRet();
+    opEi();
 }
 
-void Cpu::opRst(u8 val)
-{
-    
-}
+void Cpu::opRst(u8 addr) { opCall(8 * addr); }
 
 // carry flag
 
@@ -1489,3 +1479,4 @@ void Cpu::opCb_0xfd() { opSet(7, L); }
 void Cpu::opCb_0xfe() { opSet(7, memory[getHL()]); } 
 
 void Cpu::opCb_0xff() { opSet(7, A); }
+

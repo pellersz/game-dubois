@@ -11,6 +11,6 @@ int main() {
     auto cpu_ptr = std::make_shared<Cpu>(cpu);
     scheduler.init(cpu_ptr);
     memory[1] = 1;
-    std::cout << "I live " << (int)memory[1] << " " << " yes";
+    std::cout << "I live " << (int)memory[1];
     scheduler.run();
 }

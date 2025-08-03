@@ -50,12 +50,9 @@ void Cpu::stack2StepBack() { SP += 2; }
 
 void Cpu::programCounterStep(u8 count) { PC += count; }
 
-// TODO: getIF and getIE to implement
-byte Cpu::getIF () { return 0; }
+byte Cpu::getIF () { return memory(Memory::INTERRUPT_FLAG); }
 
-byte Cpu::getIE () { return 0; }
-
-
+byte Cpu::getIE () { return memory(Memory::IE_REG); }
 
 void Cpu::executeNext() { 
     executeRegular(memory[PC]); 
