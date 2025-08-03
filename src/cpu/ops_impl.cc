@@ -108,9 +108,6 @@ void Cpu::opDec(byte& dest) {
 void Cpu::opDec(word& dest) { --dest; }
 
 void Cpu::opDec(byte& lo, byte& hi) { hi -= ((lo -= 1) == (byte)(-1)); }
-// TODO: like above
-//void Cpu::opDec(std::function<word()> get, std::function<void(word)> set) { set(get() - 1); }
-
 
 // logic
 
@@ -260,7 +257,7 @@ void Cpu::opSwap(byte& dest)
 }
 
 // jumps and subroutine
-// TODO: implement these
+
 void Cpu::opCall(word addr)
 {
     opPush(PC);   
