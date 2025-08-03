@@ -48,20 +48,42 @@ void Cpu::stack2Step() { SP -= 2; }
 
 void Cpu::stack2StepBack() { SP += 2; }
 
-void Cpu::programCounterStep() { ++PC; }
+void Cpu::programCounterStep(u8 count) { PC += count; }
 
 // TODO: getIF and getIE to implement
 byte Cpu::getIF () { return 0; }
 
 byte Cpu::getIE () { return 0; }
 
+
+
 void Cpu::executeNext() { 
     executeRegular(memory[PC]); 
-    programCounterStep();
 }
 
-u8 regular_cycles[] = {
-    1, 3, 2, 2, 1, 1, 2, 1, 3, 2, 2, 2, 1, 1, 2, 1,
+u8 regular_bytes[] = 
+{
+    1, 3, 1, 1, 1, 1, 2, 1, 3, 1, 1, 1, 1, 1, 2, 1,
+    2, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1,
+    2, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1,
+    2, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 3, 3, 3, 1, 2, 1, 1, 1, 3, 0, 3, 3, 2, 1,
+    1, 1, 3, 0, 3, 1, 2, 1, 1, 1, 3, 0, 3, 0, 2, 1,
+    2, 1, 1, 0, 0, 1, 2, 1, 2, 1, 3, 0, 0, 0, 2, 1,
+    2, 1, 1, 1, 0, 1, 2, 1, 2, 1, 3, 1, 0, 0, 2, 1
+};
+
+u8 regular_cycles[] = 
+{
+    1, 3, 2, 2, 1, 1, 2, 1, 5, 2, 2, 2, 1, 1, 2, 1,
     1, 3, 2, 2, 1, 1, 2, 1, 3, 2, 2, 2, 1, 1, 2, 1, 
     9, 3, 2, 2, 1, 1, 2, 1, 9, 2, 2, 2, 1, 1, 2, 1,
     9, 3, 2, 2, 3, 3, 3, 1, 9, 2, 2, 2, 1, 1, 2, 1,
@@ -148,10 +170,32 @@ void Cpu::executeRegular(byte op_code) {
         case 0xf8: {op_0xf8(); break;} case 0xf9: {op_0xf9(); break;} case 0xfa: {op_0xfa(); break;} case 0xfb: {op_0xfb(); break;} 
         case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {op_0xff(); break;}     
     }
+    programCounterStep(regular_bytes[op_code]);
     scheduler.push(regular_cycles[op_code], CPU_EXEC);
 }
 
-u8 cb_cycles[] = {
+u8 cb_bytes[] = 
+{
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+};
+
+u8 cb_cycles[] = 
+{
     2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
     2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
     2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
@@ -238,6 +282,7 @@ void Cpu::executeBC(byte op_code) {
         case 0xf8: {opCb_0xf8(); break;} case 0xf9: {opCb_0xf9(); break;} case 0xfa: {opCb_0xfa(); break;} case 0xfb: {opCb_0xfb(); break;} 
         case 0xfc: {opCb_0xfc(); break;} case 0xfd: {opCb_0xfd(); break;} case 0xfe: {opCb_0xfe(); break;} case 0xff: {opCb_0xff(); break;} 
     }
+    programCounterStep(cb_bytes[op_code]);
     scheduler.push(cb_cycles[op_code], CPU_EXEC);
 }
 

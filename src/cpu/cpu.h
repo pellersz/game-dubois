@@ -61,14 +61,14 @@ protected:
     void stackStepBack();
     void stack2Step();
     void stack2StepBack();
-    void programCounterStep();
+    void programCounterStep(u8);
 
     void executeRegular(byte);
     void executeBC(byte);
 
     // load
-    void ld(byte&, byte);
-    void ld(word&, word);
+    void opLd(byte&, byte);
+    void opLd(word&, word);
 
     // arithmetic
     void opAdd(byte); 
