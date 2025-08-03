@@ -69,10 +69,12 @@ protected:
     // load
     void opLd(byte&, byte);
     void opLd(word&, word);
+    void opLd(byte&, byte&, word);
 
     // arithmetic
     void opAdd(byte); 
     void opAdd(word);
+    void opAddSP(offs);
     void opAdc(byte);
     void opSub(byte);
     void opSbc(byte);
@@ -88,7 +90,7 @@ protected:
     void opAnd(byte);
     void opOr(byte);
     void opXor(byte);
-    void opCpl(byte);
+    void opCpl();
 
     // bit
     // the first byte of these should be a number between 0-7
@@ -104,7 +106,7 @@ protected:
     void opRr(byte&);
     void opRra();
     void opRrc(byte&);
-    void opRrca(byte&);
+    void opRrca();
     void opSla(byte&);
     void opSra(byte&);
     void opSrl(byte&);
@@ -112,11 +114,15 @@ protected:
 
     // jump and subroutine
     void opCall(word);
+    void opCall(bool, word);
     void opJp(word);
-    void opJr(word);
+    void opJp(bool, word);
+    void opJr(offs);
+    void opJr(bool, offs);
     void opRet();
+    void opRet(bool);
     void opReti();
-    void opRst();
+    void opRst(u8);
 
     // carry flag
     void opCcf();
@@ -125,6 +131,7 @@ protected:
     // stack manipulation
     void opAdd(offs);  //signed offset add to SP
     void opPop(word&);
+    void opPop(byte&, byte&);
     void opPush(word);
     
     // interrup-related
