@@ -320,7 +320,7 @@ void Cpu::opReti()
     opEi();
 }
 
-void Cpu::opRst(u8 addr) { opCall(8 * addr); }
+void Cpu::opRst(u8 addr) { opCall(addr); }
 
 // carry flag
 
@@ -845,7 +845,7 @@ void Cpu::op_0xc5() { opPush(getBC()); }
 
 void Cpu::op_0xc6() { opAdd(memory[PC + 1]); } 
 
-void Cpu::op_0xc7() { opRst(0); } 
+void Cpu::op_0xc7() { opRst(8 * 0); } 
 
 void Cpu::op_0xc8() { opRet(getZF()); } 
 
@@ -861,7 +861,7 @@ void Cpu::op_0xcd() { opCall(memory(PC + 1)); }
 
 void Cpu::op_0xce() { opAdc(memory[PC + 1]); } 
 
-void Cpu::op_0xcf() { opRst(1); } 
+void Cpu::op_0xcf() { opRst(8 * 1); } 
 
 void Cpu::op_0xd0() { opRet(!getCF()); } 
 
@@ -877,7 +877,7 @@ void Cpu::op_0xd5() { opPush(getDE()); }
 
 void Cpu::op_0xd6() { opSub(memory[PC + 1]); } 
 
-void Cpu::op_0xd7() { opRst(2); } 
+void Cpu::op_0xd7() { opRst(8 * 2); } 
 
 void Cpu::op_0xd8() { opRet(getCF()); } 
 
@@ -893,7 +893,7 @@ void Cpu::op_0xdd() { opNop(); }
 
 void Cpu::op_0xde() { opSbc(memory[PC + 1]); } 
 
-void Cpu::op_0xdf() { opRst(3); } 
+void Cpu::op_0xdf() { opRst(8 * 3); } 
 
 void Cpu::op_0xe0() { opLd(memory[0x00ff + memory[PC + 1]], A); } 
 
@@ -909,7 +909,7 @@ void Cpu::op_0xe5() { opPush(getHL()); }
 
 void Cpu::op_0xe6() { opAnd(memory[PC + 1]); } 
 
-void Cpu::op_0xe7() { opRst(4); } 
+void Cpu::op_0xe7() { opRst(8 * 4); } 
 
 void Cpu::op_0xe8() { opAddSP(memory[PC + 1]); } 
 
@@ -925,7 +925,7 @@ void Cpu::op_0xed() { opNop(); }
 
 void Cpu::op_0xee() { opXor(memory[PC + 1]); } 
 
-void Cpu::op_0xef() { opRst(5); } 
+void Cpu::op_0xef() { opRst(8 * 5); } 
 
 void Cpu::op_0xf0() { opLd(A, memory[0xff00 + memory[PC + 1]]);} 
 
@@ -941,7 +941,7 @@ void Cpu::op_0xf5() { opPush(getAF()); }
 
 void Cpu::op_0xf6() { opOr(memory[PC + 1]); } 
 
-void Cpu::op_0xf7() { opRst(6); } 
+void Cpu::op_0xf7() { opRst(8 * 6); } 
 
 void Cpu::op_0xf8() { opLd(L, H, SP + memory[PC + 1]); } 
 
@@ -957,7 +957,7 @@ void Cpu::op_0xfd() { opNop(); }
 
 void Cpu::op_0xfe() { opCp(memory[PC + 1]); } 
 
-void Cpu::op_0xff() { opRst(7); } 
+void Cpu::op_0xff() { opRst(8 * 7); } 
 
 
 /////////////////////////////////////////////////////////////////

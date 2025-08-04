@@ -12,11 +12,14 @@ typedef std::pair<unsigned long long, unsigned short> ProcessStart;
 
 enum Process {
     CPU_EXEC,
-    UPDATE_TIME
+    UPDATE_DIV,
+    UPDATE_TIMA
 };
 
 class Scheduler {
 public: 
+    static const u8 CLOCKS_BETWEEN_DIV = 1;
+
     Scheduler(Memory&);
     void init(std::shared_ptr<Cpu>);
     void push(u8, u8);

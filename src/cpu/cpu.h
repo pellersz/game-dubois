@@ -8,6 +8,8 @@ class Scheduler;
 
 class Cpu {
 public:
+    static const u8 CLOCKS_BETWEEN_EXEC = 1;
+
     Cpu(Memory&, Scheduler&);
     ~Cpu();
     void executeNext();
