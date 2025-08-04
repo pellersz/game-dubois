@@ -15,7 +15,7 @@ void Scheduler::pop()
 {
     static byte last_val = memory[Memory::DIVIDER_REGISTER];
     switch (schedule.top().second) {
-        case CPU_EXEC: 
+        case CPU_EXEC:
         {
             // since only the cpu cares about controller input, it only should update before it
             controller.updatePressed();
@@ -55,6 +55,10 @@ void Scheduler::pop()
 
 void Scheduler::run() 
 {
+    if (cpu == nullptr) {
+        std::cout << "Initialize the cpu, bozo";
+        return;
+    }
     while (true) {
         if (schedule.top().first == time)
             pop();

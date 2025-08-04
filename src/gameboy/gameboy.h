@@ -8,14 +8,14 @@
 
 class GameBoy {
 public:
-    GameBoy();
+    GameBoy(Memory&, Controller&, Scheduler&, Cpu&);
     void run();
 
 private:
-    Memory memory;
-    Controller controller;
-    Scheduler scheduler;
-    Cpu cpu;
+    Memory& memory;
+    Controller& controller;
+    Scheduler& scheduler;
+    Cpu& cpu;
 };
 
 #endif

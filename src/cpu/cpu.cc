@@ -2,8 +2,6 @@
 #include "mem.h"
 #include "scheduler.h"
 #include "types.h"
-#include <iostream>
-#include <ostream>
 
 // without this, the cycle definions would be too long
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
@@ -55,30 +53,22 @@ void Cpu::stack2StepBack() { SP += 2; }
 
 void Cpu::programCounterStep(u8 count) { PC += count; }
 
-byte& Cpu::getMutIF() { std::cout << "if" << std::endl; return memory[Memory::INTERRUPT_FLAG]; }
+byte& Cpu::getMutIF() { return memory[Memory::INTERRUPT_FLAG]; }
 
-byte& Cpu::getMutIE() { std::cout << "ie" << std::endl; return memory[Memory::IE_REG]; }
+byte& Cpu::getMutIE() { return memory[Memory::IE_REG]; }
 
 void Cpu::executeNext() {
-    std::cout << "fuck this" << std::endl;
-    byte b = A;
-    std::cout << "hiii" << std::endl;
     if (halted && (getMutIE() & getMutIF()))
         halted = false;
 
-    std::cout << "hi1" << std::endl;
     if (handleInterupts())
-            std::cout << "hi2" << std::endl;
-
         return;
+
     if (!halted) 
     {
-            std::cout << "hi3" << std::endl;
-
         executeRegular(memory[PC]); 
         return;
     }  
-        std::cout << "hi4" << std::endl;
 
     scheduler.push(4 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
 }

@@ -5,6 +5,7 @@
 
 class Memory {
 public:
+    // TODO: DIV register behavior
     byte& operator[](unsigned short);
     word operator()(unsigned short);
     void writeWord(unsigned short, word);
@@ -68,9 +69,9 @@ public:
     static const unsigned short OBJ_PAL_1_DATA   = 0xff49;
     static const unsigned short WINDOW_Y         = 0xff4a;
     static const unsigned short WINDOW_X         = 0xff4b;
-    static const unsigned short CPU_MODE_SELECT  = 0xff4c;
-    static const unsigned short PREP_SPD_SWITCH  = 0xff4d;  // just one byte
-    static const unsigned short VRAM_BANK_SELECT = 0xff4f;
+    static const unsigned short CPU_MODE_SELECT  = 0xff4c;  // CGB only
+    static const unsigned short PREP_SPD_SWITCH  = 0xff4d;  // just one byte + CGB only
+    static const unsigned short VRAM_BANK_SELECT = 0xff4f;  // CGB
     static const unsigned short BOOT_ROM_MAPPING = 0xff50;
     static const unsigned short VRAM_DMA         = 0xff51;  //ends before 0xff56
     static const unsigned short BG_OBJ_PALLETTES = 0xff69;  //ends before 0xff6b

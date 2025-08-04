@@ -42,8 +42,8 @@ private:
     > schedule;
 
     unsigned long long time = 0;
-    std::shared_ptr<Cpu> cpu;
-    Memory& memory;
+    std::shared_ptr<Cpu> cpu = nullptr;
+    Memory &memory;
     Controller& controller;
 
     void tick();
