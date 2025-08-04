@@ -2,19 +2,26 @@
 #include "cpu.h"
 #include "mem.h"
 #include "types.h"
+#include <iostream>
 #include <memory>
 
-Scheduler::Scheduler(Memory& memory) : memory(memory) { schedule.push(ProcessStart(time, CPU_EXEC)); }
+Scheduler::Scheduler(Memory& memory, Controller& controller) : memory(memory), controller(controller) { schedule.push(ProcessStart(time, CPU_EXEC)); }
 
 void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
 
-void Scheduler::push(u8 duration, u8 process) { schedule.push(ProcessStart(time + duration, process)); }
+void Scheduler::push(u8 duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
 void Scheduler::pop() 
 {
     static byte last_val = memory[Memory::DIVIDER_REGISTER];
     switch (schedule.top().second) {
-        case CPU_EXEC: { cpu->executeNext() ; break; }
+        case CPU_EXEC: 
+        {
+            // since only the cpu cares about controller input, it only should update before it
+            controller.updatePressed();
+            cpu->executeNext();
+            break; 
+        }
         case UPDATE_DIV: 
         {
             byte& divider = memory[Memory::DIVIDER_REGISTER];
@@ -58,8 +65,5 @@ void Scheduler::run()
 
 void Scheduler::stop() {}
 
-void Scheduler::tick() 
-{
-    ++time;
-}
+void Scheduler::tick() { ++time; }
 

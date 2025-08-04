@@ -2,6 +2,8 @@
 #include "mem.h"
 #include "scheduler.h"
 #include "types.h"
+#include <iostream>
+#include <ostream>
 
 // without this, the cycle definions would be too long
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
@@ -53,12 +55,32 @@ void Cpu::stack2StepBack() { SP += 2; }
 
 void Cpu::programCounterStep(u8 count) { PC += count; }
 
-byte Cpu::getIF () { return memory(Memory::INTERRUPT_FLAG); }
+byte& Cpu::getMutIF() { std::cout << "if" << std::endl; return memory[Memory::INTERRUPT_FLAG]; }
 
-byte Cpu::getIE () { return memory(Memory::IE_REG); }
+byte& Cpu::getMutIE() { std::cout << "ie" << std::endl; return memory[Memory::IE_REG]; }
 
-void Cpu::executeNext() { 
-    executeRegular(memory[PC]); 
+void Cpu::executeNext() {
+    std::cout << "fuck this" << std::endl;
+    byte b = A;
+    std::cout << "hiii" << std::endl;
+    if (halted && (getMutIE() & getMutIF()))
+        halted = false;
+
+    std::cout << "hi1" << std::endl;
+    if (handleInterupts())
+            std::cout << "hi2" << std::endl;
+
+        return;
+    if (!halted) 
+    {
+            std::cout << "hi3" << std::endl;
+
+        executeRegular(memory[PC]); 
+        return;
+    }  
+        std::cout << "hi4" << std::endl;
+
+    scheduler.push(4 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
 }
 
 u8 regular_bytes[] =  
@@ -285,5 +307,26 @@ void Cpu::executeBC(byte op_code) {
     }
     programCounterStep(cb_bytes[op_code]);
     scheduler.push(cb_cycles[op_code], CPU_EXEC);
+}
+
+bool Cpu::handleInterupts() 
+{
+    byte& IE = getMutIE(), IF = getMutIF();
+    if (IME && (IF & IE)) 
+    {
+        for (int i = 1; i <= 8; ++i) 
+        {
+            if ((1 << i) & IE & IF) 
+            {
+                halted = false;
+                IME = false;
+                IF ^= ~(1 << i);
+                opCall(0x40 + (i - 1) * 8);
+                scheduler.push(5 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 

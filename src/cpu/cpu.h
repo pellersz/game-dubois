@@ -35,9 +35,11 @@ protected:
   //word SP = 0xdfffu;
     word PC = 0;
     bool IME = false;
+    bool halted = false;
 
     Memory& memory;
     Scheduler& scheduler;
+    // while the cpu does not communicate with the joypad directly, the implementation will be simpler like this
 
     word getAF();
     word getBC();
@@ -56,8 +58,8 @@ protected:
     void setHF(bool);
     void setCF(bool);
 
-    byte getIF();
-    byte getIE();
+    byte& getMutIF();
+    byte& getMutIE();
 
     void stackStep();
     void stackStepBack();
@@ -67,6 +69,7 @@ protected:
 
     void executeRegular(byte);
     void executeBC(byte);
+    bool handleInterupts();
 
     // load
     void opLd(byte&, byte);

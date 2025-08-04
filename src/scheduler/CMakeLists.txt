@@ -5,4 +5,5 @@ add_library(scheduler scheduler.cc)
 target_include_directories(scheduler PRIVATE ../general)
 target_include_directories(scheduler PRIVATE ../cpu)
 target_include_directories(scheduler PRIVATE ../mem)
+target_include_directories(scheduler PRIVATE ../controller)
 

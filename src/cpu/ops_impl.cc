@@ -9,7 +9,9 @@
 
 // load 
 void Cpu::opLd(byte& dest, byte src) { dest = src; } 
+
 void Cpu::opLd(word& dest, word src) { dest = src; }
+
 void Cpu::opLd(byte& dest_lo, byte& dest_hi, word src) 
 { 
     dest_hi = src >> 8;
@@ -371,22 +373,7 @@ void Cpu::opDi() { IME = false; }
 
 void Cpu::opEi() { IME = true; }
 
-// TODO: do this after handler is done
-void Cpu::opHalt()
-{
-    if (IME) 
-    {
-        
-    }
-    else if (!(getIE() & getIF()))
-    {
-
-    }
-    else 
-    {
-
-    }
-}
+void Cpu::opHalt() { halted = true; }
 
 // misc  
 

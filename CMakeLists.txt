@@ -4,6 +4,11 @@ project(game_boi)
 add_executable(${PROJECT_NAME} src/main.cc)
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
+add_subdirectory(src/gameboy)
+target_include_directories(${PROJECT_NAME} PUBLIC src/gameboy)
+target_link_directories(${PROJECT_NAME} PRIVATE src/gameboy)
+target_link_libraries(${PROJECT_NAME} gameboy)
+
 add_subdirectory(src/general)
 target_include_directories(${PROJECT_NAME} PUBLIC src/general)
 target_link_directories(${PROJECT_NAME} PRIVATE src/general)
@@ -23,4 +28,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC src/scheduler)
 target_link_directories(${PROJECT_NAME} PRIVATE src/scheduler)
 target_link_libraries(${PROJECT_NAME} scheduler)
 
+add_subdirectory(src/controller)
+target_include_directories(${PROJECT_NAME} PUBLIC src/controller)
+target_link_directories(${PROJECT_NAME} PRIVATE src/controller)
+target_link_libraries(${PROJECT_NAME} controller)
 
