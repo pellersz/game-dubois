@@ -23,18 +23,18 @@ protected:
     static const byte NULLF_MASK = 0b00001111u;
     static const byte ALLF_MASK  = 0b11111111u;
 
-    byte A;
-    byte F;
-    byte B;
-    byte C;
-    byte D;
-    byte E;
-    byte H;
-    byte L;
-    word SP = 0xa000u;
+    byte a;
+    byte f;
+    byte b;
+    byte c;
+    byte d;
+    byte e;
+    byte h;
+    byte l;
+    word sp = 0xa000u;
   //word SP = 0xdfffu;
-    word PC = 0;
-    bool IME = false;
+    word pc = 0;
+    bool ime = false;
     bool halted = false;
 
     Memory& memory;

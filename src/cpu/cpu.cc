@@ -10,48 +10,48 @@ Cpu::Cpu(Memory& memory, Scheduler& scheduler) : memory(memory), scheduler(sched
 
 Cpu::~Cpu() {}
 
-word Cpu::getAF() { return (((word) A) << 8) + F; }
+word Cpu::getAF() { return (((word) a) << 8) + f; }
 
-word Cpu::getBC() { return (((word) B) << 8) + C; }
+word Cpu::getBC() { return (((word) b) << 8) + c; }
 
-word Cpu::getDE() { return (((word) D) << 8) + E; }
+word Cpu::getDE() { return (((word) d) << 8) + e; }
 
-word Cpu::getHL() { return (((word) H) << 8) + L; }
+word Cpu::getHL() { return (((word) h) << 8) + l; }
 
-bool Cpu::getZF() { return F & ZF_MASK; }
+bool Cpu::getZF() { return f & ZF_MASK; }
 
-bool Cpu::getNF() { return F & NF_MASK; }
+bool Cpu::getNF() { return f & NF_MASK; }
 
-bool Cpu::getHF() { return F & HF_MASK; }
+bool Cpu::getHF() { return f & HF_MASK; }
 
-bool Cpu::getCF() { return F & CF_MASK; }
+bool Cpu::getCF() { return f & CF_MASK; }
 
-void Cpu::setAF(word val) { F = val; A = val >> 8; }
+void Cpu::setAF(word val) { f = val; a = val >> 8; }
 
-void Cpu::setBC(word val) { C = val; B = val >> 8; }
+void Cpu::setBC(word val) { c = val; b = val >> 8; }
 
-void Cpu::setDE(word val) { E = val; D = val >> 8; }
+void Cpu::setDE(word val) { e = val; d = val >> 8; }
 
-void Cpu::setHL(word val) { L = val; H = val >> 8; }
+void Cpu::setHL(word val) { l = val; h = val >> 8; }
 
-void Cpu::setZF(bool val) { F |= val * 0b0001; } 
+void Cpu::setZF(bool val) { f |= val * 0b0001; } 
 
-void Cpu::setNF(bool val) { F |= val * 0b0010; }
+void Cpu::setNF(bool val) { f |= val * 0b0010; }
 
-void Cpu::setHF(bool val) { F |= val * 0b0100; }
+void Cpu::setHF(bool val) { f |= val * 0b0100; }
 
-void Cpu::setCF(bool val) { F |= val * 0b1000; }
+void Cpu::setCF(bool val) { f |= val * 0b1000; }
 
 // TODO: check if this is where the stack is supposed to go
-void Cpu::stackStep() { --SP; }
+void Cpu::stackStep() { --sp; }
 
-void Cpu::stackStepBack() { ++SP; }
+void Cpu::stackStepBack() { ++sp; }
 
-void Cpu::stack2Step() { SP -= 2; }
+void Cpu::stack2Step() { sp -= 2; }
 
-void Cpu::stack2StepBack() { SP += 2; }
+void Cpu::stack2StepBack() { sp += 2; }
 
-void Cpu::programCounterStep(u8 count) { PC += count; }
+void Cpu::programCounterStep(u8 count) { pc += count; }
 
 void Cpu::executeNext() {
     if (halted && (memory[Memory::IE_REG] & memory[Memory::INTERRUPT_FLAG]))
@@ -62,7 +62,7 @@ void Cpu::executeNext() {
 
     if (!halted) 
     {
-        executeRegular(memory[PC]); 
+        executeRegular(memory[pc]); 
         return;
     }  
 
@@ -296,17 +296,17 @@ void Cpu::executeBC(byte op_code) {
 }
 
 bool Cpu::handleInterupts() 
-{
-    byte& IE = memory[Memory::IE_REG], IF = memory[Memory::INTERRUPT_FLAG];
-    if (IME && (IF & IE)) 
+{         
+    byte& int_e = memory[Memory::IE_REG], int_f = memory[Memory::INTERRUPT_FLAG];
+    if (ime && (int_f & int_e)) 
     {
         for (int i = 1; i <= 8; ++i) 
         {
-            if ((1 << i) & IE & IF) 
+            if ((1 << i) & int_e & int_f) 
             {
                 halted = false;
-                IME = false;
-                IF ^= ~(1 << i);
+                ime = false;
+                int_f ^= ~(1 << i);
                 opCall(0x40 + (i - 1) * 8);
                 scheduler.push(5 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
                 return true;
