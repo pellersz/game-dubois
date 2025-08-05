@@ -6,13 +6,12 @@
 
 class Cartridge {
 public: 
-    Cartridge(std::string filename);
-    void loadCartridge(byte* dist);
-
-private:
     int size;
     byte *rom;
 
+    Cartridge(std::string filename);
+
+private: 
     long getFileSize(std::string filename); 
 };
 

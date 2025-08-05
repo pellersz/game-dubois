@@ -7,5 +7,6 @@ target_include_directories(gameboy PRIVATE ../general)
 target_include_directories(gameboy PRIVATE ../mem)
 target_include_directories(gameboy PRIVATE ../scheduler)
 target_include_directories(gameboy PRIVATE ../controller)
+target_include_directories(gameboy PRIVATE ../cartridge)
 
 target_link_libraries(gameboy PRIVATE controller)

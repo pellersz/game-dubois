@@ -1,9 +1,10 @@
-
 #include "controller.h"
 #include "gameboy.h"
 #include "mem.h"
 #include "scheduler.h"
 #include <memory>
+
+// TODO: be a bit more professional (declare when values are const consts)
 
 int main() {
     Memory mem;

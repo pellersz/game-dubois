@@ -33,3 +33,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC src/controller)
 target_link_directories(${PROJECT_NAME} PRIVATE src/controller)
 target_link_libraries(${PROJECT_NAME} controller)
 
+add_subdirectory(src/cartridge)
+target_include_directories(${PROJECT_NAME} PUBLIC src/cartridge)
+target_link_directories(${PROJECT_NAME} PRIVATE src/cartridge)
+target_link_libraries(${PROJECT_NAME} cartridge)
+
