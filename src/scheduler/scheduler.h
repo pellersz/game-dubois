@@ -12,7 +12,9 @@
 enum Process {
     CPU_EXEC,
     UPDATE_DIV,
-    UPDATE_TIMA
+    UPDATE_TIMA,
+    VBLANK,
+    LYC_LY_CMP
 };
 
 typedef std::pair<unsigned long long, Process> ProcessStart;
@@ -27,8 +29,11 @@ public:
     void pop();
     void run();
     void stop();
+    void statInterruptCheck();
 
 private: 
+    bool statInterruptLine = false;
+
     class ProcessGreater
     {
     public:

@@ -11,6 +11,7 @@ void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
 
 void Scheduler::push(u8 duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
+// TODO: WTF is the stat interrupt line
 void Scheduler::pop() 
 {
     static byte last_val = memory[Memory::DIVIDER_REGISTER];
@@ -48,6 +49,18 @@ void Scheduler::pop()
                     memory[Memory::INTERRUPT_FLAG] |= 0b0100;
                 }
             }
+            break;
+        }
+        case VBLANK: { memory[Memory::INTERRUPT_FLAG] |= 0b0001; }
+        case LYC_LY_CMP: 
+        { 
+            if (memory[Memory::LCD_Y] == memory[Memory::LCD_CONTROL]) 
+            {
+                memory[Memory::LCD_STAT] |= 0b0100;
+
+                break;
+            }
+            memory[Memory::LCD_STAT] &= 0b1011;
         }
     };
     schedule.pop(); 
@@ -68,6 +81,19 @@ void Scheduler::run()
 }
 
 void Scheduler::stop() {}
+
+// TODO: possibly make sure these work as they should
+void Scheduler::statInterruptCheck() 
+{
+    bool tmp = statInterruptLine;
+    byte& stat_register = memory[Memory::LCD_STAT];
+    statInterruptLine = ((stat_register & 0b01000000) && (stat_register & 0b0100))           || 
+                        ((stat_register & 0b00100000) && ((stat_register & 0b0011) == 0b10)) ||
+                        ((stat_register & 0b00010000) && ((stat_register & 0b0011) == 0b01)) ||
+                        ((stat_register & 0b00001000) && ((stat_register & 0b0011) == 0b00));
+    if (tmp < statInterruptLine) 
+        memory[Memory::INTERRUPT_FLAG] |= 0b0010;
+}
 
 void Scheduler::tick() { ++time; }
 

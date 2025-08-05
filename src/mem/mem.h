@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+// TODO: writability
+
 class Memory {
 public:
     // TODO: DIV register behavior

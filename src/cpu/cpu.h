@@ -58,9 +58,6 @@ protected:
     void setHF(bool);
     void setCF(bool);
 
-    byte& getMutIF();
-    byte& getMutIE();
-
     void stackStep();
     void stackStepBack();
     void stack2Step();
