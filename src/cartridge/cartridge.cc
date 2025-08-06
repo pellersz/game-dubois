@@ -18,7 +18,7 @@ Cartridge::Cartridge(std::string filename) {
     fread(rom, 1, size, file);
 }
 
-void Cartridge::loadCartridge(byte* dest) { memcpy(dest, rom, size); }
+Cartridge::~Cartridge() { delete[] rom; }
 
 long Cartridge::getFileSize(std::string filename) {
     struct stat stat_buf;

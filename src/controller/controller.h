@@ -16,9 +16,11 @@ public:
     static const byte DOWN_PRESSED   = 0b10000000;
 
     Controller(Memory&);
+    
     void buttonPressed(byte);
     void buttonReleased(byte);
     void updatePressed();
+
     Controller& operator=(Controller&);
 
 private:

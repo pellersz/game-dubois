@@ -15,7 +15,6 @@ public:
     void load(std::shared_ptr<Cartridge>);
     void unload();
     
-    bool powerUpSequence();
     void run();
 
 private:

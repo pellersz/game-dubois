@@ -38,7 +38,6 @@ void GameBoy::load(std::shared_ptr<Cartridge> cartridge_ptr)
 { 
     if(!memory.writeData(0, cartridge->size, cartridge->rom)) 
         return;
-    memory.writeData(0, 256, boot_rom);
     cartridge = cartridge_ptr;
 }
 
@@ -48,15 +47,15 @@ void GameBoy::run()
 { 
     if (cartridge == nullptr) 
     {
-        std::cout << "Load a cartridge first bozo";
+        std::cout << "Load a cartridge first bozo" << std::endl;
         return;
     }
-    
-    
+
+    memory.writeData(0, 256, boot_rom);   
+    // until bootrom is done
     scheduler.run(); 
-}
 
-bool GameBoy::powerUpSequence() {
-
+    memory.writeData(0, 256, cartridge->rom);
+    scheduler.run();
 }
 

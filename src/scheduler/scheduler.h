@@ -25,10 +25,12 @@ public:
 
     Scheduler(Memory&, Controller&);
     void init(std::shared_ptr<Cpu>);
+
     void push(u8, Process);
-    void pop();
+    bool pop();
     void run();
     void stop();
+
     void statInterruptCheck();
 
 private: 
@@ -50,6 +52,9 @@ private:
     std::shared_ptr<Cpu> cpu = nullptr;
     Memory &memory;
     Controller& controller;
+
+    byte last_div;
+    byte last_boot_rom;
 
     void tick();
 };

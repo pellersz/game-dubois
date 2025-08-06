@@ -5,34 +5,44 @@
 #include <iostream>
 #include <memory>
 
-Scheduler::Scheduler(Memory& memory, Controller& controller) : memory(memory), controller(controller) { schedule.push(ProcessStart(time, CPU_EXEC)); }
+Scheduler::Scheduler(Memory& memory, Controller& controller) : memory(memory), controller(controller) 
+{ 
+    last_div = memory[Memory::DIVIDER_REGISTER];
+    last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
+    schedule.push(ProcessStart(time, CPU_EXEC)); 
+}
+
 
 void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
 
 void Scheduler::push(u8 duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
-// TODO: WTF is the stat interrupt line
-void Scheduler::pop() 
+bool Scheduler::pop() 
 {
-    static byte last_val = memory[Memory::DIVIDER_REGISTER];
+    bool go_next = true;
+
     switch (schedule.top().second) {
         case CPU_EXEC:
         {
             // since only the cpu cares about controller input, it only should update before it
             controller.updatePressed();
             cpu->executeNext();
+            if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
+                    memory[Memory::BOOT_ROM_MAPPING] == 1)
+                go_next = false;
+
             break; 
         }
         case UPDATE_DIV: 
         {
             byte& divider = memory[Memory::DIVIDER_REGISTER];
             push((u8) 256, UPDATE_DIV);
-            if (divider == last_val) 
+            if (divider == last_div) 
             {
-                last_val = (++divider);
+                last_div = ++divider;
                 break;
             }
-            last_val = (divider = 0);
+            last_div = (divider = 0);
             break;
         } 
         case UPDATE_TIMA: 
@@ -64,6 +74,7 @@ void Scheduler::pop()
         }
     };
     schedule.pop(); 
+    return go_next;
 }
 
 void Scheduler::run() 
@@ -72,9 +83,11 @@ void Scheduler::run()
         std::cout << "Initialize the cpu, bozo";
         return;
     }
-    while (true) {
+
+    bool go_next = true;
+    while (go_next) {
         if (schedule.top().first == time)
-            pop();
+            go_next = pop();
         else
             tick();
     }

@@ -10,6 +10,7 @@ public:
     byte *rom;
 
     Cartridge(std::string filename);
+    ~Cartridge();
 
 private: 
     long getFileSize(std::string filename); 

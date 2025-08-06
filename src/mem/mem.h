@@ -4,12 +4,13 @@
 #include "types.h"
 
 // TODO: writability
+// TODO: OAM DMA transer
 
 class Memory {
 public:
-    // TODO: DIV register behavior
     byte& operator[](unsigned short);
     word operator()(unsigned short);
+
     void writeWord(unsigned short, word);
     bool writeData(unsigned short, unsigned short, const byte*);
 
@@ -17,6 +18,7 @@ public:
     static const unsigned short ROMBANK0 = 0x0000;
     static const unsigned short ROMBANK1 = 0x4000;   
     static const unsigned short VRAM     = 0x8000;
+    static const unsigned short TILES    = 0x8000;
     static const unsigned short EXT_RAM  = 0xa000;
     static const unsigned short WRAM0    = 0xc000;
     static const unsigned short WRAM1    = 0xd000;
