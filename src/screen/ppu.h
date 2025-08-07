@@ -28,15 +28,16 @@ private:
     class ObjectLine {
     public:
         u8 posX;
+        u8 internalY;
         u8 tileIndex;
         byte attributes;
 
         ObjectLine() {};
-        void draw();
     };
     
     u8 numberOfObjects = 0;
     ObjectLine objects[10];
+    byte win_y_counter = 0;
     
     void oamScan();
     void drawLine();
@@ -46,14 +47,24 @@ private:
     u8 getIndexFromWord(word);
 
     void drawBackgroundTile
-(
+    (
         u8 lcd_x,
         u8 lcd_y,
         u8 tile_offs, 
         u8 y_offs, 
         u8 color_indices[],
         bool lcdc_bit_4
-);
+    );
+
+    void drawObjectTile
+    (
+        u8 lcd_x,
+        u8 lcd_y,
+        u8 tile_offs, 
+        u8 y_offs, 
+        bool attribute_bit_5,
+        u8 color_indices[]
+    );
 
     void drawBackground();
     void drawWindow();
