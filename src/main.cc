@@ -5,6 +5,7 @@
 #include <memory>
 
 // TODO: be a bit more professional (declare when values are const consts)
+// TODO: have the constantly usable registers and such as class members, rather than asking the memory each time
 
 int main() {
     Memory mem;

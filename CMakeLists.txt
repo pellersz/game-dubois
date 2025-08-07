@@ -38,3 +38,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC src/cartridge)
 target_link_directories(${PROJECT_NAME} PRIVATE src/cartridge)
 target_link_libraries(${PROJECT_NAME} cartridge)
 
+add_subdirectory(src/screen)
+target_include_directories(${PROJECT_NAME} PUBLIC src/screen)
+target_link_directories(${PROJECT_NAME} PRIVATE src/screen)
+target_link_libraries(${PROJECT_NAME} screen)
+
+add_subdirectory(external/glfw)
+target_include_directories(${PROJECT_NAME} PUBLIC external/glfw)
+target_link_directories(${PROJECT_NAME} PRIVATE external/glfw/src)
+target_link_libraries(${PROJECT_NAME} glfw)

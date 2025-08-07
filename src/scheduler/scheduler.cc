@@ -64,6 +64,7 @@ bool Scheduler::pop()
         case VBLANK: { memory[Memory::INTERRUPT_FLAG] |= 0b0001; }
         case LYC_LY_CMP: 
         { 
+            push(1, LYC_LY_CMP);
             if (memory[Memory::LCD_Y] == memory[Memory::LCD_CONTROL]) 
             {
                 memory[Memory::LCD_STAT] |= 0b0100;

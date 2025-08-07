@@ -2,18 +2,25 @@
 #include "types.h"
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <string>
 #include <sys/stat.h>
 
 Cartridge::Cartridge(std::string filename) {
     size = getFileSize(filename);
-    if (size == -1)
-        throw "Could not get file size";
+    if (size == -1) 
+    {
+        std::cout << "Could not get file size";
+        throw 1;
+    }
     rom = new byte[size];
     
     FILE* file = fopen(filename.c_str(), "r");
     if (file == NULL)
-        throw "Could not open file for reading";
+    {
+        std::cout << "Could not open file for reading";
+        throw 2;
+    }
 
     fread(rom, 1, size, file);
 }

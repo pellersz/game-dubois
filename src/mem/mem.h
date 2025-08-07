@@ -19,6 +19,8 @@ public:
     static const unsigned short ROMBANK1 = 0x4000;   
     static const unsigned short VRAM     = 0x8000;
     static const unsigned short TILES    = 0x8000;
+    static const unsigned short TILE_M0  = 0x9800;
+    static const unsigned short TILE_M1  = 0x9c00;
     static const unsigned short EXT_RAM  = 0xa000;
     static const unsigned short WRAM0    = 0xc000;
     static const unsigned short WRAM1    = 0xd000;
