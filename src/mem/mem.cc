@@ -4,7 +4,7 @@
 
 byte& Memory::operator[](unsigned short ind) { return memory[ind]; }
 
-word Memory::operator()(unsigned short ind) { return ((word)memory[ind] << 8) + (word)memory[ind + 1]; }
+word Memory::operator()(unsigned short ind) { return ((word)memory[ind + 1] << 8) + (word)memory[ind]; }
 
 void Memory::writeWord(unsigned short ind, word val) {
     memory[ind] = val >> 8;       

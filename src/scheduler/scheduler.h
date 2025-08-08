@@ -19,7 +19,7 @@ enum Process {
     OAM_SCAN,
     DRAW_PIXELS,
     HBLANK,
-    HADNLE_CONTROL
+    HANDLE_CONTROL
 };
 
 typedef std::pair<unsigned long long, Process> ProcessStart;

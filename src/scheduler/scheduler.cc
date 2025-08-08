@@ -18,9 +18,14 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
 { 
     last_div = memory[Memory::DIVIDER_REGISTER];
     last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
-    schedule.push(ProcessStart(time, CPU_EXEC)); 
-}
 
+    schedule.push(ProcessStart(time, CPU_EXEC)); 
+    schedule.push(ProcessStart(time, UPDATE_DIV));
+    schedule.push(ProcessStart(time, UPDATE_TIMA));
+    schedule.push(ProcessStart(time, VBLANK));
+    schedule.push(ProcessStart(time, LYC_LY_CMP));
+    schedule.push(ProcessStart(time, HADNLE_CONTROL));
+}
 
 void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
 
@@ -45,7 +50,7 @@ bool Scheduler::pop()
         case UPDATE_DIV: 
         {
             byte& divider = memory[Memory::DIVIDER_REGISTER];
-            push((u8) 256, UPDATE_DIV);
+            push((unsigned short) 256, UPDATE_DIV);
             if (divider == last_div) 
             {
                 last_div = ++divider;
@@ -56,8 +61,8 @@ bool Scheduler::pop()
         } 
         case UPDATE_TIMA: 
         {
-            const u8 vals[] = { (u8) 1024, (u8) 16, (u8) 64, (u8) 256 };
-            u8 val = vals[memory[Memory::TIMER_CONTROL] & 0b0011];
+            const unsigned short vals[] = { 1024, 16, 64, 256 };
+            short val = vals[memory[Memory::TIMER_CONTROL] & 0b0011];
             push(val, UPDATE_TIMA);
             if (memory[Memory::TIMER_CONTROL] & 0b0100)
             {

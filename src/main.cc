@@ -15,12 +15,12 @@ int main() {
     Controller cont(mem);
     Screen screen;
     Ppu ppu(mem, screen);
-    Scheduler sc(mem, cont, ppu);
+    Scheduler sc(mem, cont, ppu, screen);
     Cpu cpu(mem, sc);
     sc.init(std::make_shared<Cpu>(cpu));
 
     GameBoy gameboy(mem, cont, sc, cpu, ppu, screen); 
-    Cartridge cartridge("./tetris.gb");
+    Cartridge cartridge("./src/tetris.gb");
     gameboy.load(std::make_shared<Cartridge>(cartridge));
 
     gameboy.run();

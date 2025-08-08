@@ -40,7 +40,7 @@ const byte boot_rom[] =
 
 void GameBoy::load(std::shared_ptr<Cartridge> cartridge_ptr) 
 { 
-    if(!memory.writeData(0, cartridge->size, cartridge->rom)) 
+    if(!memory.writeData(0, cartridge_ptr->size, cartridge_ptr->rom)) 
         return;
     cartridge = cartridge_ptr;
 }

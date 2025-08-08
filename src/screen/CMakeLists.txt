@@ -6,4 +6,6 @@ target_include_directories(screen PRIVATE ../general)
 target_include_directories(screen PRIVATE ../../external/glfw)
 target_include_directories(screen PRIVATE ../mem)
 target_link_directories(screen PRIVATE external/glfw/src)
-target_link_libraries(screen glfw)
+target_link_libraries(screen glfw -lGL -lGLU -lX11)
+
+
