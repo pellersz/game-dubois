@@ -184,3 +184,7 @@ void Ppu::drawObjects() {
     }
 }
 
+void Ppu::hBlank() {}
+
+void Ppu::vBlank() {}
+

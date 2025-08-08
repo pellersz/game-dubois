@@ -10,16 +10,18 @@ public:
     static const u8 LCD_WIDTH = 160;
 
     Screen();
+    GLFWwindow* getWindow();
     byte& operator()(u8, u8);
     bool shouldClose();
     void fillWhite(u8);
+    void updateFrame();
 
 private:
     static const u8 WIN_HEIGHT = 150;
     static const u8 WIN_WIDTH = 170;
+    GLFWwindow* window;
 
     byte dummy;
-    GLFWwindow* window;
     byte lcd[LCD_HEIGHT * LCD_WIDTH];
 };
 

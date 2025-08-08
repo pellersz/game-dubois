@@ -3,15 +3,19 @@
 #include "controller.h"
 #include "cpu.h"
 #include "mem.h"
+#include "ppu.h"
 #include "scheduler.h"
+#include "screen.h"
 #include <iostream>
 #include <memory>
 
-GameBoy::GameBoy(Memory& memory, Controller& controller, Scheduler& scheduler, Cpu& cpu) : 
+GameBoy::GameBoy(Memory& memory, Controller& controller, Scheduler& scheduler, Cpu& cpu, Ppu& ppu, Screen& screen) : 
     memory(memory), 
     controller(controller), 
     scheduler(scheduler),
-    cpu(cpu)
+    cpu(cpu),
+    ppu(ppu),
+    screen(screen)
 { }
 
 const byte boot_rom[] = 

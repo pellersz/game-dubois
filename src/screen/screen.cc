@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "GLFW/glfw3.h"
 #include "types.h"
+#include <GL/gl.h>
 #include <cstring>
 #include <iostream>
 
@@ -20,6 +21,8 @@ Screen::Screen() {
     glfwMakeContextCurrent(window);
 }
 
+GLFWwindow* Screen::getWindow() { return window; } 
+
 byte& Screen::operator()(u8 height, u8 width) {
     if (height < LCD_HEIGHT && width < LCD_WIDTH)
         return lcd[height * WIN_WIDTH + width];
@@ -29,4 +32,12 @@ byte& Screen::operator()(u8 height, u8 width) {
 bool Screen::shouldClose() { return glfwWindowShouldClose(window); }
 
 void Screen::fillWhite(u8 y) { memset(lcd + y * LCD_WIDTH, 255, LCD_WIDTH); }
+
+void Screen::updateFrame() 
+{ 
+    // This might be deprecated, but for a gameboy, this should be fine.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDrawPixels(LCD_WIDTH, LCD_HEIGHT, GL_LUMINANCE, GL_UNSIGNED_BYTE, lcd);
+    glfwSwapBuffers(window);
+}
 

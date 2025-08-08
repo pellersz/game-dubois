@@ -7,8 +7,14 @@
 
 class Ppu {
 public:
+    static const u8 TIME_UNIT = 1;
+
     Ppu(Memory&, Screen&);
-    
+    void oamScan();
+    void drawLine();
+    void hBlank();
+    void vBlank();
+
 private:
     static const byte WHITE      = 255;
     static const byte LIGHT_GRAY = 255 * (2 / 3);
@@ -38,12 +44,7 @@ private:
     u8 numberOfObjects = 0;
     ObjectLine objects[10];
     byte win_y_counter = 0;
-    
-    void oamScan();
-    void drawLine();
-    void hBlank();
-    void vBlank();
-    
+        
     u8 getIndexFromWord(word);
 
     void drawBackgroundTile

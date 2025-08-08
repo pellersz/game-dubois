@@ -6,4 +6,5 @@ target_include_directories(scheduler PRIVATE ../general)
 target_include_directories(scheduler PRIVATE ../cpu)
 target_include_directories(scheduler PRIVATE ../mem)
 target_include_directories(scheduler PRIVATE ../controller)
-
+target_include_directories(scheduler PRIVATE ../screen)
+target_link_libraries(scheduler glfw)
