@@ -59,8 +59,9 @@ void Ppu::drawBackgroundTile
         memory(Memory::TILES +               tile_offs * TILE_BYTE_SIZE + 2 * y_offs) : 
         memory(Memory::TILES + 0x1000 + (int)tile_offs * TILE_BYTE_SIZE + 2 * y_offs) ;
 
-    for(u8 x = lcd_x + 7; x >= lcd_x; --x)
+    for(u8 x = lcd_x + 7; x > lcd_x; --x)
         screen(x, lcd_y) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
+    screen(lcd_x, lcd_y) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
 }
 
 void Ppu::drawBackground() 

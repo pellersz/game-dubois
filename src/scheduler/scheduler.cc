@@ -6,10 +6,16 @@
 #include "ppu.h"
 #include "screen.h"
 #include "types.h"
-#include <ctime>
 #include <iostream>
 #include <memory>
+#include <chrono>
+#include <ratio>
 
+using namespace std::chrono;
+
+const unsigned Scheduler::SYSTEM_CLOCKS_PER_DOT = sysconf(_SC_CLK_TCK) / MASTER_CLOCK_FREQUENCY;
+
+//const std::chrono::duration<long, std::ratio<1, 60>> Scheduler::SYSTEM_CLOCKS_PER_DOTT = std::chrono::duration<long, std::ratio<1, 60>>();
 Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& screen) : 
     memory(memory), 
     controller(controller), 
@@ -81,9 +87,15 @@ bool Scheduler::pop()
         }
         case VBLANK: 
         {
+            static int counter = 0;
+            //++counter;
+            //if (!(counter % 60)) std::cout << " " << (int) counter / 60 << std::endl;
+
             memory[Memory::INTERRUPT_FLAG] |= 0b0001; 
             screen.updateFrame();
             push(4560 * Ppu::TIME_UNIT, OAM_SCAN);
+            while(next_dot_time > std::chrono::steady_clock::now()) {}
+            next_dot_time += SYSTEM_CLOCKS_PER_DOTT;
             break;
         }
         case LYC_LY_CMP: 
@@ -114,9 +126,7 @@ bool Scheduler::pop()
         {
             ppu.drawLine();
             push(172 * Ppu::TIME_UNIT, HBLANK);
-            std::cout << (int) memory[Memory::LCD_Y] << std::endl;
             ++memory[Memory::LCD_Y];
-            std::cout << (int) memory[Memory::LCD_Y] << std::endl;
             break;
         }
         case HBLANK:
@@ -154,23 +164,20 @@ bool Scheduler::pop()
 }
 
 void Scheduler::run() 
-{
+{ 
     if (cpu == nullptr) {
         std::cout << "Initialize the cpu, bozo";
         return;
     }
 
     bool go_next = true;
-    next_dot_time = clock() + SYSTEM_CLOCKS_PER_DOT;
+    next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;
+
     while (go_next && !glfwWindowShouldClose(screen.getWindow())) {
         if (schedule.top().first <= time)
             go_next = pop();
         else
-        {
-            //while(next_dot_time > clock()) {}
-            //next_dot_time += SYSTEM_CLOCKS_PER_DOT;
             tick();
-        }
     }
 }
 

@@ -4,11 +4,12 @@
 #include "controller.h"
 #include "cpu.h"
 #include "mem.h"
-#include <ctime>
 #include <memory>
 #include <queue>
 #include "ppu.h"
 #include "screen.h"
+#include <unistd.h>
+#include <chrono>
 
 enum Process {
     CPU_EXEC,
@@ -22,12 +23,14 @@ enum Process {
     HANDLE_CONTROL
 };
 
+using namespace std::chrono;
+
 typedef std::pair<unsigned long long, Process> ProcessStart;
 
 class Scheduler {
 public: 
     static const unsigned int MASTER_CLOCK_FREQUENCY = 4194304;
-    static const unsigned int SYSTEM_CLOCKS_PER_DOT = CLOCKS_PER_SEC / MASTER_CLOCK_FREQUENCY;
+    static const unsigned int SYSTEM_CLOCKS_PER_DOT;
     static const u8 CLOCKS_BETWEEN_DIV = 1;
 
     Scheduler(Memory&, Controller&, Ppu&, Screen&);
@@ -55,8 +58,10 @@ private:
         ProcessGreater 
     > schedule;
 
+    constexpr static const auto SYSTEM_CLOCKS_PER_DOTT = round<system_clock::duration>(duration<double>(1./60));
+    time_point<std::chrono::steady_clock> next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;
     unsigned long long time = 0;
-    clock_t next_dot_time;
+
     std::shared_ptr<Cpu> cpu = nullptr;
     Memory& memory;
     Controller& controller;
