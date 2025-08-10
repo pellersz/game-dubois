@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "scheduler.h"
 #include "types.h"
+#include <iostream>
 
 /////////////////////////////////////////////////////////////////
 // Helper instructions
@@ -97,11 +98,10 @@ void Cpu::opInc(byte& dest) {
 
 void Cpu::opInc(word& dest) { ++dest; }
 
-void Cpu::opInc(byte& lo, byte& hi) { hi += !(lo += 1); }
+void Cpu::opInc(byte& lo, byte& hi) { hi += !(++lo); }
 
 void Cpu::opDec(byte& dest) {
     byte tmp = dest--;
-    dest -= 1; 
     setZF(!dest); 
     setHF((dest & 0b1111u) > (tmp & 0b1111u));
     setNF(true);
@@ -109,7 +109,7 @@ void Cpu::opDec(byte& dest) {
 
 void Cpu::opDec(word& dest) { --dest; }
 
-void Cpu::opDec(byte& lo, byte& hi) { hi -= ((lo -= 1) == (byte)(-1)); }
+void Cpu::opDec(byte& lo, byte& hi) { hi -= (--lo == (byte)(-1)); }
 
 // logic
 
@@ -144,7 +144,7 @@ void Cpu::opCpl()
 //bit
 void Cpu::opBit(byte shift, byte val) 
 {
-    setZF(val & 1u << shift);
+    setZF(!(val & (1u << shift)));
     setNF(false);
     setHF(false);
 }
@@ -157,7 +157,7 @@ void Cpu::opSet(byte shift, byte& dest) { dest |= (1u << shift); }
 
 void Cpu::opRl(byte& dest) 
 {
-    bool new_CF = dest & 0b10000000u;
+    bool new_CF = dest & 0b10000000;
     dest = (dest << 1) + getCF();
     setCF(new_CF);
     setZF(!dest);
@@ -166,7 +166,7 @@ void Cpu::opRl(byte& dest)
 
 void Cpu::opRla()
 {
-    bool new_CF = a & 0b10000000u;
+    bool new_CF = a & 0b10000000;
     a = (a << 1) + getCF();
     setCF(new_CF);
     setZF(!a);
@@ -175,7 +175,7 @@ void Cpu::opRla()
 
 void Cpu::opRlc(byte& dest)
 {
-    bool last_set = dest & 0b10000000u;
+    bool last_set = dest & 0b10000000;
     dest = (dest << 1) + last_set;
     setCF(last_set);
     setZF(!dest);
@@ -184,7 +184,7 @@ void Cpu::opRlc(byte& dest)
 
 void Cpu::opRlca()
 {
-    bool last_set = a & 0b10000000u;
+    bool last_set = a & 0b10000000;
     a = (a << 1) + last_set;
     setCF(last_set);
     setZF(!a);
@@ -193,8 +193,8 @@ void Cpu::opRlca()
 
 void Cpu::opRr(byte& dest)
 {
-    bool new_CF = dest & 0b00000001u;
-    dest = (dest >> 1) + getCF() * 0b10000000u;
+    bool new_CF = dest & 0b00000001;
+    dest = (dest >> 1) + getCF() * 0b10000000;
     setCF(new_CF);
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
@@ -202,8 +202,8 @@ void Cpu::opRr(byte& dest)
 
 void Cpu::opRra()
 {
-    bool new_CF = a & 0b00000001u;
-    a = (a >> 1) + getCF() * 0b10000000u;
+    bool new_CF = a & 0b00000001;
+    a = (a >> 1) + getCF() * 0b10000000;
     setCF(new_CF);
     setZF(!a);
     f &= CF_MASK;
@@ -211,8 +211,8 @@ void Cpu::opRra()
 
 void Cpu::opRrc(byte& dest)
 {
-    bool last_set = dest & 0b00000001u;
-    dest = (dest >> 1) + last_set * 0b10000000u;
+    bool last_set = dest & 0b00000001;
+    dest = (dest >> 1) + last_set * 0b10000000;
     setCF(last_set);
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
@@ -220,8 +220,8 @@ void Cpu::opRrc(byte& dest)
 
 void Cpu::opRrca()
 {
-    bool new_CF = a & 0b00000001u;
-    a = (a >> 1) + getCF() * 0b10000000u;
+    bool new_CF = a & 0b00000001;
+    a = (a >> 1) + getCF() * 0b10000000;
     setCF(new_CF);
     setZF(!a);
     f &= CF_MASK;
@@ -229,7 +229,7 @@ void Cpu::opRrca()
 
 void Cpu::opSla(byte& dest)
 {
-    setCF(dest & 0b10000000u);
+    setCF(dest & 0b10000000);
     dest <<= 1;
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
@@ -238,14 +238,14 @@ void Cpu::opSla(byte& dest)
 void Cpu::opSra(byte& dest)
 {
     setCF(dest & 0b00000001u);
-    dest = (dest & 0b10000000u) + (dest >> 1);
+    dest = (dest & 0b10000000) + (dest >> 1);
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
 }
 
 void Cpu::opSrl(byte& dest)
 {
-    setCF(dest & 0b00000001u);
+    setCF(dest & 0b00000001);
     dest >>= 1;
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
@@ -262,13 +262,14 @@ void Cpu::opSwap(byte& dest)
 
 void Cpu::opCall(word addr)
 {
-    opPush(pc);   
+    opPush(pc + 3);   
     pc = addr;
 }
 
 void Cpu::opCall(bool jump, word addr)
 {
-    if (jump) {
+    if (jump) 
+    {
         opCall(addr);
         scheduler.push(6, CPU_EXEC);
         return;
@@ -279,14 +280,16 @@ void Cpu::opCall(bool jump, word addr)
 
 void Cpu::opJp(word addr) { pc = addr; }
 
+// TODO: make sure these jumps are right
 void Cpu::opJp(bool jump, word addr)
 {
-    if (jump) {
+    u8 time = 3;
+    if (jump) 
+    {
         opJp(addr);
-        scheduler.push(4, CPU_EXEC);
-        return;
+        time = 4;
     }
-    scheduler.push(3, CPU_EXEC);
+    scheduler.push(4, CPU_EXEC);
     programCounterStep(3);
 }
 
@@ -294,12 +297,13 @@ void Cpu::opJr(offs addr) { pc += addr; }
 
 void Cpu::opJr(bool jump, offs addr)
 {
-    if (jump) {
+    u8 time = 2;
+    if (jump)
+    {
         opJr(addr);
-        scheduler.push(3, CPU_EXEC);
-        return;
+        time = 3;
     }
-    scheduler.push(2, CPU_EXEC);
+    scheduler.push(time, CPU_EXEC);
     programCounterStep(2);
 }
 
@@ -307,7 +311,8 @@ void Cpu::opRet() { opPop(pc); }
 
 void Cpu::opRet(bool jump)
 {
-    if (jump) {
+    if (jump)
+    {
         opRet();
         scheduler.push(5, CPU_EXEC);
         return;
@@ -347,7 +352,7 @@ void Cpu::opAdd(offs val)
     sp += val;
     f &= HF_MASK | CF_MASK;
     setCF((sp & 0b11111111) < (tmp & 0b11111111)); 
-    setHF((sp & 0b1111u) < (tmp & 0b1111u));
+    setHF((sp & 0b1111) < (tmp & 0b1111));
 }
 
 void Cpu::opPop(word& reg)
@@ -365,7 +370,8 @@ void Cpu::opPop(byte& reg_lo, byte& reg_hi)
 
 void Cpu::opPush(word reg)
 {
-    memory.writeWord(sp, reg);
+    memory[sp - 1] = reg >> 8;
+    memory[sp - 2] = reg;
     stack2Step();
 }
 
@@ -421,7 +427,7 @@ void Cpu::op_0x04() { opInc(b); }
 
 void Cpu::op_0x05() { opDec(b); } 
 
-void Cpu::op_0x06() { opLd(b, memory(pc + 1)); } 
+void Cpu::op_0x06() { opLd(b, memory[pc + 1]); } 
 
 void Cpu::op_0x07() { opRlca(); } 
 
@@ -465,7 +471,7 @@ void Cpu::op_0x18() { opJr(memory[pc + 1]); }
 
 void Cpu::op_0x19() { opAdd(getDE()); } 
 
-void Cpu::op_0x1a() { opLd(a, memory[pc + 1]); } 
+void Cpu::op_0x1a() { opLd(a, memory[getDE()]); } 
 
 void Cpu::op_0x1b() { opDec(e, d); } 
 
@@ -479,7 +485,7 @@ void Cpu::op_0x1f() { opRra(); }
 
 void Cpu::op_0x20() { opJr(!getZF(), memory[pc + 1]); } 
 
-void Cpu::op_0x21() { opLd(l, h, memory(memory(pc + 1))); } 
+void Cpu::op_0x21() { opLd(l, h, memory(pc + 1)); } 
 
 void Cpu::op_0x22() { 
     opLd(memory[getHL()], a);
@@ -520,7 +526,11 @@ void Cpu::op_0x30() { opJr(!getCF(), memory[pc + 1]); }
 
 void Cpu::op_0x31() { opLd(sp, memory(pc + 1)); } 
 
-void Cpu::op_0x32() { opLd(memory[getHL()], a); } 
+void Cpu::op_0x32() 
+{ 
+    opLd(memory[getHL()], a);
+    opDec(l, h);
+} 
 
 void Cpu::op_0x33() { opInc(sp); } 
 
@@ -528,14 +538,12 @@ void Cpu::op_0x34()
 { 
     unsigned short tmp = getHL();
     opInc(memory[tmp], memory[tmp + 1]);
-    opInc(l, h);
 } 
 
 void Cpu::op_0x35() 
 { 
     unsigned short tmp = getHL();
     opInc(memory[tmp], memory[tmp + 1]);
-    opDec(l, h);
 } 
 
 void Cpu::op_0x36() { opLd(memory[getHL()], memory[pc + 1]); } 
@@ -836,7 +844,12 @@ void Cpu::op_0xc7() { opRst(8 * 0); }
 
 void Cpu::op_0xc8() { opRet(getZF()); } 
 
-void Cpu::op_0xc9() { opRet(); } 
+// This is not how it should be, but it'll make do
+void Cpu::op_0xc9() 
+{ 
+    opRet(); 
+    pc -= 1;
+} 
 
 void Cpu::op_0xca() { opJp(getZF(), memory(pc + 1)); } 
 
@@ -844,7 +857,7 @@ void Cpu::op_0xcb() { executeBC(memory[pc + 1]); }
 
 void Cpu::op_0xcc() { opCall(getZF(), memory(pc + 1)); } 
 
-void Cpu::op_0xcd() { opCall(memory(pc + 1)); } 
+void Cpu::op_0xcd() { opCall(true, memory(pc + 1)); } 
 
 void Cpu::op_0xce() { opAdc(memory[pc + 1]); } 
 
@@ -868,7 +881,11 @@ void Cpu::op_0xd7() { opRst(8 * 2); }
 
 void Cpu::op_0xd8() { opRet(getCF()); } 
 
-void Cpu::op_0xd9() { opReti(); } 
+void Cpu::op_0xd9() 
+{ 
+    opReti();
+    pc -= 1;
+} 
 
 void Cpu::op_0xda() { opJp(getCF(), memory(pc + 1)); } 
 
@@ -882,11 +899,11 @@ void Cpu::op_0xde() { opSbc(memory[pc + 1]); }
 
 void Cpu::op_0xdf() { opRst(8 * 3); } 
 
-void Cpu::op_0xe0() { opLd(memory[0x00ff + memory[pc + 1]], a); } 
+void Cpu::op_0xe0() { opLd(memory[0xff00 + memory[pc + 1]], a); } 
 
 void Cpu::op_0xe1() { opPop(l, h); } 
 
-void Cpu::op_0xe2() { opLd(memory[0x00ff + c], a); } 
+void Cpu::op_0xe2() { opLd(memory[0xff00 + c], a); } 
 
 void Cpu::op_0xe3() { opNop(); } 
 

@@ -17,6 +17,7 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     screen(screen)
 { 
     last_div = memory[Memory::DIVIDER_REGISTER];
+
     last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
 
     schedule.push(ProcessStart(time, CPU_EXEC)); 
@@ -24,7 +25,7 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     schedule.push(ProcessStart(time, UPDATE_TIMA));
     schedule.push(ProcessStart(time, VBLANK));
     schedule.push(ProcessStart(time, LYC_LY_CMP));
-    schedule.push(ProcessStart(time, HADNLE_CONTROL));
+    schedule.push(ProcessStart(time, HANDLE_CONTROL));
 }
 
 void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
@@ -43,7 +44,10 @@ bool Scheduler::pop()
             cpu->executeNext();
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
                     memory[Memory::BOOT_ROM_MAPPING] == 1)
+            {
+                last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
                 go_next = false;
+            }
 
             break; 
         }
@@ -84,13 +88,14 @@ bool Scheduler::pop()
         }
         case LYC_LY_CMP: 
         { 
-            push(1, LYC_LY_CMP);
+            push(4, LYC_LY_CMP);
             if (memory[Memory::LCD_Y] == memory[Memory::LCD_CONTROL]) 
             {
                 memory[Memory::LCD_STAT] |= 0b0100;
                 break;
             }
             memory[Memory::LCD_STAT] &= 0b1011;
+            break;
         }
         case OAM_SCAN: 
         { 
@@ -103,21 +108,24 @@ bool Scheduler::pop()
             }
             ly = 0;
             push(0, VBLANK);
+            break;
         }
         case DRAW_PIXELS:
         {
             ppu.drawLine();
             push(172 * Ppu::TIME_UNIT, HBLANK);
+            std::cout << (int) memory[Memory::LCD_Y] << std::endl;
             ++memory[Memory::LCD_Y];
+            std::cout << (int) memory[Memory::LCD_Y] << std::endl;
             break;
         }
         case HBLANK:
         {
             ppu.hBlank();
-            push(87 ,OAM_SCAN);
+            push(87 * Ppu::TIME_UNIT ,OAM_SCAN);
             break;
         }
-        case HADNLE_CONTROL: 
+        case HANDLE_CONTROL: 
         {
             glfwPollEvents();
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS)
@@ -137,7 +145,7 @@ bool Scheduler::pop()
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
                 controller.buttonPressed(Controller::SELECT_PRESSED);
             
-            push(100, HADNLE_CONTROL);
+            push(100, HANDLE_CONTROL);
             break;
         }
     };
@@ -154,13 +162,13 @@ void Scheduler::run()
 
     bool go_next = true;
     next_dot_time = clock() + SYSTEM_CLOCKS_PER_DOT;
-    while (go_next) {
-        if (schedule.top().first == time)
+    while (go_next && !glfwWindowShouldClose(screen.getWindow())) {
+        if (schedule.top().first <= time)
             go_next = pop();
         else
         {
-            while(next_dot_time > clock()) {}
-            next_dot_time += SYSTEM_CLOCKS_PER_DOT;
+            //while(next_dot_time > clock()) {}
+            //next_dot_time += SYSTEM_CLOCKS_PER_DOT;
             tick();
         }
     }
@@ -181,5 +189,5 @@ void Scheduler::statInterruptCheck()
         memory[Memory::INTERRUPT_FLAG] |= 0b0010;
 }
 
-void Scheduler::tick() { ++time; }
+void Scheduler::tick() { time += 4; }
 

@@ -2,7 +2,7 @@
 #include <cstring>
 #include <iostream>
 
-byte& Memory::operator[](unsigned short ind) { return memory[ind]; }
+byte& Memory::operator[](unsigned short ind) { /*if(ind == 0xff44) { std::cout << "ly = " << std::hex << (int) memory[ind] << std::endl; if(memory[ind] == 0x84) exit(1); }*/ return memory[ind]; }
 
 word Memory::operator()(unsigned short ind) { return ((word)memory[ind + 1] << 8) + (word)memory[ind]; }
 

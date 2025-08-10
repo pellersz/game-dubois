@@ -2,6 +2,8 @@
 #include "mem.h"
 #include "scheduler.h"
 #include "types.h"
+#include <ios>
+#include <iostream>
 
 // without this, the cycle definions would be too long
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
@@ -34,13 +36,13 @@ void Cpu::setDE(word val) { e = val; d = val >> 8; }
 
 void Cpu::setHL(word val) { l = val; h = val >> 8; }
 
-void Cpu::setZF(bool val) { f |= val * 0b0001; } 
+void Cpu::setZF(bool val) { f = val ? f | 0b00010000 : f & 0b11101111; } 
 
-void Cpu::setNF(bool val) { f |= val * 0b0010; }
+void Cpu::setNF(bool val) { f = val ? f | 0b00100000 : f & 0b11011111; }
 
-void Cpu::setHF(bool val) { f |= val * 0b0100; }
+void Cpu::setHF(bool val) { f = val ? f | 0b01000000 : f & 0b10111111; }
 
-void Cpu::setCF(bool val) { f |= val * 0b1000; }
+void Cpu::setCF(bool val) { f = val ? f | 0b10000000 : f & 0b01111111; }
 
 // TODO: check if this is where the stack is supposed to go
 void Cpu::stackStep() { --sp; }
@@ -112,6 +114,7 @@ u8 regular_cycles[] =
 // you might not like it, but this is peak instruction handling
 // also, some instructions have variable cycles, these will update the scheduler and the program counter, and use return instead of break
 void Cpu::executeRegular(byte op_code) {
+    //std::cout << std::hex << pc << std::endl;
     switch (op_code) 
     {
         case 0x00: {op_0x00(); break;} case 0x01: {op_0x01(); break;} case 0x02: {op_0x02(); break;} case 0x03: {op_0x03(); break;} 
@@ -165,7 +168,7 @@ void Cpu::executeRegular(byte op_code) {
         case 0xc0: {op_0xc0();return;} case 0xc1: {op_0xc1(); break;} case 0xc2: {op_0xc2();return;} case 0xc3: {op_0xc3(); break;} 
         case 0xc4: {op_0xc4();return;} case 0xc5: {op_0xc5(); break;} case 0xc6: {op_0xc6(); break;} case 0xc7: {op_0xc7(); break;} 
         case 0xc8: {op_0xc8();return;} case 0xc9: {op_0xc9(); break;} case 0xca: {op_0xca();return;} case 0xcb: {op_0xcb(); break;} 
-        case 0xcc: {op_0xcc();return;} case 0xcd: {op_0xcd(); break;} case 0xce: {op_0xce(); break;} case 0xcf: {op_0xcf(); break;} 
+        case 0xcc: {op_0xcc();return;} case 0xcd: {op_0xcd();return;} case 0xce: {op_0xce(); break;} case 0xcf: {op_0xcf(); break;} 
         case 0xd0: {op_0xd0();return;} case 0xd1: {op_0xd1(); break;} case 0xd2: {op_0xd2();return;} case 0xd3: {op_0xd3(); break;} 
         case 0xd4: {op_0xd4();return;} case 0xd5: {op_0xd5(); break;} case 0xd6: {op_0xd6(); break;} case 0xd7: {op_0xd7(); break;} 
         case 0xd8: {op_0xd8();return;} case 0xd9: {op_0xd9(); break;} case 0xda: {op_0xda();return;} case 0xdb: {op_0xdb(); break;} 

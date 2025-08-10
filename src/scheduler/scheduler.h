@@ -56,7 +56,7 @@ private:
     > schedule;
 
     unsigned long long time = 0;
-    unsigned long long next_dot_time;
+    clock_t next_dot_time;
     std::shared_ptr<Cpu> cpu = nullptr;
     Memory& memory;
     Controller& controller;
