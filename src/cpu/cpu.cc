@@ -2,8 +2,10 @@
 #include "mem.h"
 #include "scheduler.h"
 #include "types.h"
-#include <ios>
+#include <chrono>
 #include <iostream>
+#include <thread>
+#include <unistd.h>
 
 // without this, the cycle definions would be too long
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
@@ -114,7 +116,6 @@ u8 regular_cycles[] =
 // you might not like it, but this is peak instruction handling
 // also, some instructions have variable cycles, these will update the scheduler and the program counter, and use return instead of break
 void Cpu::executeRegular(byte op_code) {
-    //std::cout << std::hex << pc << std::endl;
     switch (op_code) 
     {
         case 0x00: {op_0x00(); break;} case 0x01: {op_0x01(); break;} case 0x02: {op_0x02(); break;} case 0x03: {op_0x03(); break;} 

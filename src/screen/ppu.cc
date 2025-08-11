@@ -2,6 +2,8 @@
 #include "mem.h"
 #include "screen.h"
 #include "types.h"
+#include <iostream>
+#include <ostream>
 
 const byte Ppu::COLORS[] = {WHITE, LIGHT_GRAY, DARK_GRAY, BLACK};
 
@@ -59,9 +61,18 @@ void Ppu::drawBackgroundTile
         memory(Memory::TILES +               tile_offs * TILE_BYTE_SIZE + 2 * y_offs) : 
         memory(Memory::TILES + 0x1000 + (int)tile_offs * TILE_BYTE_SIZE + 2 * y_offs) ;
 
-    for(u8 x = lcd_x + 7; x > lcd_x; --x)
-        screen(x, lcd_y) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
-    screen(lcd_x, lcd_y) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
+
+    //if ((lcdc_bit_4 ? 
+    //    Memory::TILES +               tile_offs * TILE_BYTE_SIZE + 2 * y_offs : 
+    //    Memory::TILES + 0x1000 + (int)tile_offs * TILE_BYTE_SIZE + 2 * y_offs) == 0x8010) std::cout << std::endl;
+    if (data) std::cout << std::hex << data << " " << (lcdc_bit_4 ? 
+        Memory::TILES +               tile_offs * TILE_BYTE_SIZE + 2 * y_offs : 
+        Memory::TILES + 0x1000 + (int)tile_offs * TILE_BYTE_SIZE + 2 * y_offs) << ", "; else std::cout << "        ";
+
+    for(u8 x = lcd_x + 7; x > lcd_x; --x) {
+        screen(lcd_y, x) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
+    }
+    screen(lcd_y, lcd_x) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
 }
 
 void Ppu::drawBackground() 
@@ -72,7 +83,7 @@ void Ppu::drawBackground()
         static_cast<u8>(bg_pal_data & 0b11), 
         static_cast<u8>((bg_pal_data >> 2) & 0b11),
         static_cast<u8>((bg_pal_data >> 4) & 0b11),
-        static_cast<u8>((bg_pal_data >> 6) & 0b11),
+        static_cast<u8>((bg_pal_data >> 6)),
     };
 
     byte lcdc = memory[Memory::LCD_CONTROL];
@@ -87,21 +98,30 @@ void Ppu::drawBackground()
         ((ly + y) / TILE_WIDTH) * TILES_PER_ROW + 
         x / TILE_WIDTH;
 
+    //std::cout << std::endl << "(" << (ly + y) / TILE_WIDTH << ", " << x / TILE_WIDTH << ")";
+
     u8 y_offs = (ly + y) % TILE_WIDTH;
 
     u8 no_wrap = TILES_PER_ROW - x / TILE_WIDTH;
     
      // align for whole bytes
-    for (u8 lcd_x = 0 - x % 8; lcd_x < Screen::LCD_WIDTH; lcd_x += 8, ++tile_offs, --no_wrap) 
-    {
+    //std::cout << "{ ";
+    int counter = 0;
+    std::cout << std::endl << "(" << (ly + y) / TILE_WIDTH << ", " << x / TILE_WIDTH << "): ";
+    for (short lcd_x = 0 - x % 8; lcd_x < Screen::LCD_WIDTH; lcd_x += 8, ++tile_offs, --no_wrap) 
+    { 
+        std::cout << std::hex << tile_offs << " -> ";
+        //std::cout << std::endl;
         if (!no_wrap)
             tile_offs -= TILE_WIDTH; 
     
-        drawBackgroundTile(lcd_x, ly, memory[tile_offs], y_offs, color_indices, lcdc_bit_4);
+        drawBackgroundTile(lcd_x, ly, memory[tile_offs], y_offs, color_indices, lcdc_bit_4); 
     }
+    //std::cout << " }";
 }
 
-void Ppu::drawWindow() {
+void Ppu::drawWindow() 
+{
     byte bg_pal_data = memory[Memory::BG_PAL_DATA];
     u8 color_indices[4] = 
     { 
@@ -137,7 +157,8 @@ void Ppu::drawObjectTile
     u8 y_offs, 
     bool attribute_bit_5,
     u8 color_indices[]
-) {
+) 
+{
     word data = memory(Memory::TILES + tile_offs * TILE_BYTE_SIZE + 2 * y_offs);
     
     offs orientation = attribute_bit_5 ? -1 : 1;
@@ -149,7 +170,8 @@ void Ppu::drawObjectTile
     }
 } 
  
-void Ppu::drawObjects() {
+void Ppu::drawObjects() 
+{
     byte ly = memory[Memory::LCD_Y];
     bool lcdc_bit_2 = memory[Memory::LCD_CONTROL] & 0b0100; 
 

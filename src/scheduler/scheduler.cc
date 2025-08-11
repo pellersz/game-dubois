@@ -9,13 +9,11 @@
 #include <iostream>
 #include <memory>
 #include <chrono>
-#include <ratio>
 
 using namespace std::chrono;
 
 const unsigned Scheduler::SYSTEM_CLOCKS_PER_DOT = sysconf(_SC_CLK_TCK) / MASTER_CLOCK_FREQUENCY;
 
-//const std::chrono::duration<long, std::ratio<1, 60>> Scheduler::SYSTEM_CLOCKS_PER_DOTT = std::chrono::duration<long, std::ratio<1, 60>>();
 Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& screen) : 
     memory(memory), 
     controller(controller), 
@@ -48,6 +46,7 @@ bool Scheduler::pop()
             // since only the cpu cares about controller input, it only should update before it
             controller.updatePressed();
             cpu->executeNext();
+
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
                     memory[Memory::BOOT_ROM_MAPPING] == 1)
             {
@@ -96,6 +95,7 @@ bool Scheduler::pop()
             push(4560 * Ppu::TIME_UNIT, OAM_SCAN);
             while(next_dot_time > std::chrono::steady_clock::now()) {}
             next_dot_time += SYSTEM_CLOCKS_PER_DOTT;
+            std::cout << std::endl << std::endl;
             break;
         }
         case LYC_LY_CMP: 
@@ -159,6 +159,7 @@ bool Scheduler::pop()
             break;
         }
     };
+
     schedule.pop(); 
     return go_next;
 }

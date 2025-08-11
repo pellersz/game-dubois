@@ -25,7 +25,7 @@ GLFWwindow* Screen::getWindow() { return window; }
 
 byte& Screen::operator()(u8 height, u8 width) {
     if (height < LCD_HEIGHT && width < LCD_WIDTH)
-        return lcd[height * WIN_WIDTH + width];
+        return lcd[(LCD_HEIGHT - height - 1) * LCD_WIDTH + width];
     return dummy;
 }
 
