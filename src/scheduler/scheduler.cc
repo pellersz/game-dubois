@@ -87,15 +87,14 @@ bool Scheduler::pop()
         case VBLANK: 
         {
             static int counter = 0;
-            //++counter;
             //if (!(counter % 60)) std::cout << " " << (int) counter / 60 << std::endl;
 
             memory[Memory::INTERRUPT_FLAG] |= 0b0001; 
             screen.updateFrame();
+            
             push(4560 * Ppu::TIME_UNIT, OAM_SCAN);
             while(next_dot_time > std::chrono::steady_clock::now()) {}
             next_dot_time += SYSTEM_CLOCKS_PER_DOTT;
-            std::cout << std::endl << std::endl;
             break;
         }
         case LYC_LY_CMP: 

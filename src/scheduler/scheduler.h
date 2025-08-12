@@ -31,7 +31,6 @@ class Scheduler {
 public: 
     static const unsigned int MASTER_CLOCK_FREQUENCY = 4194304;
     static const unsigned int SYSTEM_CLOCKS_PER_DOT;
-    static const u8 CLOCKS_BETWEEN_DIV = 1;
 
     Scheduler(Memory&, Controller&, Ppu&, Screen&);
     void init(std::shared_ptr<Cpu>);

@@ -46,7 +46,6 @@ void Cpu::setHF(bool val) { f = val ? f | 0b01000000 : f & 0b10111111; }
 
 void Cpu::setCF(bool val) { f = val ? f | 0b10000000 : f & 0b01111111; }
 
-// TODO: check if this is where the stack is supposed to go
 void Cpu::stackStep() { --sp; }
 
 void Cpu::stackStepBack() { ++sp; }
