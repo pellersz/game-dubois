@@ -10,6 +10,8 @@
 #include "screen.h"
 #include <memory>
 
+// TODO: make this right(replace references with pointers)
+
 class GameBoy {
 public:
     GameBoy(Memory&, Controller&, Scheduler&, Cpu&, Ppu&, Screen&);

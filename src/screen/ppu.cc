@@ -150,6 +150,7 @@ void Ppu::drawObjectTile
     for (u8 i = attribute_bit_5 ? 7 : 0; (i + 1) % 9; i += orientation)
     {
         u8 index = color_indices[data & 0b0001 + ((data >> 14) & 0b0010)];
+        data >>= 1;
         if (index)
             screen(lcd_x++, lcd_y) = COLORS[index];
     }

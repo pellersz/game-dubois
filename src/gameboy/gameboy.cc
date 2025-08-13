@@ -59,6 +59,8 @@ void GameBoy::run()
     // until bootrom is done
     scheduler.run(); 
 
+    cpu.setPC(0x100);
+    
     memory.writeData(0, 256, cartridge->rom);
     scheduler.run();
 }

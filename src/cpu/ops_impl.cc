@@ -419,7 +419,12 @@ void Cpu::op_0x00() { opNop(); }
 
 void Cpu::op_0x01() { opLd(c, b, memory(pc + 1)); } 
 
-void Cpu::op_0x02() { opLd(memory[getBC()], a); } 
+void Cpu::op_0x02() 
+{ 
+    unsigned short bc = getBC();
+    writtenToMemory(bc, memory[bc], a);
+    opLd(memory[bc], a); 
+} 
 
 void Cpu::op_0x03() { opInc(c, b); } 
 

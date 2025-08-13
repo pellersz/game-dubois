@@ -13,6 +13,7 @@ public:
 
     void writeWord(unsigned short, word);
     bool writeData(unsigned short, unsigned short, const byte*);
+    void oamDma(byte);
 
     // starting addresses for memory sectors
     static const unsigned short ROMBANK0 = 0x0000;

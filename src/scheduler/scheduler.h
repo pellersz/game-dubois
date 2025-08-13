@@ -15,6 +15,7 @@ enum Process {
     CPU_EXEC,
     UPDATE_DIV,
     UPDATE_TIMA,
+    VBLANK_START,
     VBLANK,
     LYC_LY_CMP,
     OAM_SCAN,
@@ -29,8 +30,10 @@ typedef std::pair<unsigned long long, Process> ProcessStart;
 
 class Scheduler {
 public: 
+    // should remove these
     static const unsigned int MASTER_CLOCK_FREQUENCY = 4194304;
     static const unsigned int SYSTEM_CLOCKS_PER_DOT;
+    // unfortunaltely when I do that the display stops working properly for some reason
 
     Scheduler(Memory&, Controller&, Ppu&, Screen&);
     void init(std::shared_ptr<Cpu>);

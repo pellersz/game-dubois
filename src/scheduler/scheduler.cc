@@ -27,7 +27,7 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     schedule.push(ProcessStart(time, CPU_EXEC)); 
     schedule.push(ProcessStart(time, UPDATE_DIV));
     schedule.push(ProcessStart(time, UPDATE_TIMA));
-    schedule.push(ProcessStart(time, VBLANK));
+    schedule.push(ProcessStart(time, VBLANK_START));
     schedule.push(ProcessStart(time, LYC_LY_CMP));
     schedule.push(ProcessStart(time, HANDLE_CONTROL));
 }
@@ -84,17 +84,30 @@ bool Scheduler::pop()
             }
             break;
         }
-        case VBLANK: 
+        case VBLANK_START: 
         {
-            static int counter = 0;
+            //static int counter = 0;
             //if (!(counter % 60)) std::cout << " " << (int) counter / 60 << std::endl;
-
+            //
             memory[Memory::INTERRUPT_FLAG] |= 0b0001; 
             screen.updateFrame();
-            
-            push(4560 * Ppu::TIME_UNIT, OAM_SCAN);
+            ++memory[Memory::LCD_Y];
+
+            push(456 * Ppu::TIME_UNIT, VBLANK);
             while(next_dot_time > std::chrono::steady_clock::now()) {}
             next_dot_time += SYSTEM_CLOCKS_PER_DOTT;
+            break;
+        }
+        case VBLANK: 
+        {
+            byte& lcd_y = memory[Memory::LCD_Y];
+            if (++lcd_y < 154) 
+            {
+                push(456 * Ppu::TIME_UNIT, VBLANK);
+                break;
+            }
+            lcd_y = 0;
+            push(456 * Ppu::TIME_UNIT, OAM_SCAN);
             break;
         }
         case LYC_LY_CMP: 
@@ -111,14 +124,8 @@ bool Scheduler::pop()
         case OAM_SCAN: 
         { 
             byte& ly = memory[Memory::LCD_Y];
-            if (ly < 144)
-            {
-                ppu.oamScan();
-                push(80 * Ppu::TIME_UNIT, DRAW_PIXELS);
-                break;
-            }
-            ly = 0;
-            push(0, VBLANK);
+            ppu.oamScan();
+            push(80 * Ppu::TIME_UNIT, DRAW_PIXELS);
             break;
         }
         case DRAW_PIXELS:
@@ -131,7 +138,13 @@ bool Scheduler::pop()
         case HBLANK:
         {
             ppu.hBlank();
-            push(87 * Ppu::TIME_UNIT ,OAM_SCAN);
+            if (memory[Memory::LCD_Y] < 143) 
+            {
+                push(87 * Ppu::TIME_UNIT, OAM_SCAN);
+                break;
+            }
+
+            push(87 * Ppu::TIME_UNIT, VBLANK_START);
             break;
         }
         case HANDLE_CONTROL: 

@@ -13,6 +13,8 @@ public:
     Cpu(Memory&, Scheduler&);
     ~Cpu();
     void executeNext();
+    void setPC(word);
+
         
 protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
@@ -32,7 +34,6 @@ protected:
     byte h;
     byte l;
     word sp = 0xa000u;
-  //word SP = 0xdfffu;
     word pc = 0;
     bool ime = false;
     bool halted = false;
@@ -52,7 +53,7 @@ protected:
     void setAF(word);
     void setBC(word);
     void setDE(word);
-    void setHL(word); 
+    void setHL(word);
     void setZF(bool);
     void setNF(bool);
     void setHF(bool);
@@ -67,6 +68,8 @@ protected:
     void executeRegular(byte);
     void executeBC(byte);
     bool handleInterupts();
+    
+    void writtenToMemory(unsigned short, byte, byte);
 
     // load
     void opLd(byte&, byte);

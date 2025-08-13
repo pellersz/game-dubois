@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "types.h"
 #include <cstring>
 #include <iostream>
 
@@ -6,7 +7,8 @@ byte& Memory::operator[](unsigned short ind) { /*if(ind == 0xff44) { std::cout <
 
 word Memory::operator()(unsigned short ind) { return ((word)memory[ind + 1] << 8) + (word)memory[ind]; }
 
-void Memory::writeWord(unsigned short ind, word val) {
+void Memory::writeWord(unsigned short ind, word val)
+{
     memory[ind] = val >> 8;       
     memory[ind + 1] = val;
 }
@@ -21,4 +23,6 @@ bool Memory::writeData(unsigned short offs, unsigned short count, const byte* bu
     memcpy(memory + offs, buf, count);
     return true;
 }
+
+void Memory::oamDma(byte val) { memcpy(memory + OAM, memory + 0x100 * val, 0x100); }
 

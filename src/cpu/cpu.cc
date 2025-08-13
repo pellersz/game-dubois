@@ -2,9 +2,7 @@
 #include "mem.h"
 #include "scheduler.h"
 #include "types.h"
-#include <chrono>
-#include <iostream>
-#include <thread>
+#include <cstring>
 #include <unistd.h>
 
 // without this, the cycle definions would be too long
@@ -37,6 +35,8 @@ void Cpu::setBC(word val) { c = val; b = val >> 8; }
 void Cpu::setDE(word val) { e = val; d = val >> 8; }
 
 void Cpu::setHL(word val) { l = val; h = val >> 8; }
+
+void Cpu::setPC(word val) { pc = val; }
 
 void Cpu::setZF(bool val) { f = val ? f | 0b00010000 : f & 0b11101111; } 
 
@@ -317,5 +317,12 @@ bool Cpu::handleInterupts()
         }
     }
     return false;
+}
+
+void Cpu::writtenToMemory(unsigned short addr, byte old_val, byte new_val) 
+{
+    switch (addr) {
+        case Memory::OAM_DMA_ADDR: { memory.oamDma(new_val); }
+    }
 }
 

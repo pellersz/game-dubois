@@ -8,7 +8,7 @@
 #include <memory>
 
 // TODO: be a bit more professional (declare when values are const consts)
-// TODO: have the constantly usable registers and such as class members, rather than asking the memory each time
+// TODO: investigate cpu shared_ptr having a brain split when using it the right way
 
 int main() {
     Memory mem;
@@ -20,8 +20,7 @@ int main() {
     sc.init(std::make_shared<Cpu>(cpu));
 
     GameBoy gameboy(mem, cont, sc, cpu, ppu, screen); 
-    Cartridge cartridge("./src/tetris.gb");
-    gameboy.load(std::make_shared<Cartridge>(cartridge));
+    gameboy.load(std::make_shared<Cartridge>("./src/tetris.gb"));
 
     gameboy.run();
 }
