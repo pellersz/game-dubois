@@ -1,7 +1,6 @@
 #include "cpu.h"
 #include "scheduler.h"
 #include "types.h"
-#include <iostream>
 
 /////////////////////////////////////////////////////////////////
 // Helper instructions
@@ -271,10 +270,10 @@ void Cpu::opCall(bool jump, word addr)
     if (jump) 
     {
         opCall(addr);
-        scheduler.push(6, CPU_EXEC);
+        scheduler.push(C(6), CPU_EXEC);
         return;
     }
-    scheduler.push(3, CPU_EXEC);
+    scheduler.push(C(3), CPU_EXEC);
     programCounterStep(3);
 }
 
@@ -283,13 +282,13 @@ void Cpu::opJp(word addr) { pc = addr; }
 // TODO: make sure these jumps are right
 void Cpu::opJp(bool jump, word addr)
 {
-    u8 time = 3;
     if (jump) 
     {
         opJp(addr);
-        time = 4;
+        scheduler.push(C(4), CPU_EXEC);
+        return;
     }
-    scheduler.push(4, CPU_EXEC);
+    scheduler.push(C(3), CPU_EXEC);
     programCounterStep(3);
 }
 
@@ -297,11 +296,11 @@ void Cpu::opJr(offs addr) { pc += addr; }
 
 void Cpu::opJr(bool jump, offs addr)
 {
-    u8 time = 2;
+    u8 time = C(2);
     if (jump)
     {
         opJr(addr);
-        time = 3;
+        time = C(3);
     }
     scheduler.push(time, CPU_EXEC);
     programCounterStep(2);
@@ -314,10 +313,10 @@ void Cpu::opRet(bool jump)
     if (jump)
     {
         opRet();
-        scheduler.push(5, CPU_EXEC);
+        scheduler.push(C(5), CPU_EXEC);
         return;
     }
-    scheduler.push(2, CPU_EXEC);
+    scheduler.push(C(2), CPU_EXEC);
     programCounterStep(1); 
 }
 
@@ -327,7 +326,9 @@ void Cpu::opReti()
     opEi();
 }
 
-void Cpu::opRst(u8 addr) { opCall(addr); }
+
+// TODO: make this not use the conditional version, also, do this with 0xcd
+void Cpu::opRst(u8 addr) { opCall(true, addr); }
 
 // carry flag
 
@@ -892,7 +893,11 @@ void Cpu::op_0xc1() { opPop(c, b); }
 
 void Cpu::op_0xc2() { opJp(!getZF(), memory(pc + 1)); } 
 
-void Cpu::op_0xc3() { opJp(memory(pc + 1)); } 
+void Cpu::op_0xc3() 
+{ 
+    opJp(memory(pc + 1)); 
+    scheduler.push(C(4), CPU_EXEC);
+} 
 
 void Cpu::op_0xc4() { opCall(!getZF(), memory[pc + 1]); } 
 
@@ -987,7 +992,11 @@ void Cpu::op_0xe7() { opRst(8 * 4); }
 
 void Cpu::op_0xe8() { opAddSP(memory[pc + 1]); } 
 
-void Cpu::op_0xe9() { opJp(getHL()); } 
+void Cpu::op_0xe9() 
+{
+    opJp(getHL()); 
+    scheduler.push(C(4), CPU_EXEC);
+} 
 
 void Cpu::op_0xea() 
 {

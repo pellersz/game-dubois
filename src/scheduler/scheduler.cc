@@ -181,7 +181,7 @@ void Scheduler::run()
     if (cpu == nullptr) {
         std::cout << "Initialize the cpu, bozo";
         return;
-    }
+    } 
 
     bool go_next = true;
     next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;

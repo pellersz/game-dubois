@@ -4,7 +4,6 @@
 #include "types.h"
 
 // TODO: writability
-// TODO: OAM DMA transer
 
 class Memory {
 public:

@@ -26,7 +26,6 @@ void Ppu::oamScan()
     }
 }
 
-// TODO: test this
 void Ppu::drawLine() 
 {
     byte lcdc = memory[Memory::LCD_CONTROL];

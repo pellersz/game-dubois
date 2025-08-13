@@ -6,6 +6,7 @@
 #include "ppu.h"
 #include "scheduler.h"
 #include "screen.h"
+#include <iomanip>
 #include <iostream>
 #include <memory>
 
@@ -62,6 +63,7 @@ void GameBoy::run()
     cpu.setPC(0x100);
     
     memory.writeData(0, 256, cartridge->rom);
+    
     scheduler.run();
 }
 

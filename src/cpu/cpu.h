@@ -4,6 +4,8 @@
 #include "types.h"
 #include "mem.h"
 
+#define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
+
 class Scheduler;
 
 class Cpu {
