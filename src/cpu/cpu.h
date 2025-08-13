@@ -69,7 +69,7 @@ protected:
     void executeBC(byte);
     bool handleInterupts();
     
-    void writtenToMemory(unsigned short, byte, byte);
+    void writtenToMemory(unsigned short);
 
     // load
     void opLd(byte&, byte);

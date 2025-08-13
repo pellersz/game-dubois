@@ -319,10 +319,11 @@ bool Cpu::handleInterupts()
     return false;
 }
 
-void Cpu::writtenToMemory(unsigned short addr, byte old_val, byte new_val) 
+void Cpu::writtenToMemory(unsigned short addr) 
 {
-    switch (addr) {
-        case Memory::OAM_DMA_ADDR: { memory.oamDma(new_val); }
+    switch (addr) 
+    {
+        case Memory::OAM_DMA_ADDR: { memory.oamDma(memory[addr]); }
     }
 }
 
