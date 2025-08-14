@@ -22,7 +22,7 @@ Cartridge::Cartridge(std::string filename) {
         throw 2;
     }
 
-    fread(rom, 1, size, file);
+    fread(rom, 1, size, file); 
 }
 
 Cartridge::~Cartridge() { delete[] rom; }

@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "scheduler.h"
 #include "types.h"
+#include <cstdlib>
 
 /////////////////////////////////////////////////////////////////
 // Helper instructions
@@ -523,7 +524,7 @@ void Cpu::op_0x29() { opAdd(getHL()); }
 
 void Cpu::op_0x2a() 
 { 
-    opLd(a, getHL()); 
+    opLd(a, memory[getHL()]); 
     opInc(l, h);
 } 
 

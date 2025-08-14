@@ -20,7 +20,7 @@ int main() {
     sc.init(std::make_shared<Cpu>(cpu));
 
     GameBoy gameboy(mem, cont, sc, cpu, ppu, screen); 
-    gameboy.load(std::make_shared<Cartridge>("./src/tetris.gb"));
+    gameboy.load(std::make_shared<Cartridge>("./src/rtc3test.gb"));
 
     gameboy.run();
 }

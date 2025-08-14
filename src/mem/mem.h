@@ -11,7 +11,7 @@ public:
     word operator()(unsigned short);
 
     void writeWord(unsigned short, word);
-    bool writeData(unsigned short, unsigned short, const byte*);
+    bool writeData(unsigned short, int, const byte*);
     void oamDma(byte);
 
     // starting addresses for memory sectors

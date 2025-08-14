@@ -2,8 +2,10 @@
 #include "mem.h"
 #include "scheduler.h"
 #include "types.h"
+#include <chrono>
 #include <iostream>
 #include <ostream>
+#include <thread>
 #include <unistd.h>
 
 // without this, the cycle definions would be too long
@@ -64,10 +66,10 @@ void Cpu::executeNext() {
 
     if (!halted) 
     {
-        executeRegular(memory[pc]); 
-        return;
+        executeRegular(memory[pc]);
+                return;
     }  
-
+    
     scheduler.push(4 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
 }
 
@@ -119,16 +121,15 @@ void Cpu::executeRegular(byte op_code) {
     //    std::cout << "ball " << (int) pc << std::endl;
     //    exit(1);}
     static bool b = false;
-    std::cout << std::hex << pc << " ";
+    std::cout << std::hex << pc << " -> " << (int) memory[pc] << " | ";
     std::cout.setf( std::ios_base::unitbuf );
+    //if (pc == 0xc411 || pc == 0xc36c || pc == 0xc370 || pc == 0xc378 || pc == 0xc39F || pc == 0xc38D){std::this_thread::sleep_for(std::chrono::milliseconds(6000));}
 
-    if(pc == 0x100) {sleep(1);std::cout << std::endl; b = true;} ;
-    if((pc == 0x28) && b) { sleep(1); std::cout << std::endl; }
+
+
+    //if(pc > 0x100) {sleep(1);std::cout << std::endl; b = true;} ;
 
     static int prev_pc = 0;
-    if (pc == 25) {
-        std::cout << std::endl << std::hex <<  "i: " << prev_pc << " " << (int) memory[prev_pc] << std::endl;
-    }
     prev_pc = pc;
     //std::cout << (int) memory[pc] << std::endl;
     switch (op_code) 
@@ -182,22 +183,26 @@ void Cpu::executeRegular(byte op_code) {
         case 0xb8: {op_0xb8(); break;} case 0xb9: {op_0xb9(); break;} case 0xba: {op_0xba(); break;} case 0xbb: {op_0xbb(); break;} 
         case 0xbc: {op_0xbc();return;} case 0xbd: {op_0xbd(); break;} case 0xbe: {op_0xbe(); break;} case 0xbf: {op_0xbf(); break;} 
         case 0xc0: {op_0xc0();return;} case 0xc1: {op_0xc1(); break;} case 0xc2: {op_0xc2();return;} case 0xc3: {op_0xc3();return;} 
-        case 0xc4: {op_0xc4();return;} case 0xc5: {op_0xc5(); break;} case 0xc6: {op_0xc6(); break;} case 0xc7: {op_0xc7(); break;} 
+        case 0xc4: {op_0xc4();return;} case 0xc5: {op_0xc5(); break;} case 0xc6: {op_0xc6(); break;} case 0xc7: {op_0xc7();return;} 
         case 0xc8: {op_0xc8();return;} case 0xc9: {op_0xc9(); break;} case 0xca: {op_0xca();return;} case 0xcb: {op_0xcb();return;} 
-        case 0xcc: {op_0xcc();return;} case 0xcd: {op_0xcd();return;} case 0xce: {op_0xce(); break;} case 0xcf: {op_0xcf(); break;} 
+        case 0xcc: {op_0xcc();return;} case 0xcd: {op_0xcd();return;} case 0xce: {op_0xce(); break;} case 0xcf: {op_0xcf();return;} 
         case 0xd0: {op_0xd0();return;} case 0xd1: {op_0xd1(); break;} case 0xd2: {op_0xd2();return;} case 0xd3: {op_0xd3(); break;} 
-        case 0xd4: {op_0xd4();return;} case 0xd5: {op_0xd5(); break;} case 0xd6: {op_0xd6(); break;} case 0xd7: {op_0xd7(); break;} 
+        case 0xd4: {op_0xd4();return;} case 0xd5: {op_0xd5(); break;} case 0xd6: {op_0xd6(); break;} case 0xd7: {op_0xd7();return;} 
         case 0xd8: {op_0xd8();return;} case 0xd9: {op_0xd9(); break;} case 0xda: {op_0xda();return;} case 0xdb: {op_0xdb(); break;} 
-        case 0xdc: {op_0xdc();return;} case 0xdd: {op_0xdd(); break;} case 0xde: {op_0xde(); break;} case 0xdf: {op_0xdf(); break;} 
+        case 0xdc: {op_0xdc();return;} case 0xdd: {op_0xdd(); break;} case 0xde: {op_0xde(); break;} case 0xdf: {op_0xdf();return;} 
         case 0xe0: {op_0xe0(); break;} case 0xe1: {op_0xe1(); break;} case 0xe2: {op_0xe2(); break;} case 0xe3: {op_0xe3(); break;} 
-        case 0xe4: {op_0xe4(); break;} case 0xe5: {op_0xe5(); break;} case 0xe6: {op_0xe6(); break;} case 0xe7: {op_0xe7(); break;} 
+        case 0xe4: {op_0xe4(); break;} case 0xe5: {op_0xe5(); break;} case 0xe6: {op_0xe6(); break;} case 0xe7: {op_0xe7();return;} 
         case 0xe8: {op_0xe8(); break;} case 0xe9: {op_0xe9();return;} case 0xea: {op_0xea(); break;} case 0xeb: {op_0xeb(); break;} 
-        case 0xec: {op_0xec(); break;} case 0xed: {op_0xed(); break;} case 0xee: {op_0xee(); break;} case 0xef: {op_0xef(); break;} 
+        case 0xec: {op_0xec(); break;} case 0xed: {op_0xed(); break;} case 0xee: {op_0xee(); break;} case 0xef: {op_0xef();return;} 
         case 0xf0: {op_0xf0(); break;} case 0xf1: {op_0xf1(); break;} case 0xf2: {op_0xf2(); break;} case 0xf3: {op_0xf3(); break;} 
-        case 0xf4: {op_0xf4(); break;} case 0xf5: {op_0xf5(); break;} case 0xf6: {op_0xf6(); break;} case 0xf7: {op_0xf7(); break;} 
+        case 0xf4: {op_0xf4(); break;} case 0xf5: {op_0xf5(); break;} case 0xf6: {op_0xf6(); break;} case 0xf7: {op_0xf7();return;} 
         case 0xf8: {op_0xf8(); break;} case 0xf9: {op_0xf9(); break;} case 0xfa: {op_0xfa(); break;} case 0xfb: {op_0xfb(); break;} 
-        case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {op_0xff(); break;}     
+        case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {op_0xff();return;}     
     }
+
+    std::cout << std::hex << "| ";
+    std::cout.setf( std::ios_base::unitbuf );
+    
     //if (!memory[0x2a7f]) {
     //    for (int i = 0; i <= 0x8000; ++i) std::cout << (int) memory[i] << " ";
     //    std::cout << "baru " << (int) pc << " " << (int) memory[pc] << std::endl;
