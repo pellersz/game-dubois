@@ -19,7 +19,7 @@ public:
     void setPC(word);
     void test(std::string);
     std::string toString();
-
+    word getPC();
         
 protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters

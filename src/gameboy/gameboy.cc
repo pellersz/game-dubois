@@ -48,7 +48,7 @@ void GameBoy::load(std::shared_ptr<Cartridge> cartridge_ptr)
 
 void GameBoy::unload() { cartridge = nullptr; }
 
-void GameBoy::run() 
+void GameBoy::run(bool debug) 
 { 
     if (cartridge == nullptr) 
     {
@@ -63,7 +63,10 @@ void GameBoy::run()
     cpu.setPC(0x100);
     
     memory.writeData(0, 256, cartridge->rom);
-    
-    scheduler.run();
+   
+    if (!debug)
+        scheduler.run();
+    else 
+        scheduler.debugRun();
 }
 

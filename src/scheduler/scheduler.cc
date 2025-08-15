@@ -36,6 +36,7 @@ void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
 
 void Scheduler::push(unsigned short duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
+// TODO: account for ppu stopped and resumed
 bool Scheduler::pop() 
 {
     bool go_next = true;
@@ -48,7 +49,7 @@ bool Scheduler::pop()
             cpu->executeNext();
 
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
-                    memory[Memory::BOOT_ROM_MAPPING] == 1)
+                    (memory[Memory::BOOT_ROM_MAPPING] == 1))
             {
                 last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
                 go_next = false;
@@ -85,10 +86,7 @@ bool Scheduler::pop()
             break;
         }
         case VBLANK_START: 
-        {
-            //static int counter = 0;
-            //if (!(counter % 60)) std::cout << " " << (int) counter / 60 << std::endl;
-            //
+        { 
             memory[Memory::INTERRUPT_FLAG] |= 0b0001; 
             screen.updateFrame();
             ++memory[Memory::LCD_Y];
@@ -193,6 +191,220 @@ void Scheduler::run()
             tick();
     }
 }
+
+void Scheduler::handleDebugStop(bool& mode, int& stop_at) 
+{
+    char action;
+    bool done = false;
+    while (!done)
+    {
+        done = true;
+        std::cin >> action;
+        switch (action) {
+            case 'n': { stop_at = -1; break; }
+            case 'c': 
+            { 
+                if (!mode)
+                    stop_at = 0xffff; 
+                break; 
+            }
+            case 'b': 
+            {
+                mode = false;
+                std::cin >> std::hex >> stop_at; 
+                break; 
+            }
+            case 'f':
+            {
+                mode = true;
+                std::cin >> std::hex >> stop_at; 
+                break; 
+            }
+            case 'm': 
+            {
+                word addr;
+                std::cin >> std::hex >> addr; 
+                std::cout << std::hex << (int) memory[addr] << std::endl;
+                done = false;
+                break; 
+            }
+            default: { done = false; }
+        }
+    }
+}
+
+// TODO: DRY this up
+bool Scheduler::debugPop(bool& mode, int& stop_at) 
+{
+    bool go_next = true;
+
+    switch (schedule.top().second) {
+        case CPU_EXEC:
+        {
+            // since only the cpu cares about controller input, it only should update before it
+            controller.updatePressed();
+            
+            if ((stop_at == -1) || (!mode && (stop_at == cpu->getPC())) || (mode && (stop_at == memory[cpu->getPC()])))
+            {
+                std::cout << cpu->toString() << std::endl;
+                handleDebugStop(mode, stop_at);
+            }
+
+            cpu->executeNext();
+
+            if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
+                    (memory[Memory::BOOT_ROM_MAPPING] == 1))
+            {
+                last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
+                go_next = false;
+            }
+
+            break; 
+        }
+        case UPDATE_DIV: 
+        {
+            byte& divider = memory[Memory::DIVIDER_REGISTER];
+            push((unsigned short) 256, UPDATE_DIV);
+            if (divider == last_div) 
+            {
+                last_div = ++divider;
+                break;
+            }
+            last_div = (divider = 0);
+            break;
+        } 
+        case UPDATE_TIMA: 
+        {
+            const unsigned short vals[] = { 1024, 16, 64, 256 };
+            short val = vals[memory[Memory::TIMER_CONTROL] & 0b0011];
+            push(val, UPDATE_TIMA);
+            if (memory[Memory::TIMER_CONTROL] & 0b0100)
+            {
+                byte& tima = ++memory[Memory::TIMER_COUNTER];
+                if (!tima) 
+                {
+                    tima = memory[Memory::TIMER_MODULO];
+                    memory[Memory::INTERRUPT_FLAG] |= 0b0100;
+                }
+            }
+            break;
+        }
+        case VBLANK_START: 
+        {
+            static int counter = 0;
+            if (!(counter % 60)) std::cout << " " << (int) counter / 60 << std::endl;
+            ++counter;
+            
+            memory[Memory::INTERRUPT_FLAG] |= 0b0001; 
+            screen.updateFrame();
+            ++memory[Memory::LCD_Y];
+
+            push(456 * Ppu::TIME_UNIT, VBLANK);
+            while(next_dot_time > std::chrono::steady_clock::now()) {}
+            next_dot_time += SYSTEM_CLOCKS_PER_DOTT;
+            break;
+        }
+        case VBLANK: 
+        {
+            byte& lcd_y = memory[Memory::LCD_Y];
+            if (++lcd_y < 154) 
+            {
+                push(456 * Ppu::TIME_UNIT, VBLANK);
+                break;
+            }
+            lcd_y = 0;
+            push(456 * Ppu::TIME_UNIT, OAM_SCAN);
+            break;
+        }
+        case LYC_LY_CMP: 
+        { 
+            push(4, LYC_LY_CMP);
+            if (memory[Memory::LCD_Y] == memory[Memory::LCD_CONTROL]) 
+            {
+                memory[Memory::LCD_STAT] |= 0b0100;
+                break;
+            }
+            memory[Memory::LCD_STAT] &= 0b1011;
+            break;
+        }
+        case OAM_SCAN: 
+        { 
+            byte& ly = memory[Memory::LCD_Y];
+            ppu.oamScan();
+            push(80 * Ppu::TIME_UNIT, DRAW_PIXELS);
+            break;
+        }
+        case DRAW_PIXELS:
+        {
+            ppu.drawLine();
+            push(172 * Ppu::TIME_UNIT, HBLANK);
+            ++memory[Memory::LCD_Y];
+            break;
+        }
+        case HBLANK:
+        {
+            ppu.hBlank();
+            if (memory[Memory::LCD_Y] < 143) 
+            {
+                push(87 * Ppu::TIME_UNIT, OAM_SCAN);
+                break;
+            }
+
+            push(87 * Ppu::TIME_UNIT, VBLANK_START);
+            break;
+        }
+        case HANDLE_CONTROL: 
+        {
+            glfwPollEvents();
+            if(glfwGetKey(screen.getWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS)
+                controller.buttonPressed(Controller::RIGHT_PRESSED);
+            if(glfwGetKey(screen.getWindow(), GLFW_KEY_LEFT) == GLFW_PRESS)
+                controller.buttonPressed(Controller::LEFT_PRESSED);
+            if(glfwGetKey(screen.getWindow(), GLFW_KEY_DOWN) == GLFW_PRESS)
+                controller.buttonPressed(Controller::DOWN_PRESSED);
+            if(glfwGetKey(screen.getWindow(), GLFW_KEY_UP) == GLFW_PRESS)
+                controller.buttonPressed(Controller::UP_PRESSED);
+            if(glfwGetKey(screen.getWindow(), GLFW_KEY_Z) == GLFW_PRESS)
+                controller.buttonPressed(Controller::A_PRESSED);
+            if(glfwGetKey(screen.getWindow(), GLFW_KEY_X) == GLFW_PRESS)
+                controller.buttonPressed(Controller::B_PRESSED);
+            if(glfwGetKey(screen.getWindow(), GLFW_KEY_ENTER) == GLFW_PRESS)
+                controller.buttonPressed(Controller::START_PRESSED);
+            if(glfwGetKey(screen.getWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+                controller.buttonPressed(Controller::SELECT_PRESSED);
+            
+            push(100, HANDLE_CONTROL);
+            break;
+        }
+    };
+
+    schedule.pop(); 
+    return go_next;
+}
+
+void Scheduler::debugRun() 
+{ 
+    if (cpu == nullptr) {
+        std::cout << "Initialize the cpu, bozo";
+        return;
+    } 
+
+    std::cout << "Where are we stopping" << std::endl;
+    bool mode;
+    int stop_at;
+    std::cin >> std::hex >> mode >> stop_at;
+
+    bool go_next = true;
+    next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;
+
+    while (go_next && !glfwWindowShouldClose(screen.getWindow())) {
+        if (schedule.top().first <= time)
+            go_next = debugPop(mode, stop_at);
+        else
+            tick();
+    }
+}
+
 
 void Scheduler::stop() {}
 

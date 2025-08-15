@@ -16,10 +16,10 @@ void Ppu::oamScan()
     for(unsigned short obj_ind = 0xfe00; obj_ind < 0xfea0 && numberOfObjects < 10; obj_ind += 4) 
     {
         byte pos_y = memory[obj_ind] - 16;
-        byte currenct_lcd_pos = memory[Memory::LCD_Y];
-        if ((pos_y <= currenct_lcd_pos) && (pos_y + 8 + 8 * is_16_bit > currenct_lcd_pos)) {
+        byte current_lcd_pos = memory[Memory::LCD_Y];
+        if ((pos_y <= current_lcd_pos) && (pos_y + 8 + 8 * is_16_bit > current_lcd_pos)) {
             objects[numberOfObjects].posX         = memory[obj_ind + 1];
-            objects[numberOfObjects].internalY    = pos_y - currenct_lcd_pos;
+            objects[numberOfObjects].internalY    = pos_y - current_lcd_pos;
             objects[numberOfObjects].tileIndex    = memory[obj_ind + 2];
             objects[numberOfObjects++].attributes = memory[obj_ind + 3];
         }

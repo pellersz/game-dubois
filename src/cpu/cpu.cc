@@ -31,6 +31,8 @@ word Cpu::getHL() { return (((word) h) << 8) + l; }
 
 bool Cpu::getCF() { return f & 0b00010000; }
 
+word Cpu::getPC() { return pc; }
+
 bool Cpu::getHF() { return f & 0b00100000; }
 
 bool Cpu::getNF() { return f & 0b01000000; }
@@ -130,8 +132,9 @@ void Cpu::executeRegular(byte op_code) {
     //    std::cout << "ball " << (int) pc << std::endl;
     //    exit(1);}
     static bool b = false;
-    std::cout << std::hex << pc << " -> " << (int) memory[pc] << " | ";
-    std::cout.setf( std::ios_base::unitbuf );
+    //std::cout << std::hex << pc << " -> " << (int) memory[pc] << " | ";
+    //std::cout.setf( std::ios_base::unitbuf );
+    if (pc == 0xc263) {sleep(6); std::cout << "balls" << std::endl;}
     //if (pc == 0xc411 || pc == 0xc36c || pc == 0xc370 || pc == 0xc378 || pc == 0xc39F || pc == 0xc38D){std::this_thread::sleep_for(std::chrono::milliseconds(6000));}
 
 
@@ -209,8 +212,8 @@ void Cpu::executeRegular(byte op_code) {
         case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {op_0xff();return;}     
     }
 
-    std::cout << std::hex << "| ";
-    std::cout.setf( std::ios_base::unitbuf );
+    //std::cout << std::hex << "| ";
+    //std::cout.setf( std::ios_base::unitbuf );
     
     //if (!memory[0x2a7f]) {
     //    for (int i = 0; i <= 0x8000; ++i) std::cout << (int) memory[i] << " ";
@@ -587,7 +590,8 @@ std::string Cpu::toString()
                   << "h = " << (int) h << "; "
                   << "l = " << (int) l << "; "
                   << "sp = " << (int) sp << "; "
-                  << "pc = " << (int) pc;
+                  << "pc = " << (int) pc << "; "
+                  << "mem[pc] = " << (int) memory[pc];
 
     return s.str();
 }

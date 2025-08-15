@@ -19,7 +19,7 @@ public:
     void load(std::shared_ptr<Cartridge>);
     void unload();
     
-    void run();
+    void run(bool);
 
 private:
     Memory& memory;
