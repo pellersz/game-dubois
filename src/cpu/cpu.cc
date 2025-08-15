@@ -134,7 +134,6 @@ void Cpu::executeRegular(byte op_code) {
     static bool b = false;
     //std::cout << std::hex << pc << " -> " << (int) memory[pc] << " | ";
     //std::cout.setf( std::ios_base::unitbuf );
-    if (pc == 0xc263) {sleep(6); std::cout << "balls" << std::endl;}
     //if (pc == 0xc411 || pc == 0xc36c || pc == 0xc370 || pc == 0xc378 || pc == 0xc39F || pc == 0xc38D){std::this_thread::sleep_for(std::chrono::milliseconds(6000));}
 
 
@@ -591,10 +590,155 @@ std::string Cpu::toString()
                   << "l = " << (int) l << "; "
                   << "sp = " << (int) sp << "; "
                   << "pc = " << (int) pc << "; "
-                  << "mem[pc] = " << (int) memory[pc];
+                  << "mem[pc] = " << (int) memory[pc] << "; "
+                  << "last in stack = " << memory(sp) << "; "
+                  << "currnet instruction: " << getAsm();
 
     return s.str();
 }
 
+std::string Cpu::getAsm() {
+    std::stringstream s;
+    s << std::hex;
+    bool cb = false;
+ 
+    switch (memory[pc]) {
+        case 0x00: {s << "nop"; break;} case 0x01: {s << "ld bc, " << memory(pc + 1); break;} case 0x02: {s << "ld (bc), a"; break;} case 0x03: {s << "inc bc"; break;}
+        case 0x04: {s << "inc b"; break;} case 0x05: {s << "dec b"; break;} case 0x06: {s << "ld b, " << (int) memory[pc + 1]; break;} case 0x07: {s << "rlca"; break;}
+        case 0x08: {s << "(" << memory(pc + 1) << "), sp"; break;} case 0x09: {s << "add hl, bc"; break;} case 0x0a: {s << "ld a, (bc)"; break;} case 0x0b: {s << "dec bc"; break;}
+        case 0x0c: {s << "inc c"; break;} case 0x0d: {s << "dec c"; break;} case 0x0e: {s << "ld c, " << (int) memory[pc + 1]; break;} case 0x0f: {s << "rrca"; break;}
+        case 0x10: {s << "stop"; break;} case 0x11: {s << "ld de, " << memory(pc + 1); break;} case 0x12: {s << "ld (de), a"; break;} case 0x13: {s << "inc de"; break;}
+        case 0x14: {s << "inc d"; break;} case 0x15: {s << "dec d"; break;} case 0x16: {s << "ld d, " << (int) memory[pc + 1]; break;} case 0x17: {s << "rla"; break;}
+        case 0x18: {s << "jr " << (int) memory[pc + 1]; break;} case 0x19: {s << "add hl, de"; break;} case 0x1a: {s << "ld a, (de)"; break;} case 0x1b: {s << "dec de"; break;}
+        case 0x1c: {s << "inc e"; break;} case 0x1d: {s << "dec e"; break;} case 0x1e: {s << "ld e, " << (int) memory[pc + 1]; break;} case 0x1f: {s << "rra"; break;}
+        case 0x20: {s << "jr nz, " << (int) memory[pc + 1]; break;} case 0x21: {s << "ld hl, " << memory(pc + 1); break;} case 0x22: {s << "ld (hl+), a"; break;} case 0x23: {s << "inc hl"; break;}
+        case 0x24: {s << "inc h"; break;} case 0x25: {s << "dec h"; break;} case 0x26: {s << "ld h, " << (int) memory[pc + 1]; break;} case 0x27: {s << "daa"; break;}
+        case 0x28: {s << "jr z, " << (int) memory[pc + 1]; break;} case 0x29: {s << "add hl, hl"; break;} case 0x2a: {s << "ld a, (hl+)"; break;} case 0x2b: {s << "dec hl"; break;}
+        case 0x2c: {s << "inc l"; break;} case 0x2d: {s << "dec l"; break;} case 0x2e: {s << "ld l, " << (int) memory[pc + 1]; break;} case 0x2f: {s << "cpl"; break;}
+        case 0x30: {s << "jr nc, " << (int) memory[pc + 1]; break;} case 0x31: {s << "ld sp, " << memory(pc + 1); break;} case 0x32: {s << "ld (hl-), a"; break;} case 0x33: {s << "inc sp"; break;}
+        case 0x34: {s << "inc (hl)"; break;} case 0x35: {s << "dec (hl)"; break;} case 0x36: {s << "ld (hl), " << (int) memory[pc + 1]; break;} case 0x37: {s << "scf"; break;}
+        case 0x38: {s << "jr c, " << (int) memory[pc + 1]; break;} case 0x39: {s << "add hl, sp"; break;} case 0x3a: {s << "ld a, (hl-)"; break;} case 0x3b: {s << "dec sp"; break;}
+        case 0x3c: {s << "inc a"; break;} case 0x3d: {s << "dec a"; break;} case 0x3e: {s << "ld a, " << (int) memory[pc + 1]; break;} case 0x3f: {s << "ccf"; break;}
+        case 0x40: {s << "ld b, b"; break;} case 0x41: {s << "ld b, c"; break;} case 0x42: {s << "ld b, d"; break;} case 0x43: {s << "ld b, e"; break;}
+        case 0x44: {s << "ld b, h"; break;} case 0x45: {s << "ld b, l"; break;} case 0x46: {s << "ld b, (hl)"; break;} case 0x47: {s << "ld b, a"; break;}
+        case 0x48: {s << "ld c, b"; break;} case 0x49: {s << "ld c, c"; break;} case 0x4a: {s << "ld c, d"; break;} case 0x4b: {s << "ld c, e"; break;}
+        case 0x4c: {s << "ld c, h"; break;} case 0x4d: {s << "ld c, l"; break;} case 0x4e: {s << "ld c, (hl)"; break;} case 0x4f: {s << "ld c, a"; break;}
+        case 0x50: {s << "ld d, b"; break;} case 0x51: {s << "ld d, c"; break;} case 0x52: {s << "ld d, d"; break;} case 0x53: {s << "ld d, e"; break;}
+        case 0x54: {s << "ld d, h"; break;} case 0x55: {s << "ld d, l"; break;} case 0x56: {s << "ld d, (hl)"; break;} case 0x57: {s << "ld d, a"; break;}
+        case 0x58: {s << "ld e, b"; break;} case 0x59: {s << "ld e, c"; break;} case 0x5a: {s << "ld e, d"; break;} case 0x5b: {s << "ld e, e"; break;}
+        case 0x5c: {s << "ld e, h"; break;} case 0x5d: {s << "ld e, l"; break;} case 0x5e: {s << "ld e, (hl)"; break;} case 0x5f: {s << "ld e, a"; break;}
+        case 0x60: {s << "ld h, b"; break;} case 0x61: {s << "ld h, c"; break;} case 0x62: {s << "ld h, d"; break;} case 0x63: {s << "ld h, e"; break;}
+        case 0x64: {s << "ld h, h"; break;} case 0x65: {s << "ld h, l"; break;} case 0x66: {s << "ld h, (hl)"; break;} case 0x67: {s << "ld h, a"; break;}
+        case 0x68: {s << "ld l, b"; break;} case 0x69: {s << "ld l, c"; break;} case 0x6a: {s << "ld l, d"; break;} case 0x6b: {s << "ld l, e"; break;}
+        case 0x6c: {s << "ld l, h"; break;} case 0x6d: {s << "ld l, l"; break;} case 0x6e: {s << "ld l, (hl)"; break;} case 0x6f: {s << "ld l, a"; break;}
+        case 0x70: {s << "ld (hl), b"; break;} case 0x71: {s << "ld (hl), c"; break;} case 0x72: {s << "ld (hl), d"; break;} case 0x73: {s << "ld (hl), e"; break;}
+        case 0x74: {s << "ld (hl), h"; break;} case 0x75: {s << "ld (hl), l"; break;} case 0x76: {s << "halt"; break;} case 0x77: {s << "ld (hl), a"; break;}
+        case 0x78: {s << "ld a, b"; break;} case 0x79: {s << "ld a, c"; break;} case 0x7a: {s << "ld a, d"; break;} case 0x7b: {s << "ld a, e"; break;}
+        case 0x7c: {s << "ld a, h"; break;} case 0x7d: {s << "ld a, l"; break;} case 0x7e: {s << "ld a, (hl)"; break;} case 0x7f: {s << "ld a, a"; break;}
+        case 0x80: {s << "add a, b"; break;} case 0x81: {s << "add a, c"; break;} case 0x82: {s << "add a, d"; break;} case 0x83: {s << "add a, e"; break;}
+        case 0x84: {s << "add a, h"; break;} case 0x85: {s << "add a, l"; break;} case 0x86: {s << "add a, (hl)"; break;} case 0x87: {s << "add a, a"; break;}
+        case 0x88: {s << "adc a, b"; break;} case 0x89: {s << "adc a, c"; break;} case 0x8a: {s << "adc a, d"; break;} case 0x8b: {s << "adc a, e"; break;}
+        case 0x8c: {s << "adc a, h"; break;} case 0x8d: {s << "adc a, l"; break;} case 0x8e: {s << "adc a, (hl)"; break;} case 0x8f: {s << "adc a, a"; break;}
+        case 0x90: {s << "sub b"; break;} case 0x91: {s << "sub c"; break;} case 0x92: {s << "sub d"; break;} case 0x93: {s << "sub e"; break;}
+        case 0x94: {s << "sub h"; break;} case 0x95: {s << "sub l"; break;} case 0x96: {s << "sub (hl)"; break;} case 0x97: {s << "sub a"; break;}
+        case 0x98: {s << "sbc b"; break;} case 0x99: {s << "sbc c"; break;} case 0x9a: {s << "sbc d"; break;} case 0x9b: {s << "sbc e"; break;}
+        case 0x9c: {s << "sbc h"; break;} case 0x9d: {s << "sbc l"; break;} case 0x9e: {s << "sbc (hl)"; break;} case 0x9f: {s << "sbc a"; break;}
+        case 0xa0: {s << "and b"; break;} case 0xa1: {s << "and c"; break;} case 0xa2: {s << "and d"; break;} case 0xa3: {s << "and e"; break;}
+        case 0xa4: {s << "and h"; break;} case 0xa5: {s << "and l"; break;} case 0xa6: {s << "and (hl)"; break;} case 0xa7: {s << "and a"; break;}
+        case 0xa8: {s << "xor b"; break;} case 0xa9: {s << "xor c"; break;} case 0xaa: {s << "xor d"; break;} case 0xab: {s << "xor e"; break;}
+        case 0xac: {s << "xor h"; break;} case 0xad: {s << "xor l"; break;} case 0xae: {s << "xor (hl)"; break;} case 0xaf: {s << "xor a"; break;}
+        case 0xb0: {s << "or b"; break;} case 0xb1: {s << "or c"; break;} case 0xb2: {s << "or d"; break;} case 0xb3: {s << "or e"; break;}
+        case 0xb4: {s << "or h"; break;} case 0xb5: {s << "or l"; break;} case 0xb6: {s << "or (hl)"; break;} case 0xb7: {s << "or a"; break;}
+        case 0xb8: {s << "cp b"; break;} case 0xb9: {s << "cp c"; break;} case 0xba: {s << "cp d"; break;} case 0xbb: {s << "cp e"; break;}
+        case 0xbc: {s << "cp h"; break;} case 0xbd: {s << "cp l"; break;} case 0xbe: {s << "cp (hl)"; break;} case 0xbf: {s << "cp a"; break;}
+        case 0xc0: {s << "ret nz"; break;} case 0xc1: {s << "pop bc"; break;} case 0xc2: {s << "jp nz, " << memory(pc + 1); break;} case 0xc3: {s << "jp " << memory(pc + 1); break;}
+        case 0xc4: {s << "call nz, " << memory(pc + 1); break;} case 0xc5: {s << "push bc"; break;} case 0xc6: {s << "add a, " << (int) memory[pc + 1]; break;} case 0xc7: {s << "rst 0"; break;}
+        case 0xc8: {s << "ret z"; break;} case 0xc9: {s << "ret"; break;} case 0xca: {s << "hp z, " << memory(pc + 1); break;} case 0xcb: {cb = true; break;}
+        case 0xcc: {s << "call z, " << memory(pc + 1); break;} case 0xcd: {s << "call " << memory(pc + 1); break;} case 0xce: {s << "adc a, " << (int) memory[pc + 1]; break;} case 0xcf: {s << "rst 8"; break;}
+        case 0xd0: {s << "ret nc"; break;} case 0xd1: {s << "pop de"; break;} case 0xd2: {s << "jp nc, " << memory(pc + 1); break;} case 0xd3: {s << "problem"; break;}
+        case 0xd4: {s << "call nc, " << memory(pc + 1); break;} case 0xd5: {s << "push de"; break;} case 0xd6: {s << "sub " << (int) memory[pc + 1]; break;} case 0xd7: {s << "rst 10"; break;}
+        case 0xd8: {s << "ret c"; break;} case 0xd9: {s << "reti"; break;} case 0xda: {s << "jp c, " << memory(pc + 1); break;} case 0xdb: {s << "problem"; break;}
+        case 0xdc: {s << "call c, " << memory(pc + 1); break;} case 0xdd: {s << "problem"; break;} case 0xde: {s << "sbc a, " << (int) memory[pc + 1]; break;} case 0xdf: {s << "rst 18"; break;}
+        case 0xe0: {s << "ld (" << 0xff00 + (int) memory[pc + 1] << "), a"; break;} case 0xe1: {s << "pop hl"; break;} case 0xe2: {s << "ld (ff00 + c), a"; break;} case 0xe3: {s << "problem"; break;}
+        case 0xe4: {s << "problem"; break;} case 0xe5: {s << "push hl"; break;} case 0xe6: {s << "and " << (int) memory[pc + 1]; break;} case 0xe7: {s << "rst 20"; break;}
+        case 0xe8: {s << "add sp, " << (int) memory[pc + 1]; break;} case 0xe9: {s << "jp hl"; break;} case 0xea: {s << "ld (" <<memory(pc + 1) << "), a"; break;} case 0xeb: {s << "problem"; break;}
+        case 0xec: {s << "problem"; break;} case 0xed: {s << "problem"; break;} case 0xee: {s << "xor " << (int) memory[pc + 1]; break;} case 0xef: {s << "rst 28"; break;}
+        case 0xf0: {s << "ld a, (" << (int) memory[pc + 1] << ")"; break;} case 0xf1: {s << "pop af"; break;} case 0xf2: {s << "ld a, (c)"; break;} case 0xf3: {s << "di"; break;}
+        case 0xf4: {s << "problem"; break;} case 0xf5: {s << "push af"; break;} case 0xf6: {s << "or " << (int) memory[pc + 1]; break;} case 0xf7: {s << "rst 30"; break;}
+        case 0xf8: {s << "ld hl, sp+" << (int)memory[pc + 1]; break;} case 0xf9: {s << "ld sp, hl"; break;} case 0xfa: {s << "ld a, (" << memory(pc + 1) << ")"; break;} case 0xfb: {s << "ei"; break;}
+        case 0xfc: {s << "problem"; break;} case 0xfd: {s << "problem"; break;} case 0xfe: {s << "cp " << (int) memory[pc + 1]; break;} case 0xff: {s << "rst 38"; break;}
+    }
 
+    if (!cb) 
+        return s.str();
+
+    switch (memory[pc + 1]) {
+        case 0x00: {return "rlc b";} case 0x01: {return "rlc c";} case 0x02: {return "rlc d";} case 0x03: {return "rlc e";}
+        case 0x04: {return "rlc h";} case 0x05: {return "rlc l";} case 0x06: {return "rlc (hl)";} case 0x07: {return "rlc a";}
+        case 0x08: {return "rrc b";} case 0x09: {return "rrc c";} case 0x0a: {return "rrc d";} case 0x0b: {return "rrc e";}
+        case 0x0c: {return "rrc h";} case 0x0d: {return "rrc l";} case 0x0e: {return "rrc (hl)";} case 0x0f: {return "rrc a";}
+        case 0x10: {return "rl b";} case 0x11: {return "rl c";} case 0x12: {return "rl d";} case 0x13: {return "rl e";}
+        case 0x14: {return "rl h";} case 0x15: {return "rl l";} case 0x16: {return "rl (hl)";} case 0x17: {return "rl a";}
+        case 0x18: {return "rr b";} case 0x19: {return "rr c";} case 0x1a: {return "rr d";} case 0x1b: {return "rr e";}
+        case 0x1c: {return "rr h";} case 0x1d: {return "rr l";} case 0x1e: {return "rr (hl)";} case 0x1f: {return "rr a";}
+        case 0x20: {return "sla b";} case 0x21: {return "sla c";} case 0x22: {return "sla d";} case 0x23: {return "sla e";}
+        case 0x24: {return "sla h";} case 0x25: {return "sla l";} case 0x26: {return "sla (hl)";} case 0x27: {return "sla a";}
+        case 0x28: {return "sra b";} case 0x29: {return "sra c";} case 0x2a: {return "sra d";} case 0x2b: {return "sra e";}
+        case 0x2c: {return "sra h";} case 0x2d: {return "sra l";} case 0x2e: {return "sra (hl)";} case 0x2f: {return "sra a";}
+        case 0x30: {return "swap b";} case 0x31: {return "swap c";} case 0x32: {return "swap d";} case 0x33: {return "swap e";}
+        case 0x34: {return "swap h";} case 0x35: {return "swap l";} case 0x36: {return "swap (hl)";} case 0x37: {return "swap a";}
+        case 0x38: {return "srl b";} case 0x39: {return "srl c";} case 0x3a: {return "srl d";} case 0x3b: {return "srl e";}
+        case 0x3c: {return "srl h";} case 0x3d: {return "srl l";} case 0x3e: {return "srl (hl)";} case 0x3f: {return "srl a";}
+        case 0x40: {return "bit 0, b";} case 0x41: {return "bit 0, c";} case 0x42: {return "bit 0, d";} case 0x43: {return "bit 0, e";}
+        case 0x44: {return "bit 0, h";} case 0x45: {return "bit 0, l";} case 0x46: {return "bit 0, (hl)";} case 0x47: {return "bit 0, a";}
+        case 0x48: {return "bit 1, b";} case 0x49: {return "bit 1, c";} case 0x4a: {return "bit 1, d";} case 0x4b: {return "bit 1, e";}
+        case 0x4c: {return "bit 1, h";} case 0x4d: {return "bit 1, l";} case 0x4e: {return "bit 1, (hl)";} case 0x4f: {return "bit 1, a";}
+        case 0x50: {return "bit 2, b";} case 0x51: {return "bit 2, c";} case 0x52: {return "bit 2, d";} case 0x53: {return "bit 2, e";}
+        case 0x54: {return "bit 2, h";} case 0x55: {return "bit 2, l";} case 0x56: {return "bit 2, (hl)";} case 0x57: {return "bit 2, a";}
+        case 0x58: {return "bit 3, b";} case 0x59: {return "bit 3, c";} case 0x5a: {return "bit 3, d";} case 0x5b: {return "bit 3, e";}
+        case 0x5c: {return "bit 3, h";} case 0x5d: {return "bit 3, l";} case 0x5e: {return "bit 3, (hl)";} case 0x5f: {return "bit 3, a";}
+        case 0x60: {return "bit 4, b";} case 0x61: {return "bit 4, c";} case 0x62: {return "bit 4, d";} case 0x63: {return "bit 4, e";}
+        case 0x64: {return "bit 4, h";} case 0x65: {return "bit 4, l";} case 0x66: {return "bit 4, (hl)";} case 0x67: {return "bit 4, a";}
+        case 0x68: {return "bit 5, b";} case 0x69: {return "bit 5, c";} case 0x6a: {return "bit 5, d";} case 0x6b: {return "bit 5, e";}
+        case 0x6c: {return "bit 5, h";} case 0x6d: {return "bit 5, l";} case 0x6e: {return "bit 5, (hl)";} case 0x6f: {return "bit 5, a";}
+        case 0x70: {return "bit 6, b";} case 0x71: {return "bit 6, c";} case 0x72: {return "bit 6, d";} case 0x73: {return "bit 6, e";}
+        case 0x74: {return "bit 6, h";} case 0x75: {return "bit 6, l";} case 0x76: {return "bit 6, (hl)";} case 0x77: {return "bit 6, a";}
+        case 0x78: {return "bit 7, b";} case 0x79: {return "bit 7, c";} case 0x7a: {return "bit 7, d";} case 0x7b: {return "bit 7, e";}
+        case 0x7c: {return "bit 7, h";} case 0x7d: {return "bit 7, l";} case 0x7e: {return "bit 7, (hl)";} case 0x7f: {return "bit 7, a";}
+        case 0x80: {return "res 0, b";} case 0x81: {return "res 0, c";} case 0x82: {return "res 0, d";} case 0x83: {return "res 0, e";}
+        case 0x84: {return "res 0, h";} case 0x85: {return "res 0, l";} case 0x86: {return "res 0, (hl)";} case 0x87: {return "res 0, a";}
+        case 0x88: {return "res 1, b";} case 0x89: {return "res 1, c";} case 0x8a: {return "res 1, d";} case 0x8b: {return "res 1, e";}
+        case 0x8c: {return "res 1, h";} case 0x8d: {return "res 1, l";} case 0x8e: {return "res 1, (hl)";} case 0x8f: {return "res 1, a";}
+        case 0x90: {return "res 2, b";} case 0x91: {return "res 2, c";} case 0x92: {return "res 2, d";} case 0x93: {return "res 2, e";}
+        case 0x94: {return "res 2, h";} case 0x95: {return "res 2, l";} case 0x96: {return "res 2, (hl)";} case 0x97: {return "res 2, a";}
+        case 0x98: {return "res 3, b";} case 0x99: {return "res 3, c";} case 0x9a: {return "res 3, d";} case 0x9b: {return "res 3, e";}
+        case 0x9c: {return "res 3, h";} case 0x9d: {return "res 3, l";} case 0x9e: {return "res 3, (hl)";} case 0x9f: {return "res 3, a";}
+        case 0xa0: {return "res 4, b";} case 0xa1: {return "res 4, c";} case 0xa2: {return "res 4, d";} case 0xa3: {return "res 4, e";}
+        case 0xa4: {return "res 4, h";} case 0xa5: {return "res 4, l";} case 0xa6: {return "res 4, (hl)";} case 0xa7: {return "res 4, a";}
+        case 0xa8: {return "res 5, b";} case 0xa9: {return "res 5, c";} case 0xaa: {return "res 5, d";} case 0xab: {return "res 5, e";}
+        case 0xac: {return "res 5, h";} case 0xad: {return "res 5, l";} case 0xae: {return "res 5, (hl)";} case 0xaf: {return "res 5, a";}
+        case 0xb0: {return "res 6, b";} case 0xb1: {return "res 6, c";} case 0xb2: {return "res 6, d";} case 0xb3: {return "res 6, e";}
+        case 0xb4: {return "res 6, h";} case 0xb5: {return "res 6, l";} case 0xb6: {return "res 6, (hl)";} case 0xb7: {return "res 6, a";}
+        case 0xb8: {return "res 7, b";} case 0xb9: {return "res 7, c";} case 0xba: {return "res 7, d";} case 0xbb: {return "res 7, e";}
+        case 0xbc: {return "res 7, h";} case 0xbd: {return "res 7, l";} case 0xbe: {return "res 7, (hl)";} case 0xbf: {return "res 7, a";}
+        case 0xc0: {return "set 0, b";} case 0xc1: {return "set 0, c";} case 0xc2: {return "set 0, d";} case 0xc3: {return "set 0, e";}
+        case 0xc4: {return "set 0, h";} case 0xc5: {return "set 0, l";} case 0xc6: {return "set 0, (hl)";} case 0xc7: {return "set 0, a";}
+        case 0xc8: {return "set 1, b";} case 0xc9: {return "set 1, c";} case 0xca: {return "set 1, d";} case 0xcb: {return "set 1, e";}
+        case 0xcc: {return "set 1, h";} case 0xcd: {return "set 1, l";} case 0xce: {return "set 1, (hl)";} case 0xcf: {return "set 1, a";}
+        case 0xd0: {return "set 2, b";} case 0xd1: {return "set 2, c";} case 0xd2: {return "set 2, d";} case 0xd3: {return "set 2, e";}
+        case 0xd4: {return "set 2, h";} case 0xd5: {return "set 2, l";} case 0xd6: {return "set 2, (hl)";} case 0xd7: {return "set 2, a";}
+        case 0xd8: {return "set 3, b";} case 0xd9: {return "set 3, c";} case 0xda: {return "set 3, d";} case 0xdb: {return "set 3, e";}
+        case 0xdc: {return "set 3, h";} case 0xdd: {return "set 3, l";} case 0xde: {return "set 3, (hl)";} case 0xdf: {return "set 3, a";}
+        case 0xe0: {return "set 4, b";} case 0xe1: {return "set 4, c";} case 0xe2: {return "set 4, d";} case 0xe3: {return "set 4, e";}
+        case 0xe4: {return "set 4, h";} case 0xe5: {return "set 4, l";} case 0xe6: {return "set 4, (hl)";} case 0xe7: {return "set 4, a";}
+        case 0xe8: {return "set 5, b";} case 0xe9: {return "set 5, c";} case 0xea: {return "set 5, d";} case 0xeb: {return "set 5, e";}
+        case 0xec: {return "set 5, h";} case 0xed: {return "set 5, l";} case 0xee: {return "set 5, (hl)";} case 0xef: {return "set 5, a";}
+        case 0xf0: {return "set 6, b";} case 0xf1: {return "set 6, c";} case 0xf2: {return "set 6, d";} case 0xf3: {return "set 6, e";}
+        case 0xf4: {return "set 6, h";} case 0xf5: {return "set 6, l";} case 0xf6: {return "set 6, (hl)";} case 0xf7: {return "set 6, a";}
+        case 0xf8: {return "set 7, b";} case 0xf9: {return "set 7, c";} case 0xfa: {return "set 7, d";} case 0xfb: {return "set 7, e";}
+        case 0xfc: {return "set 7, h";} case 0xfd: {return "set 7, l";} case 0xfe: {return "set 7, (hl)";} case 0xff: {return "set 7, a";}
+    }
+
+    return "nothing";
+}
 

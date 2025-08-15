@@ -192,7 +192,7 @@ void Scheduler::run()
     }
 }
 
-void Scheduler::handleDebugStop(bool& mode, int& stop_at) 
+void Scheduler::handleDebugStop(bool& mode, int& stop_at, word& last_pc) 
 {
     char action;
     bool done = false;
@@ -234,7 +234,7 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at)
 }
 
 // TODO: DRY this up
-bool Scheduler::debugPop(bool& mode, int& stop_at) 
+bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc) 
 {
     bool go_next = true;
 
@@ -246,9 +246,10 @@ bool Scheduler::debugPop(bool& mode, int& stop_at)
             
             if ((stop_at == -1) || (!mode && (stop_at == cpu->getPC())) || (mode && (stop_at == memory[cpu->getPC()])))
             {
-                std::cout << cpu->toString() << std::endl;
-                handleDebugStop(mode, stop_at);
+                std::cout << cpu->toString() << " ; last pc = " << std::hex << last_pc << std::endl;
+                handleDebugStop(mode, stop_at, last_pc);
             }
+            last_pc = cpu->getPC();
 
             cpu->executeNext();
 
@@ -392,6 +393,7 @@ void Scheduler::debugRun()
     std::cout << "Where are we stopping" << std::endl;
     bool mode;
     int stop_at;
+    word last_pc;
     std::cin >> std::hex >> mode >> stop_at;
 
     bool go_next = true;
@@ -399,7 +401,7 @@ void Scheduler::debugRun()
 
     while (go_next && !glfwWindowShouldClose(screen.getWindow())) {
         if (schedule.top().first <= time)
-            go_next = debugPop(mode, stop_at);
+            go_next = debugPop(mode, stop_at, last_pc);
         else
             tick();
     }

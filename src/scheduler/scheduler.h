@@ -41,9 +41,9 @@ public:
     void push(unsigned short, Process);
     bool pop();
     void run();
-    bool debugPop(bool&, int&);
+    bool debugPop(bool&, int&, word&);
     void debugRun();
-    void handleDebugStop(bool&, int&);
+    void handleDebugStop(bool&, int&, word&);
     void stop();
 
     void statInterruptCheck();

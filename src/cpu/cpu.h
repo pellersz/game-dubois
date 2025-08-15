@@ -20,6 +20,7 @@ public:
     void test(std::string);
     std::string toString();
     word getPC();
+    std::string getAsm();
         
 protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
