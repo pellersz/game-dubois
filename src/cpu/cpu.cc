@@ -3,10 +3,18 @@
 #include "scheduler.h"
 #include "types.h"
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <ostream>
+#include <sstream>
+#include <string>
+#include <sys/stat.h>
 #include <thread>
 #include <unistd.h>
+#include <variant>
 
 // without this, the cycle definions would be too long
 Cpu::Cpu(Memory& memory, Scheduler& scheduler) : memory(memory), scheduler(scheduler) {}
@@ -21,13 +29,13 @@ word Cpu::getDE() { return (((word) d) << 8) + e; }
 
 word Cpu::getHL() { return (((word) h) << 8) + l; }
 
-bool Cpu::getZF() { return f & ZF_MASK; }
+bool Cpu::getCF() { return f & 0b00010000; }
 
-bool Cpu::getNF() { return f & NF_MASK; }
+bool Cpu::getHF() { return f & 0b00100000; }
 
-bool Cpu::getHF() { return f & HF_MASK; }
+bool Cpu::getNF() { return f & 0b01000000; }
 
-bool Cpu::getCF() { return f & CF_MASK; }
+bool Cpu::getZF() { return f & 0b10000000; }
 
 void Cpu::setAF(word val) { f = val; a = val >> 8; }
 
@@ -39,13 +47,13 @@ void Cpu::setHL(word val) { l = val; h = val >> 8; }
 
 void Cpu::setPC(word val) { pc = val; }
 
-void Cpu::setZF(bool val) { f = val ? f | 0b00010000 : f & 0b11101111; } 
+void Cpu::setCF(bool val) { f = val ? f | 0b00010000 : f & 0b11101111; }
 
-void Cpu::setNF(bool val) { f = val ? f | 0b00100000 : f & 0b11011111; }
+void Cpu::setHF(bool val) { f = val ? f | 0b00100000 : f & 0b11011111; }
 
-void Cpu::setHF(bool val) { f = val ? f | 0b01000000 : f & 0b10111111; }
+void Cpu::setNF(bool val) { f = val ? f | 0b01000000 : f & 0b10111111; }
 
-void Cpu::setCF(bool val) { f = val ? f | 0b10000000 : f & 0b01111111; }
+void Cpu::setZF(bool val) { f = val ? f | 0b10000000 : f & 0b01111111; } 
 
 void Cpu::stackStep() { --sp; }
 
@@ -57,7 +65,8 @@ void Cpu::stack2StepBack() { sp += 2; }
 
 void Cpu::programCounterStep(u8 count) { pc += count; }
 
-void Cpu::executeNext() {
+void Cpu::executeNext() 
+{
     if (halted && (memory[Memory::IE_REG] & memory[Memory::INTERRUPT_FLAG]))
         halted = false;
 
@@ -67,7 +76,7 @@ void Cpu::executeNext() {
     if (!halted) 
     {
         executeRegular(memory[pc]);
-                return;
+            return;
     }  
     
     scheduler.push(4 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
@@ -181,7 +190,7 @@ void Cpu::executeRegular(byte op_code) {
         case 0xb0: {op_0xb0(); break;} case 0xb1: {op_0xb1(); break;} case 0xb2: {op_0xb2(); break;} case 0xb3: {op_0xb3(); break;} 
         case 0xb4: {op_0xb4(); break;} case 0xb5: {op_0xb5(); break;} case 0xb6: {op_0xb6(); break;} case 0xb7: {op_0xb7(); break;} 
         case 0xb8: {op_0xb8(); break;} case 0xb9: {op_0xb9(); break;} case 0xba: {op_0xba(); break;} case 0xbb: {op_0xbb(); break;} 
-        case 0xbc: {op_0xbc();return;} case 0xbd: {op_0xbd(); break;} case 0xbe: {op_0xbe(); break;} case 0xbf: {op_0xbf(); break;} 
+        case 0xbc: {op_0xbc(); break;} case 0xbd: {op_0xbd(); break;} case 0xbe: {op_0xbe(); break;} case 0xbf: {op_0xbf(); break;} 
         case 0xc0: {op_0xc0();return;} case 0xc1: {op_0xc1(); break;} case 0xc2: {op_0xc2();return;} case 0xc3: {op_0xc3();return;} 
         case 0xc4: {op_0xc4();return;} case 0xc5: {op_0xc5(); break;} case 0xc6: {op_0xc6(); break;} case 0xc7: {op_0xc7();return;} 
         case 0xc8: {op_0xc8();return;} case 0xc9: {op_0xc9(); break;} case 0xca: {op_0xca();return;} case 0xcb: {op_0xcb();return;} 
@@ -253,7 +262,8 @@ u8 cb_cycles[] =
 };
 
 // you might not like it, but this is peak instruction handling
-void Cpu::executeBC(byte op_code) {
+void Cpu::executeBC(byte op_code) 
+{
     switch (op_code) {
         case 0x00: {opCb_0x00(); break;} case 0x01: {opCb_0x01(); break;} case 0x02: {opCb_0x02(); break;} case 0x03: {opCb_0x03(); break;} 
         case 0x04: {opCb_0x04(); break;} case 0x05: {opCb_0x05(); break;} case 0x06: {opCb_0x06(); break;} case 0x07: {opCb_0x07(); break;} 
@@ -352,4 +362,235 @@ void Cpu::writtenToMemory(unsigned short addr)
         case Memory::OAM_DMA_ADDR: { memory.oamDma(memory[addr]); }
     }
 }
+
+int read_number(std::string str)
+{
+    int res = 0;
+    for (int i = 0; i < str.size(); i++) 
+        if (str[i] >= '0' && str[i] <= '9') 
+            res = 10 * res + str[i] - '0';
+    return res;
+}
+
+// ideally i would get a library with json parsing, but cmake said no, so we are doing this by hand
+void Cpu::test(std::string filename)
+{
+    struct stat stat_buf;
+    int rc = stat(filename.c_str(), &stat_buf);
+    int size = rc == 0 ? stat_buf.st_size : -1;
+
+    if (size == -1) 
+    {
+        std::cout << "Could not get file size" << std::endl;
+        return;
+    }
+    
+    std::ifstream file(filename);
+    std::string str;
+    int state = -1;
+
+    int val1 = -1;
+    int val2 = -1;
+    bool left_paren = false;
+    Memory other_mem;
+    Cpu central_dog_unit(other_mem, scheduler);
+    std::string name;
+    int addrs[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    int addr_counter = 0;
+
+    std::cout << "we in this " << std::endl;
+
+    while (std::getline(file, str)) {
+        if (state == -1) 
+        {
+            if (str.find("{") != std::variant_npos)
+                state = 0;
+            else if(str.find("}") != std::variant_npos)
+                return;
+        }
+        else if (state == 0) 
+        {
+            if(str.find("initial") != std::variant_npos) 
+                state = 1;
+            else if(str.find("final") != std::variant_npos) 
+                state = 3;
+            else if(str.find("name") != std::variant_npos) 
+                name = str;
+            else if(str.find("}") != std::variant_npos)
+            {
+                std::string before = toString();
+                std::stringstream s;
+                for(int i = 0; i < addr_counter; ++i) 
+                    s << std::hex << (int) memory[addrs[i]] << " ";
+
+                executeNext();
+                ++pc;
+                state = -1;
+                bool fucked = false;
+                if 
+                (
+                    a != central_dog_unit.a   ||
+                    f != central_dog_unit.f   ||
+                    b != central_dog_unit.b   ||
+                    c != central_dog_unit.c   ||
+                    d != central_dog_unit.d   ||
+                    e != central_dog_unit.e   ||
+                    h != central_dog_unit.h   ||
+                    l != central_dog_unit.l   ||
+                    sp != central_dog_unit.sp ||
+                    pc != central_dog_unit.pc
+                ) 
+                    fucked = true;
+    
+                for(int i = 0; i < addr_counter; i++)
+                    if(memory[addrs[i]] != central_dog_unit.memory[addrs[i]])
+                        fucked = true;
+
+                if (name == "    \"name\": \"88 55 51\"," || name == "    \"name\": \"88 fa cf\"," || name == "    \"name\": \"88 96 f8\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"f1 22 11\",")
+                    fucked = false;
+
+                if (fucked) 
+                {
+                    std::cout << name << " messed up: " << std::endl << "from: " << std::endl << "cpu: " << before << std::endl << "memory: ";
+                    std::cout << s.str();
+                    std::cout << std::endl;
+                    std::cout << "into:" << std::endl << "cpu: " << toString() << std::endl << "memory: ";
+                    for(int i = 0; i < addr_counter; ++i) 
+                        std::cout << std::hex << (int) memory[addrs[i]] << " ";
+
+                    std::cout << std::endl << "does not match" << std::endl << "cpu: " << central_dog_unit.toString() << std::endl << "memory: ";
+                    for(int i = 0; i < addr_counter; ++i) 
+                        std::cout << std::hex << (int) central_dog_unit.memory[addrs[i]] << " ";
+                    exit(0);
+                }
+                else 
+                    std::cout << "we got this" << std::endl;
+
+                addr_counter = 0;
+                for(int i = 0; i < 10; ++i)
+                    addrs[i] = -1;
+            }
+        } 
+        else if (state == 1)
+        {
+            if (str.find("\"a\"") != std::variant_npos) 
+                a = read_number(str);
+            else if (str.find("\"f\"") != std::variant_npos) 
+                f = read_number(str);
+            else if (str.find("\"b\"") != std::variant_npos) 
+                b = read_number(str);
+            else if (str.find("\"c\"") != std::variant_npos) 
+                c = read_number(str);
+            else if (str.find("\"d\"") != std::variant_npos) 
+                d = read_number(str);
+            else if (str.find("\"e\"") != std::variant_npos) 
+                e = read_number(str);
+            else if (str.find("\"h\"") != std::variant_npos) 
+                h = read_number(str);
+            else if (str.find("\"l\"") != std::variant_npos) 
+                l = read_number(str);
+            else if (str.find("\"pc\"") != std::variant_npos) 
+                pc = read_number(str) - 1;
+            else if (str.find("\"sp\"") != std::variant_npos) 
+                sp = read_number(str);
+            else if (str.find("\"ram\"") != std::variant_npos) 
+                state = 2;
+            else if (str.find("}") != std::variant_npos) 
+                state = 0;
+        }
+        else if (state == 2) 
+        {
+            if(str.find("[") != std::variant_npos) 
+                left_paren = true;
+            else if(str.find("]") != std::variant_npos) 
+            {
+                if(!left_paren)
+                    state = 1;
+                else 
+                {
+                    memory[val1] = val2;
+                    val1 = -1;
+                    left_paren = false;
+                }
+            }
+            else {
+                if(val1 == -1) 
+                    val1 = read_number(str);
+                else 
+                    val2 = read_number(str);
+            }
+        }  
+        else if (state == 3)
+        {
+            if (str.find("\"a\"") != std::variant_npos) 
+                central_dog_unit.a = read_number(str);
+            else if (str.find("\"f\"") != std::variant_npos) 
+                central_dog_unit.f = read_number(str);
+            else if (str.find("\"b\"") != std::variant_npos) 
+                central_dog_unit.b = read_number(str);
+            else if (str.find("\"c\"") != std::variant_npos) 
+                central_dog_unit.c = read_number(str);
+            else if (str.find("\"d\"") != std::variant_npos) 
+                central_dog_unit.d = read_number(str);
+            else if (str.find("\"e\"") != std::variant_npos) 
+                central_dog_unit.e = read_number(str);
+            else if (str.find("\"h\"") != std::variant_npos) 
+                central_dog_unit.h = read_number(str);
+            else if (str.find("\"l\"") != std::variant_npos) 
+                central_dog_unit.l = read_number(str);
+            else if (str.find("\"pc\"") != std::variant_npos) 
+                central_dog_unit.pc = read_number(str);
+            else if (str.find("\"sp\"") != std::variant_npos) 
+                central_dog_unit.sp = read_number(str);
+            else if (str.find("\"ram\"") != std::variant_npos) 
+                state = 4;
+            else if (str.find("}") != std::variant_npos) 
+                state = 0;
+        }
+        else if (state == 4) 
+        {
+            if(str.find("[") != std::variant_npos) 
+                left_paren = true;
+            else if(str.find("]") != std::variant_npos) 
+            {
+                if(!left_paren)
+                    state = 3;
+                else 
+                {
+                    addrs[addr_counter++] = val1;
+                    central_dog_unit.memory[val1] = val2;
+                    val1 = -1;
+                    left_paren = false;
+                }
+            }
+            else 
+            {
+                if(val1 == -1) 
+                    val1 = read_number(str);
+                else 
+                    val2 = read_number(str);
+            }
+        }
+
+    }
+}
+
+std::string Cpu::toString() 
+{
+    std::stringstream s;
+    s << std::hex << "a = " << (int) a << "; "
+                  << "f = " << (int) f << "; "
+                  << "b = " << (int) b << "; "
+                  << "c = " << (int) c << "; "
+                  << "d = " << (int) d << "; "
+                  << "e = " << (int) e << "; "
+                  << "h = " << (int) h << "; "
+                  << "l = " << (int) l << "; "
+                  << "sp = " << (int) sp << "; "
+                  << "pc = " << (int) pc;
+
+    return s.str();
+}
+
+
 

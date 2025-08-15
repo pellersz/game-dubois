@@ -160,7 +160,8 @@ void Ppu::drawObjects()
     byte ly = memory[Memory::LCD_Y];
     bool lcdc_bit_2 = memory[Memory::LCD_CONTROL] & 0b0100; 
 
-    for (u8 i = 0; i < numberOfObjects; ++i) {
+    for (u8 i = 0; i < numberOfObjects; ++i)
+    {
         ObjectLine object = objects[i];
 
         if ((!(object.attributes & 0b10000000)))

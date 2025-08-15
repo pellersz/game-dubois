@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "mem.h"
+#include <string>
 
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
 
@@ -16,16 +17,18 @@ public:
     ~Cpu();
     void executeNext();
     void setPC(word);
+    void test(std::string);
+    std::string toString();
 
         
 protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
-    static const byte ZF_MASK    = 0b00011111u;
-    static const byte NF_MASK    = 0b00101111u;
-    static const byte HF_MASK    = 0b01001111u;
-    static const byte CF_MASK    = 0b10001111u;
-    static const byte NULLF_MASK = 0b00001111u;
-    static const byte ALLF_MASK  = 0b11111111u;
+    static const byte CF_MASK    = 0b00011111;
+    static const byte HF_MASK    = 0b00101111;
+    static const byte NF_MASK    = 0b01001111;
+    static const byte ZF_MASK    = 0b10001111;
+    static const byte NULLF_MASK = 0b00001111;
+    static const byte ALLF_MASK  = 0b11111111;
 
     byte a;
     byte f;

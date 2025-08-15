@@ -48,7 +48,3 @@ target_include_directories(${PROJECT_NAME} PUBLIC external/glfw)
 target_link_directories(${PROJECT_NAME} PRIVATE external/glfw/src)
 target_link_libraries(${PROJECT_NAME} glfw)
 
-add_subdirectory(external/json)
-target_include_directories(${PROJECT_NAME} PUBLIC external/glfw)
-target_link_directories(${PROJECT_NAME} PRIVATE external/glfw/src)
-

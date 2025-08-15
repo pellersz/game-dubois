@@ -2,7 +2,8 @@
 #include <iomanip>
 #include <iostream>
 
-int main() {
+int main()
+{
     FILE* file = fopen("./src/gameboy/dmg_boot.bin", "rb");
     unsigned char c[1];
     int count = 0;
