@@ -6,6 +6,7 @@
 #include "ppu.h"
 #include "screen.h"
 #include "types.h"
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <chrono>
@@ -240,7 +241,7 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at, word& last_pc)
 }
 
 // TODO: DRY this up
-bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc) 
+bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream& log) 
 {
     bool go_next = true;
 
@@ -250,6 +251,7 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc)
             // since only the cpu cares about controller input, it only should update before it
             controller.updatePressed();
             
+            log << cpu->toString() << std::endl;
             if ((stop_at == -1) || (!mode && (stop_at == cpu->getPC())) || (mode && (stop_at == memory[cpu->getPC()])))
             {
                 std::cout << cpu->toString() << " ; last pc = " << std::hex << last_pc << std::endl;
@@ -405,9 +407,10 @@ void Scheduler::debugRun()
     bool go_next = true;
     next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;
 
+    std::ofstream f("log");
     while (go_next && !glfwWindowShouldClose(screen.getWindow())) {
         if (schedule.top().first <= time)
-            go_next = debugPop(mode, stop_at, last_pc);
+            go_next = debugPop(mode, stop_at, last_pc, f);
         else
             tick();
     }

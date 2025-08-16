@@ -4,6 +4,7 @@
 #include "controller.h"
 #include "cpu.h"
 #include "mem.h"
+#include <fstream>
 #include <memory>
 #include <queue>
 #include "ppu.h"
@@ -41,7 +42,7 @@ public:
     void push(unsigned short, Process);
     bool pop();
     void run();
-    bool debugPop(bool&, int&, word&);
+    bool debugPop(bool&, int&, word&, std::ofstream&);
     void debugRun();
     void handleDebugStop(bool&, int&, word&);
     void stop();

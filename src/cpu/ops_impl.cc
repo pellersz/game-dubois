@@ -407,20 +407,21 @@ void Cpu::opDaa()
         if (getCF())
             a -= 0x60;
     
-        setCF(a > tmp);
         setZF(!a);
         setHF(false);
 
         return;
     }
-    if (getHF() || ((a & 0xf) > 0x9))
+    if (getHF() || ((tmp & 0xf) > 0x9))
         a += 0x6;
-    if (getCF() || (a > 0x9f))
+    if (getCF() || (tmp > 0x99))
+    {
+        setCF(true);
         a += 0x60;
+    }
 
     setHF(false);
     setZF(!a);
-    setCF(a < tmp);
 }
 
 void Cpu::opNop() {}

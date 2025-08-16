@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <ios>
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -579,22 +581,38 @@ void Cpu::test(std::string filename)
 
 std::string Cpu::toString() 
 {
+    //std::stringstream s;
+    //s << std::hex << "a = " << (int) a << "; "
+    //              << "f = " << (int) f << "; "
+    //              << "b = " << (int) b << "; "
+    //              << "c = " << (int) c << "; "
+    //              << "d = " << (int) d << "; "
+    //              << "e = " << (int) e << "; "
+    //              << "h = " << (int) h << "; "
+    //              << "l = " << (int) l << "; "
+    //              << "sp = " << (int) sp << "; "
+    //              << "pc = " << (int) pc << "; "
+    //              << "mem[pc] = " << (int) memory[pc] << "; "
+    //              << "last in stack = " << memory(sp) << "; "
+    //              << "currnet instruction: " << getAsm();
+
+    //return s.str();
     std::stringstream s;
-    s << std::hex << "a = " << (int) a << "; "
-                  << "f = " << (int) f << "; "
-                  << "b = " << (int) b << "; "
-                  << "c = " << (int) c << "; "
-                  << "d = " << (int) d << "; "
-                  << "e = " << (int) e << "; "
-                  << "h = " << (int) h << "; "
-                  << "l = " << (int) l << "; "
-                  << "sp = " << (int) sp << "; "
-                  << "pc = " << (int) pc << "; "
-                  << "mem[pc] = " << (int) memory[pc] << "; "
-                  << "last in stack = " << memory(sp) << "; "
-                  << "currnet instruction: " << getAsm();
+    s << std::hex << std::setfill('0') << std::uppercase 
+                  << "A:" << std::setw(2) << (int) a << " "
+                  << "F:" << std::setw(2) << (int) f << " "
+                  << "B:" << std::setw(2) << (int) b << " "
+                  << "C:" << std::setw(2) << (int) c << " "
+                  << "D:" << std::setw(2) << (int) d << " "
+                  << "E:" << std::setw(2) << (int) e << " "
+                  << "H:" << std::setw(2) << (int) h << " "
+                  << "L:" << std::setw(2) << (int) l << " "
+                  << "SP:" << std::setw(4) << (int) sp << " "
+                  << "PC:" << std::setw(4) << (int) pc << " "
+                  << "PCMEM:" << std::setw(2) << (int) memory[pc] << "," << std::setw(2) << (int) memory[pc + 1] << "," << std::setw(2) << (int) memory[pc + 2] << "," << std::setw(2) << (int) memory[pc + 3];
 
     return s.str();
+
 }
 
 std::string Cpu::getAsm() {
