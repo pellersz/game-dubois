@@ -2,6 +2,8 @@
 #include "mem.h"
 #include "screen.h"
 #include "types.h"
+#include <iostream>
+#include <iterator>
 
 const byte Ppu::COLORS[] = {WHITE, LIGHT_GRAY, DARK_GRAY, BLACK};
 
@@ -58,6 +60,7 @@ void Ppu::drawBackgroundTile
         memory(Memory::TILES +               tile_offs * TILE_BYTE_SIZE + 2 * y_offs) : 
         memory(Memory::TILES + 0x1000 + (int)tile_offs * TILE_BYTE_SIZE + 2 * y_offs) ;
 
+    if (data) std::cout << "f";
     for(u8 x = lcd_x + 7; x > lcd_x; --x) 
     {
         screen(lcd_y, x) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
@@ -197,3 +200,27 @@ void Ppu::hBlank() {}
 
 void Ppu::vBlank() {}
 
+void Ppu::printTiles() {
+    const char t[] = {' ', '@', '@', '@'};
+    for (int i = 0; i < 55; ++i) 
+    {
+        for (int j = 0; j < 8; ++j) 
+        {
+            for (int k = 0; k < 55; ++k) 
+            {
+                word data = memory(Memory::TILES + (i * 55 + k) * TILE_BYTE_SIZE + 2 * j);
+
+                for(int x = 0; x < 8; x++) 
+                {
+                    std::cout << t[data & 0b0001 + ((data >> 14) & 0b0010)];
+                    data >>= 1;
+                }
+
+                std::cout << " ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}

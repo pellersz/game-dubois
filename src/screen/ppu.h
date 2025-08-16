@@ -14,6 +14,7 @@ public:
     void drawLine();
     void hBlank();
     void vBlank();
+    void printTiles();
 
 private:
     static const byte WHITE      = 255;

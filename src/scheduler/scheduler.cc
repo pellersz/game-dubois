@@ -228,6 +228,12 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at, word& last_pc)
                 done = false;
                 break; 
             }
+            case 'p':
+            {
+                ppu.printTiles();
+                done = false;
+                break;
+            }
             default: { done = false; }
         }
     }
