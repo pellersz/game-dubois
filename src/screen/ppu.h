@@ -15,6 +15,7 @@ public:
     void hBlank();
     void vBlank();
     void printTiles();
+    void printUsedTiles();
 
 private:
     static const byte WHITE      = 255;

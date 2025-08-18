@@ -340,7 +340,9 @@ void Cpu::executeBC(byte op_code)
 
 bool Cpu::handleInterupts() 
 {         
-    byte& int_e = memory[Memory::IE_REG], int_f = memory[Memory::INTERRUPT_FLAG];
+    byte& int_e = memory[Memory::IE_REG];
+    byte& int_f = memory[Memory::INTERRUPT_FLAG];
+
     if (ime && (int_f & int_e)) 
     {
         for (int i = 1; i <= 8; ++i) 
@@ -349,8 +351,10 @@ bool Cpu::handleInterupts()
             {
                 halted = false;
                 ime = false;
-                int_f ^= ~(1 << i);
-                opCall(0x40 + (i - 1) * 8);
+                int_f &= ~(1 << i);
+                opPush(pc);   
+                pc = 0x40 + i * 8;
+
                 scheduler.push(5 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
                 return true;
             }

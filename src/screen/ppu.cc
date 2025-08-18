@@ -57,10 +57,9 @@ void Ppu::drawBackgroundTile
 ) 
 {
     word data = lcdc_bit_4 ? 
-        memory(Memory::TILES +               tile_offs * TILE_BYTE_SIZE + 2 * y_offs) : 
-        memory(Memory::TILES + 0x1000 + (int)tile_offs * TILE_BYTE_SIZE + 2 * y_offs) ;
+        memory(Memory::TILES +                 tile_offs * TILE_BYTE_SIZE + 2 * y_offs) : 
+        memory(Memory::TILES + 0x1000 + (offs) tile_offs * TILE_BYTE_SIZE + 2 * y_offs) ;
 
-    if (data) std::cout << "f";
     for(u8 x = lcd_x + 7; x > lcd_x; --x) 
     {
         screen(lcd_y, x) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
@@ -89,7 +88,7 @@ void Ppu::drawBackground()
    
     unsigned short tile_offs = 
         (lcdc_bit_3 ? Memory::TILE_M1 : Memory::TILE_M0) +
-        ((ly + y) / TILE_WIDTH) * TILES_PER_ROW + 
+        ((u8)(ly + y) / TILE_WIDTH) * TILES_PER_ROW + 
         x / TILE_WIDTH;
 
     u8 y_offs = (ly + y) % TILE_WIDTH;
@@ -221,6 +220,42 @@ void Ppu::printTiles() {
             std::cout << std::endl;
         }
         std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void Ppu::printUsedTiles() {
+    const char t[] = {' ', '@', '@', '@'};
+    int dummy;
+    for (int v; v < 4; ++v) {
+        for (int i = 0; i < 32; ++i) 
+        {
+            for (int j = 0; j < 8; ++j) 
+            {
+                for (int k = 0; k < 33; ++k) 
+                {
+                    u8 tile_offs = memory
+                    [
+                        (v & 1 ? Memory::TILE_M1 : Memory::TILE_M0) +
+                        i * TILES_PER_ROW + k
+                    ];
+                    word data = v & 2 ? 
+                        memory(Memory::TILES +               tile_offs * TILE_BYTE_SIZE + 2 * j) : 
+                        memory(Memory::TILES + 0x1000 + (offs) tile_offs * TILE_BYTE_SIZE + 2 * j) ;
+
+                    for(int x = 0; x < 8; x++) 
+                    {
+                        std::cout << t[data & 0b0001 + ((data >> 14) & 0b0010)];
+                        data >>= 1;
+                    }
+
+                    //std::cout << " ";
+                }
+                std::cout << std::endl;
+            }
+            //std::cout << std::endl;
+        }
+        std::cin >> dummy;
     }
     std::cout << std::endl;
 }

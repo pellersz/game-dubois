@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <chrono>
+#include <unistd.h>
 
 using namespace std::chrono;
 
@@ -231,7 +232,8 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at, word& last_pc)
             }
             case 'p':
             {
-                ppu.printTiles();
+                //ppu.printTiles();
+                ppu.printUsedTiles();
                 done = false;
                 break;
             }
@@ -245,21 +247,25 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
 {
     bool go_next = true;
 
+    static bool interrupt = false;
     switch (schedule.top().second) {
         case CPU_EXEC:
         {
             // since only the cpu cares about controller input, it only should update before it
             controller.updatePressed();
-            
-            log << cpu->toString() << std::endl;
+           
             if ((stop_at == -1) || (!mode && (stop_at == cpu->getPC())) || (mode && (stop_at == memory[cpu->getPC()])))
             {
                 std::cout << cpu->toString() << " ; last pc = " << std::hex << last_pc << std::endl;
                 handleDebugStop(mode, stop_at, last_pc);
             }
             last_pc = cpu->getPC();
+            if (!interrupt)
+                cpu->executeNext();
+            //if (!interrupt)
+            //    log << cpu->toString() << std::endl;
 
-            cpu->executeNext();
+            interrupt = cpu->handleInterupts();
 
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
                     (memory[Memory::BOOT_ROM_MAPPING] == 1))
@@ -290,6 +296,7 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
             if (memory[Memory::TIMER_CONTROL] & 0b0100)
             {
                 byte& tima = ++memory[Memory::TIMER_COUNTER];
+                //std::cout << "tima " << (int) tima << std::endl;
                 if (!tima) 
                 {
                     tima = memory[Memory::TIMER_MODULO];
@@ -408,6 +415,7 @@ void Scheduler::debugRun()
     next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;
 
     std::ofstream f("log");
+    f << cpu->toString() << std::endl;
     while (go_next && !glfwWindowShouldClose(screen.getWindow())) {
         if (schedule.top().first <= time)
             go_next = debugPop(mode, stop_at, last_pc, f);

@@ -16,6 +16,8 @@ public:
     Cpu(Memory&, Scheduler&);
     ~Cpu();
     void executeNext();
+    // TODO: put this back
+    bool handleInterupts();
     void setPC(word);
     void test(std::string);
     std::string toString();
@@ -73,7 +75,6 @@ protected:
 
     void executeRegular(byte);
     void executeBC(byte);
-    bool handleInterupts();
     
     void writtenToMemory(unsigned short);
 
