@@ -262,8 +262,8 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
             last_pc = cpu->getPC();
             if (!interrupt)
                 cpu->executeNext();
-            //if (!interrupt)
-            //    log << cpu->toString() << std::endl;
+            if (!interrupt)
+                log << cpu->toString() << std::endl;
 
             interrupt = cpu->handleInterupts();
 

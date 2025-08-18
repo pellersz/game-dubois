@@ -46,8 +46,8 @@ void Cpu::opAddSP(offs val)
 {
     word tmp = sp;
     sp = tmp + val;
-    setCF(sp < tmp); 
-    setHF((sp & 0b111111111111) < (tmp & 0b111111111111));
+    setCF((byte) sp < (byte) tmp); 
+    setHF((sp & 0b1111) < (tmp & 0b1111));
     f &= HF_MASK | CF_MASK;
 }
 
@@ -1055,8 +1055,8 @@ void Cpu::op_0xf7() { opRst(8 * 6); }
 void Cpu::op_0xf8() { 
     word tmp = sp + (offs) memory[pc + 1];
     opLd(l, h, tmp); 
-    setCF(sp > tmp); 
-    setHF((sp & 0b111111111111) > (tmp & 0b111111111111));
+    setCF((byte) sp > (byte) tmp); 
+    setHF((sp & 0b1111) > (tmp & 0b1111));
     f &= HF_MASK | CF_MASK;
 } 
 
