@@ -40,6 +40,7 @@ public:
     void init(std::shared_ptr<Cpu>);
 
     void push(unsigned short, Process);
+    void replace(Process, unsigned short);
     bool pop();
     void run();
     bool debugPop(bool&, int&, word&, std::ofstream&);
@@ -55,7 +56,7 @@ private:
     class ProcessGreater
     {
     public:
-        bool operator()(ProcessStart a, ProcessStart b) { return a.first > b.first; }
+        bool operator()(ProcessStart a, ProcessStart b) { return (a.first > b.first) || ((a.first == b.first) && (a.second > b.second)); }
     };
 
     std::priority_queue<

@@ -1012,7 +1012,7 @@ void Cpu::op_0xe8() { opAddSP(memory[pc + 1]); }
 void Cpu::op_0xe9() 
 {
     opJp(getHL()); 
-    scheduler.push(C(4), CPU_EXEC);
+    scheduler.push(C(1), CPU_EXEC);
 } 
 
 void Cpu::op_0xea() 

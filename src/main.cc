@@ -34,7 +34,7 @@ int main(int argc, char** argv)
     //    cpu.test(s.str());
     //}
     GameBoy gameboy(mem, cont, sc, cpu, ppu, screen); 
-    gameboy.load(std::make_shared<Cartridge>("./tests/01-special.gb"));
+    gameboy.load(std::make_shared<Cartridge>("./tests/instr_timing.gb"));
 
     if (argc == 1) 
         gameboy.run(false);

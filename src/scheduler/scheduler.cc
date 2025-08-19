@@ -38,6 +38,26 @@ void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
 
 void Scheduler::push(unsigned short duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
+// This is acceptable because there are only 6 events at a time
+void Scheduler::replace(Process process, unsigned short duration) 
+{
+    std::priority_queue<
+        ProcessStart,
+        std::vector<ProcessStart>,
+        ProcessGreater 
+    > new_schedule;
+
+    new_schedule.push(ProcessStart {time + duration, process});
+    while (!schedule.empty()) 
+    {
+        if (schedule.top().second != process)
+            new_schedule.push(schedule.top());
+        schedule.pop();
+    }
+
+    schedule = new_schedule;
+}
+
 // TODO: account for ppu stopped and resumed
 bool Scheduler::pop() 
 {
@@ -256,14 +276,14 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
            
             if ((stop_at == -1) || (!mode && (stop_at == cpu->getPC())) || (mode && (stop_at == memory[cpu->getPC()])))
             {
-                std::cout << cpu->toString() << " ; last pc = " << std::hex << last_pc << std::endl;
+                std::cout << cpu->toString() << " ; last pc = " << std::hex << last_pc << "\n" << cpu->getAsm() << " " << (int) memory[Memory::TIMER_COUNTER] << " time: " << time << std::endl;
                 handleDebugStop(mode, stop_at, last_pc);
             }
             last_pc = cpu->getPC();
             if (!interrupt)
                 cpu->executeNext();
-            if (!interrupt)
-                log << cpu->toString() << std::endl;
+            //if (!interrupt)
+            //    log << cpu->toString() << std::endl;
 
             interrupt = cpu->handleInterupts();
 
