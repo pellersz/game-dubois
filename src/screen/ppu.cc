@@ -62,10 +62,10 @@ void Ppu::drawBackgroundTile
 
     for(u8 x = lcd_x + 7; x > lcd_x; --x) 
     {
-        screen(lcd_y, x) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
+        screen(lcd_y, x) = COLORS[color_indices[(data & 0b0001) + ((data >> 7) & 0b0010)]];
         data >>= 1;
-    }
-    screen(lcd_y, lcd_x) = COLORS[color_indices[data & 0b0001 + ((data >> 14) & 0b0010)]];
+    } 
+    screen(lcd_y, lcd_x) = COLORS[color_indices[(data & 0b0001) + ((data >> 7) & 0b0010)]];
 }
 
 void Ppu::drawBackground() 

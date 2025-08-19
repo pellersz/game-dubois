@@ -213,18 +213,11 @@ void Cpu::executeRegular(byte op_code) {
         case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {op_0xff();return;}     
     }
 
-    //std::cout << std::hex << "| ";
-    //std::cout.setf( std::ios_base::unitbuf );
-    
-    //if (!memory[0x2a7f]) {
-    //    for (int i = 0; i <= 0x8000; ++i) std::cout << (int) memory[i] << " ";
-    //    std::cout << "baru " << (int) pc << " " << (int) memory[pc] << std::endl;
-    //    exit(1);}
-
     programCounterStep(regular_bytes[op_code]);
     scheduler.push(regular_cycles[op_code], CPU_EXEC);
 }
 
+// TODO: get rid of this block because it's just 2s, kind of a silly thing to have in the first place
 u8 cb_bytes[] = 
 {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,

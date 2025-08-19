@@ -37,6 +37,7 @@ void Screen::updateFrame()
 { 
     // This might be deprecated, but for a gameboy, this should be fine.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPixelZoom(5, 5);
     glDrawPixels(LCD_WIDTH, LCD_HEIGHT, GL_LUMINANCE, GL_UNSIGNED_BYTE, lcd);
     glfwSwapBuffers(window);
 }

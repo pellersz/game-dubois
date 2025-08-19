@@ -19,8 +19,8 @@ public:
 
 private:
     static const byte WHITE      = 255;
-    static const byte LIGHT_GRAY = 255 * (2 / 3);
-    static const byte DARK_GRAY  = 255 * (1 / 3);
+    static const byte LIGHT_GRAY = 255 * (2. / 3);
+    static const byte DARK_GRAY  = 255 * (1. / 3);
     static const byte BLACK      = 0;
     static const byte COLORS[4];
 
