@@ -77,6 +77,7 @@ private:
     
     byte last_div;
     byte last_boot_rom;
+    byte last_ly = 255;
 
     void tick();
 };

@@ -111,11 +111,17 @@ bool Scheduler::pop()
         { 
             memory[Memory::INTERRUPT_FLAG] |= 0b0001; 
             screen.updateFrame();
+            ppu.resetWindowY();
             ++memory[Memory::LCD_Y];
 
             push(456 * Ppu::TIME_UNIT, VBLANK);
             while(next_dot_time > std::chrono::steady_clock::now()) {}
             next_dot_time += SYSTEM_CLOCKS_PER_DOTT;
+ 
+            byte& lcd_stat = memory[Memory::LCD_STAT];
+            lcd_stat = (lcd_stat & 0b11111100) + 0b01;
+            statInterruptCheck();
+
             break;
         }
         case VBLANK: 
@@ -132,19 +138,29 @@ bool Scheduler::pop()
         }
         case LYC_LY_CMP: 
         { 
+            byte ly = memory[Memory::LCD_Y];
             push(4, LYC_LY_CMP);
-            if (memory[Memory::LCD_Y] == memory[Memory::LCD_CONTROL]) 
+            if (ly == memory[Memory::LY_COMPARE]) 
             {
-                memory[Memory::LCD_STAT] |= 0b0100;
-                break;
+                if (last_ly != ly) 
+                {
+                    memory[Memory::LCD_STAT] |= 0b0100;
+                    statInterruptCheck();
+                    break;
+                }
+                last_ly = ly;
             }
-            memory[Memory::LCD_STAT] &= 0b1011;
+            memory[Memory::LCD_STAT] &= 0b11111011;
             break;
         }
         case OAM_SCAN: 
         { 
-            byte& ly = memory[Memory::LCD_Y];
             ppu.oamScan();
+
+            byte& lcd_stat = memory[Memory::LCD_STAT];
+            lcd_stat = (lcd_stat & 0b11111100) + 0b10;
+            statInterruptCheck();
+
             push(80 * Ppu::TIME_UNIT, DRAW_PIXELS);
             break;
         }
@@ -153,11 +169,21 @@ bool Scheduler::pop()
             ppu.drawLine();
             push(172 * Ppu::TIME_UNIT, HBLANK);
             ++memory[Memory::LCD_Y];
+
+            byte& lcd_stat = memory[Memory::LCD_STAT];
+            lcd_stat = (lcd_stat & 0b11111100) + 0b11;
+            statInterruptCheck();
+
             break;
         }
         case HBLANK:
         {
             ppu.hBlank();
+            
+            byte& lcd_stat = memory[Memory::LCD_STAT];
+            lcd_stat = (lcd_stat & 0b11111100) + 0b00;
+            statInterruptCheck();
+
             if (memory[Memory::LCD_Y] < 143) 
             {
                 push(87 * Ppu::TIME_UNIT, OAM_SCAN);
@@ -169,25 +195,49 @@ bool Scheduler::pop()
         }
         case HANDLE_CONTROL: 
         {
+            GLFWwindow *window = screen.getWindow();
             glfwPollEvents();
-            if(glfwGetKey(screen.getWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::RIGHT_PRESSED);
-            if(glfwGetKey(screen.getWindow(), GLFW_KEY_LEFT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::LEFT_PRESSED);
-            if(glfwGetKey(screen.getWindow(), GLFW_KEY_DOWN) == GLFW_PRESS)
-                controller.buttonPressed(Controller::DOWN_PRESSED);
-            if(glfwGetKey(screen.getWindow(), GLFW_KEY_UP) == GLFW_PRESS)
-                controller.buttonPressed(Controller::UP_PRESSED);
-            if(glfwGetKey(screen.getWindow(), GLFW_KEY_Z) == GLFW_PRESS)
-                controller.buttonPressed(Controller::A_PRESSED);
-            if(glfwGetKey(screen.getWindow(), GLFW_KEY_X) == GLFW_PRESS)
-                controller.buttonPressed(Controller::B_PRESSED);
-            if(glfwGetKey(screen.getWindow(), GLFW_KEY_ENTER) == GLFW_PRESS)
-                controller.buttonPressed(Controller::START_PRESSED);
-            if(glfwGetKey(screen.getWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::SELECT_PRESSED);
+            if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+                controller.buttonPressed(Controller::RIGHT);
+            else 
+                controller.buttonReleased(Controller::RIGHT);
+
+            if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+                controller.buttonPressed(Controller::LEFT);
+            else 
+                controller.buttonReleased(Controller::LEFT);
+
+            if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+                controller.buttonPressed(Controller::DOWN);
+            else 
+                controller.buttonReleased(Controller::DOWN);
+
+            if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+                controller.buttonPressed(Controller::UP);
+            else 
+                controller.buttonReleased(Controller::UP);
+
+            if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+                controller.buttonPressed(Controller::A);
+            else 
+                controller.buttonReleased(Controller::A);
+
+            if(glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+                controller.buttonPressed(Controller::B);
+            else 
+                controller.buttonReleased(Controller::B);
+
+            if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+                controller.buttonPressed(Controller::START);
+            else 
+                controller.buttonReleased(Controller::START);
+
+            if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+                controller.buttonPressed(Controller::SELECT);
+            else 
+                controller.buttonReleased(Controller::SELECT);
             
-            push(100, HANDLE_CONTROL);
+            push(1000, HANDLE_CONTROL);
             break;
         }
     };
@@ -276,7 +326,7 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
            
             if ((stop_at == -1) || (!mode && (stop_at == cpu->getPC())) || (mode && (stop_at == memory[cpu->getPC()])))
             {
-                std::cout << cpu->toString() << " ; last pc = " << std::hex << last_pc << "\n" << cpu->getAsm() << " " << (int) memory[Memory::TIMER_COUNTER] << " time: " << time << std::endl;
+                std::cout << cpu->toString() << " ; last pc = " << std::hex << last_pc << "\n" << cpu->getAsm() <</* " " << (int) memory[Memory::TIMER_COUNTER] << " time: " << time << */std::endl;
                 handleDebugStop(mode, stop_at, last_pc);
             }
             last_pc = cpu->getPC();
@@ -316,7 +366,6 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
             if (memory[Memory::TIMER_CONTROL] & 0b0100)
             {
                 byte& tima = ++memory[Memory::TIMER_COUNTER];
-                //std::cout << "tima " << (int) tima << std::endl;
                 if (!tima) 
                 {
                     tima = memory[Memory::TIMER_MODULO];
@@ -365,9 +414,10 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
         }
         case OAM_SCAN: 
         { 
-            byte& ly = memory[Memory::LCD_Y];
             ppu.oamScan();
             push(80 * Ppu::TIME_UNIT, DRAW_PIXELS);
+            byte& lcd_stat = memory[Memory::LCD_STAT];
+            lcd_stat = (lcd_stat & 0b11111100) + 0b10;
             break;
         }
         case DRAW_PIXELS:
@@ -375,11 +425,16 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
             ppu.drawLine();
             push(172 * Ppu::TIME_UNIT, HBLANK);
             ++memory[Memory::LCD_Y];
+            byte& lcd_stat = memory[Memory::LCD_STAT];
+            lcd_stat = (lcd_stat & 0b11111100) + 0b11;
             break;
         }
         case HBLANK:
         {
             ppu.hBlank();
+            byte& lcd_stat = memory[Memory::LCD_STAT];
+            lcd_stat = (lcd_stat & 0b11111100) + 0b00;
+           
             if (memory[Memory::LCD_Y] < 143) 
             {
                 push(87 * Ppu::TIME_UNIT, OAM_SCAN);
@@ -393,21 +448,21 @@ bool Scheduler::debugPop(bool& mode, int& stop_at, word& last_pc, std::ofstream&
         {
             glfwPollEvents();
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::RIGHT_PRESSED);
+                controller.buttonPressed(Controller::RIGHT);
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_LEFT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::LEFT_PRESSED);
+                controller.buttonPressed(Controller::LEFT);
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_DOWN) == GLFW_PRESS)
-                controller.buttonPressed(Controller::DOWN_PRESSED);
+                controller.buttonPressed(Controller::DOWN);
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_UP) == GLFW_PRESS)
-                controller.buttonPressed(Controller::UP_PRESSED);
+                controller.buttonPressed(Controller::UP);
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_Z) == GLFW_PRESS)
-                controller.buttonPressed(Controller::A_PRESSED);
+                controller.buttonPressed(Controller::A);
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_X) == GLFW_PRESS)
-                controller.buttonPressed(Controller::B_PRESSED);
+                controller.buttonPressed(Controller::B);
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_ENTER) == GLFW_PRESS)
-                controller.buttonPressed(Controller::START_PRESSED);
+                controller.buttonPressed(Controller::START);
             if(glfwGetKey(screen.getWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::SELECT_PRESSED);
+                controller.buttonPressed(Controller::SELECT);
             
             push(100, HANDLE_CONTROL);
             break;
@@ -451,11 +506,11 @@ void Scheduler::stop() {}
 void Scheduler::statInterruptCheck() 
 {
     bool tmp = statInterruptLine;
-    byte& stat_register = memory[Memory::LCD_STAT];
-    statInterruptLine = ((stat_register & 0b01000000) && (stat_register & 0b0100))           || 
-                        ((stat_register & 0b00100000) && ((stat_register & 0b0011) == 0b10)) ||
-                        ((stat_register & 0b00010000) && ((stat_register & 0b0011) == 0b01)) ||
-                        ((stat_register & 0b00001000) && ((stat_register & 0b0011) == 0b00));
+    byte& lcd_stat = memory[Memory::LCD_STAT];
+    u8 ppuMode = lcd_stat & 0b0011;
+    statInterruptLine = ((lcd_stat & 0b01000000) && (lcd_stat & 0b0100)) || 
+                        ((ppuMode != 3) && (lcd_stat & (0b00001000 << ppuMode)));
+
     if (tmp < statInterruptLine) 
         memory[Memory::INTERRUPT_FLAG] |= 0b0010;
 }

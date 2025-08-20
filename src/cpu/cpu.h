@@ -76,7 +76,7 @@ protected:
     void executeRegular(byte);
     void executeBC(byte);
     
-    void writtenToMemory(unsigned short);
+    void writtenToMemory(unsigned short, byte);
 
     // load
     void opLd(byte&, byte);

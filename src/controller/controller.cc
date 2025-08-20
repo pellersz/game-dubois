@@ -1,6 +1,7 @@
 #include "controller.h"
 #include "mem.h"
 #include "types.h"
+#include <iostream>
 
 Controller::Controller(Memory& memory) : memory(memory) {}
    

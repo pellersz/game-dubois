@@ -16,6 +16,7 @@ public:
     void vBlank();
     void printTiles();
     void printUsedTiles();
+    void resetWindowY();
 
 private:
     static const byte WHITE      = 255;
@@ -45,28 +46,29 @@ private:
     
     u8 numberOfObjects = 0;
     ObjectLine objects[10];
-    byte win_y_counter = 0;
+    byte winYCounter = 0;
         
     u8 getIndexFromWord(word);
 
     void drawBackgroundTile
     (
-        u8 lcd_x,
-        u8 lcd_y,
-        u8 tile_offs, 
-        u8 y_offs, 
-        u8 color_indices[],
-        bool lcdc_bit_4
+        u8,
+        u8,
+        u8, 
+        u8, 
+        u8[],
+        bool
     );
 
     void drawObjectTile
     (
-        u8 lcd_x,
-        u8 lcd_y,
-        u8 tile_offs, 
-        u8 y_offs, 
-        bool attribute_bit_5,
-        u8 color_indices[]
+        u8,
+        u8,
+        u8, 
+        u8, 
+        bool,
+        bool,
+        u8[]
     );
 
     void drawBackground();

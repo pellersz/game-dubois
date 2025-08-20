@@ -129,22 +129,6 @@ u8 regular_cycles[] =
 // you might not like it, but this is peak instruction handling
 // also, some instructions have variable cycles, these will update the scheduler and the program counter, and use return instead of break
 void Cpu::executeRegular(byte op_code) {
-    //if (!memory[0xff99]) {
-    //    for (int i = 0; i <= 0x1000; ++i) std::cout << (int) memory[i] << " ";
-    //    std::cout << "ball " << (int) pc << std::endl;
-    //    exit(1);}
-    static bool b = false;
-    //std::cout << std::hex << pc << " -> " << (int) memory[pc] << " | ";
-    //std::cout.setf( std::ios_base::unitbuf );
-    //if (pc == 0xc411 || pc == 0xc36c || pc == 0xc370 || pc == 0xc378 || pc == 0xc39F || pc == 0xc38D){std::this_thread::sleep_for(std::chrono::milliseconds(6000));}
-
-
-
-    //if(pc > 0x100) {sleep(1);std::cout << std::endl; b = true;} ;
-
-    static int prev_pc = 0;
-    prev_pc = pc;
-    //std::cout << (int) memory[pc] << std::endl;
     switch (op_code) 
     {
         case 0x00: {op_0x00(); break;} case 0x01: {op_0x01(); break;} case 0x02: {op_0x02(); break;} case 0x03: {op_0x03(); break;} 
@@ -333,6 +317,7 @@ void Cpu::executeBC(byte op_code)
 
 bool Cpu::handleInterupts() 
 {         
+    int a;
     byte& int_e = memory[Memory::IE_REG];
     byte& int_f = memory[Memory::INTERRUPT_FLAG];
 
@@ -356,17 +341,25 @@ bool Cpu::handleInterupts()
     return false;
 }
 
-void Cpu::writtenToMemory(unsigned short addr) 
+void Cpu::writtenToMemory(unsigned short addr, byte old_val) 
 {
     switch (addr) 
     {
-        case Memory::OAM_DMA_ADDR:  { memory.oamDma(memory[addr]); }
+        case Memory::OAM_DMA_ADDR:  { memory.oamDma(memory[addr]); break; }
         case Memory::TIMER_CONTROL: 
         {
             // TODO: put this in its place
             const unsigned short vals[] = { 1024, 16, 64, 256 };
             short val = vals[memory[Memory::TIMER_CONTROL] & 0b0011];
             scheduler.replace(Process::UPDATE_TIMA, val); 
+            break;
+        }
+        case Memory::LCD_STAT:
+        {
+            byte& lcd_stat = memory[addr];
+            lcd_stat = (lcd_stat & 0b11111100) + (old_val & 0b11); 
+            scheduler.statInterruptCheck();
+            break;
         }
     }
 }

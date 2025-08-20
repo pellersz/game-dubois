@@ -6,14 +6,14 @@
 
 class Controller {
 public:
-    static const byte A_PRESSED      = 0b00000001;
-    static const byte B_PRESSED      = 0b00000010;
-    static const byte SELECT_PRESSED = 0b00000100;
-    static const byte START_PRESSED  = 0b00001000;
-    static const byte RIGHT_PRESSED  = 0b00010000;
-    static const byte LEFT_PRESSED   = 0b00100000;
-    static const byte UP_PRESSED     = 0b01000000;
-    static const byte DOWN_PRESSED   = 0b10000000;
+    static const byte A      = 0b00000001;
+    static const byte B      = 0b00000010;
+    static const byte SELECT = 0b00000100;
+    static const byte START  = 0b00001000;
+    static const byte RIGHT  = 0b00010000;
+    static const byte LEFT   = 0b00100000;
+    static const byte UP     = 0b01000000;
+    static const byte DOWN   = 0b10000000;
 
     Controller(Memory&);
     
