@@ -323,7 +323,7 @@ bool Cpu::handleInterupts()
 
     if (ime && (int_f & int_e)) 
     {
-        for (int i = 1; i <= 8; ++i) 
+        for (int i = 0; i < 7; ++i) 
         {
             if ((1 << i) & int_e & int_f) 
             {

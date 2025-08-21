@@ -68,6 +68,7 @@ bool Scheduler::pop()
         {
             // since only the cpu cares about controller input, it only should update before it
             controller.updatePressed();
+            //std::cout << cpu->toString() << " " << std::hex << (int) memory[Memory::INTERRUPT_FLAG] << " " << (int) memory[Memory::IE_REG] << " " << cpu->getAsm() << std::endl;
             cpu->executeNext();
 
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
