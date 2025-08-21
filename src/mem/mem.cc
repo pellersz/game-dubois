@@ -3,8 +3,7 @@
 #include <cstring>
 #include <iostream>
 
-// TODO: revert this
-byte& Memory::operator[](unsigned short ind) { /*if (ind == 0xff44) memory[ind] = 0x90;*/ return memory[ind]; }
+byte& Memory::operator[](unsigned short ind) { return memory[ind]; }
 
 word Memory::operator()(unsigned short ind) { return ((word)memory[ind + 1] << 8) + (word)memory[ind]; }
 

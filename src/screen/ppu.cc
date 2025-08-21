@@ -2,11 +2,7 @@
 #include "mem.h"
 #include "screen.h"
 #include "types.h"
-#include <ios>
 #include <iostream>
-#include <iterator>
-
-const byte Ppu::COLORS[] = {WHITE, LIGHT_GRAY, DARK_GRAY, BLACK};
 
 Ppu::Ppu(Memory& memory, Screen& screen) : memory(memory), screen(screen) {}
 
@@ -20,7 +16,8 @@ void Ppu::oamScan()
     {
         short pos_y = memory[obj_ind] - 16;
         byte current_lcd_pos = memory[Memory::LCD_Y];
-        if ((pos_y <= current_lcd_pos) && (pos_y + 8 + 8 * is_16_bit > current_lcd_pos)) {
+        if ((pos_y <= current_lcd_pos) && (pos_y + 8 + 8 * is_16_bit > current_lcd_pos)) 
+        {
             objects[numberOfObjects].posX         = memory[obj_ind + 1];
             objects[numberOfObjects].internalY    = current_lcd_pos - pos_y;
             objects[numberOfObjects].tileIndex    = memory[obj_ind + 2];
@@ -221,7 +218,8 @@ void Ppu::hBlank() {}
 
 void Ppu::vBlank() {}
 
-void Ppu::printTiles() {
+void Ppu::printTiles() 
+{
     const char t[] = {' ', '@', '@', '@'};
     for (int i = 0; i < 55; ++i) 
     {
@@ -246,10 +244,12 @@ void Ppu::printTiles() {
     std::cout << std::endl;
 }
 
-void Ppu::printUsedTiles() {
+void Ppu::printUsedTiles() 
+{
     const char t[] = {' ', '@', '@', '@'};
     int dummy;
-    for (int v; v < 4; ++v) {
+    for (int v; v < 4; ++v) 
+    {
         for (int i = 0; i < 32; ++i) 
         {
             for (int j = 0; j < 8; ++j) 

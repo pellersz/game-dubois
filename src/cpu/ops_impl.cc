@@ -292,7 +292,6 @@ void Cpu::opCall(bool jump, word addr)
 
 void Cpu::opJp(word addr) { pc = addr; }
 
-// TODO: make sure these jumps are right
 void Cpu::opJp(bool jump, word addr)
 {
     if (jump) 

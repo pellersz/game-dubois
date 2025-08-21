@@ -4,7 +4,8 @@
 #include "types.h"
 #include <string>
 
-class Cartridge {
+class Cartridge 
+{
 public: 
     int size;
     byte *rom;

@@ -10,18 +10,22 @@
 
 class Scheduler;
 
-class Cpu {
+class Cpu 
+{
 public:
     static const u8 CLOCKS_BETWEEN_EXEC = 4;
 
     Cpu(Memory&, Scheduler&);
     ~Cpu();
+
     void executeNext();
-    // TODO: put this back
-    void setPC(word);
-    void test(std::string);
-    std::string toString();
+
     word getPC();
+    void setPC(word);
+
+    void test(std::string);
+
+    std::string toString();
     std::string getAsm();
         
 protected:

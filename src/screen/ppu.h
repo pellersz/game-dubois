@@ -5,7 +5,8 @@
 #include "mem.h"
 #include "types.h"
 
-class Ppu {
+class Ppu 
+{
 public:
     static const u8 TIME_UNIT = 1;
 
@@ -23,18 +24,18 @@ private:
     static const byte LIGHT_GRAY = 255 * (2. / 3);
     static const byte DARK_GRAY  = 255 * (1. / 3);
     static const byte BLACK      = 0;
-    static const byte COLORS[4];
+    constexpr static const byte COLORS[4] = { WHITE, LIGHT_GRAY, DARK_GRAY, BLACK};
 
     static const unsigned short BG_PIXEL_WIDTH = 256;
     static const u8 TILE_WIDTH     = 8;
     static const u8 TILES_PER_ROW  = 32;
     static const u8 TILE_BYTE_SIZE = 16;
-    static const u8 PIXELS;
 
     Memory& memory;
     Screen& screen;
 
-    class ObjectLine {
+    class ObjectLine 
+    {
     public:
         u8 posX;
         u8 internalY;

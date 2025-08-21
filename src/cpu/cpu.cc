@@ -220,27 +220,6 @@ void Cpu::executeRegular(byte op_code)
     scheduler.push(regular_cycles[op_code], CPU_EXEC);
 }
 
-// TODO: get rid of this block because it's just 2s, kind of a silly thing to have in the first place
-u8 cb_bytes[] = 
-{
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-};
-
 u8 cb_cycles[] = 
 {
     C(2), C(2), C(2), C(2), C(2), C(2), C(4), C(2), C(2), C(2), C(2), C(2), C(2), C(2), C(4), C(2),
@@ -332,7 +311,7 @@ void Cpu::executeBC(byte op_code)
         case 0xfc: {opCb_0xfc(); break;} case 0xfd: {opCb_0xfd(); break;} case 0xfe: {opCb_0xfe(); break;} case 0xff: {opCb_0xff(); break;} 
     }
 
-    programCounterStep(cb_bytes[op_code]);
+    programCounterStep(2);
     scheduler.push(cb_cycles[op_code], CPU_EXEC);
 }
 
@@ -343,9 +322,7 @@ void Cpu::writtenToMemory(unsigned short addr, byte old_val)
         case Memory::OAM_DMA_ADDR:  { memory.oamDma(memory[addr]); break; }
         case Memory::TIMER_CONTROL: 
         {
-            // TODO: put this in its place
-            const unsigned short vals[] = { 1024, 16, 64, 256 };
-            short val = vals[memory[Memory::TIMER_CONTROL] & 0b0011];
+            short val = Scheduler::TIMA_PERIODS[memory[Memory::TIMER_CONTROL] & 0b0011];
             scheduler.replace(Process::UPDATE_TIMA, val); 
             break;
         }

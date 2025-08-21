@@ -3,9 +3,8 @@
 
 #include "types.h"
 
-// TODO: writability
-
-class Memory {
+class Memory 
+{
 public:
     byte& operator[](unsigned short);
     word operator()(unsigned short);

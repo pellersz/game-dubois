@@ -6,9 +6,7 @@
 #include <iostream>
 #include <memory>
 
-GameBoy::GameBoy() {
-    scheduler.init(std::make_shared<Cpu>(cpu));
-}
+GameBoy::GameBoy() { scheduler.init(std::make_shared<Cpu>(cpu)); }
 
 const byte boot_rom[] = 
 {
@@ -48,7 +46,6 @@ void GameBoy::run(bool debug)
     }
 
     memory.writeData(0, 256, boot_rom);   
-    // until bootrom is done
     scheduler.run(); 
 
     cpu.setPC(0x100);

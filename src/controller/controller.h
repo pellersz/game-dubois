@@ -4,7 +4,8 @@
 #include "mem.h"
 #include "types.h"
 
-class Controller {
+class Controller 
+{
 public:
     static const byte A      = 0b00000001;
     static const byte B      = 0b00000010;
@@ -20,8 +21,6 @@ public:
     void buttonPressed(byte);
     void buttonReleased(byte);
     void updatePressed();
-
-    Controller& operator=(Controller&);
 
 private:
     // vector for identifying which buttons are pressed

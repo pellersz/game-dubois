@@ -5,9 +5,6 @@ typedef char offs;
 typedef unsigned char byte;
 typedef unsigned char u8;
 typedef unsigned short word;
-
-class Word {
-
-};
+// TODO: decide if u16 and i32 should be defined
 
 #endif

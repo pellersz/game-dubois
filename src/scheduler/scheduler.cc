@@ -14,8 +14,6 @@
 
 using namespace std::chrono;
 
-const unsigned Scheduler::SYSTEM_CLOCKS_PER_DOT = sysconf(_SC_CLK_TCK) / MASTER_CLOCK_FREQUENCY;
-
 Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& screen) : 
     memory(memory), 
     controller(controller), 
@@ -58,17 +56,16 @@ void Scheduler::replace(Process process, unsigned short duration)
     schedule = new_schedule;
 }
 
-// TODO: account for ppu stopped and resumed
 bool Scheduler::pop() 
 {
     bool go_next = true;
 
-    switch (schedule.top().second) {
+    switch (schedule.top().second) 
+    {
         case CPU_EXEC:
         {
             // since only the cpu cares about controller input, it only should update before it
             controller.updatePressed();
-            //std::cout << cpu->toString() << " " << std::hex << (int) memory[Memory::INTERRUPT_FLAG] << " " << (int) memory[Memory::IE_REG] << " " << cpu->getAsm() << std::endl;
             cpu->executeNext();
 
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
@@ -94,8 +91,7 @@ bool Scheduler::pop()
         } 
         case UPDATE_TIMA: 
         {
-            const unsigned short vals[] = { 1024, 16, 64, 256 };
-            short val = vals[memory[Memory::TIMER_CONTROL] & 0b0011];
+            short val = TIMA_PERIODS[memory[Memory::TIMER_CONTROL] & 0b0011];
             push(val, UPDATE_TIMA);
             if (memory[Memory::TIMER_CONTROL] & 0b0100)
             {
@@ -117,7 +113,7 @@ bool Scheduler::pop()
 
             push(456 * Ppu::TIME_UNIT, VBLANK);
             while(next_dot_time > std::chrono::steady_clock::now()) {}
-            next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;
+            next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
  
             byte& lcd_stat = memory[Memory::LCD_STAT];
             lcd_stat = (lcd_stat & 0b11111100) + 0b01;
@@ -239,6 +235,7 @@ bool Scheduler::pop()
                 controller.buttonReleased(Controller::SELECT);
             
             push(1000, HANDLE_CONTROL);
+
             break;
         }
     };
@@ -249,15 +246,17 @@ bool Scheduler::pop()
 
 void Scheduler::run() 
 { 
-    if (cpu == nullptr) {
+    if (cpu == nullptr) 
+    {
         std::cout << "Initialize the cpu, bozo";
         return;
     } 
 
     bool go_next = true;
-    next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;
+    next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
 
-    while (go_next && !glfwWindowShouldClose(screen.getWindow())) {
+    while (go_next && !glfwWindowShouldClose(screen.getWindow())) 
+    {
         if (schedule.top().first <= time)
             go_next = pop();
         else
@@ -310,19 +309,19 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at)
             case 'h': 
             {
                 done = false;
-                std::cout << 
-                    "n: step once\n"                                 <<
-                    "b <offs>: break when pc is at <offs>\n"         <<
-                    "f <byte>: break when memory[pc] == <byte>\n"    <<
-                    "m <offs>: print byte at memory offset <offs>\n" <<
-                    "p: print all 4 configurations of the tiles\n"   <<
-                    "h: print this information"                      << 
+                std::cout                                               << 
+                    "n: step once\n"                                    <<
+                    "b <offs>: break when pc is at <offs>\n"            <<
+                    "f <byte>: break when memory[pc] == <byte>\n"       <<
+                    "m <offs>: print byte at memory offset <offs>\n"    <<
+                    "p: print all 4 configurations of the tiles\n"      <<
+                    "h: print this information"                         << 
                     std::endl;
                 break;
             }
             default: 
             {
-                std::cout << action << " " << "could not be interpreted, to see possible actions press 'h'" << std::endl;
+                std::cout << action << " could not be interpreted, to see possible actions press 'h'" << std::endl;
                 done = false; 
             }
         }
@@ -331,7 +330,8 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at)
 
 void Scheduler::debugRun() 
 { 
-    if (cpu == nullptr) {
+    if (cpu == nullptr) 
+    {
         std::cout << "Initialize the cpu, bozo";
         return;
     } 
@@ -344,20 +344,21 @@ void Scheduler::debugRun()
     std::cout << std::endl;
 
     bool go_next = true;
-    next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOTT;
+    next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
 
     //std::ofstream f("log");
     //f << cpu->toString() << std::endl;
 
-    while (go_next && !glfwWindowShouldClose(screen.getWindow())) {
+    while (go_next && !glfwWindowShouldClose(screen.getWindow())) 
+    {
         if (schedule.top().first <= time)
         {
             if 
             (
                 (schedule.top().second == CPU_EXEC) && 
                 (
-                    (stop_at == -1) || 
-                    (!mode && (stop_at == cpu->getPC())) || 
+                    (stop_at == -1)                             || 
+                    (!mode && (stop_at == cpu->getPC()))        || 
                     (mode && (stop_at == memory[cpu->getPC()]))
                 )
             )
@@ -377,13 +378,12 @@ void Scheduler::debugRun()
 
 void Scheduler::stop() {}
 
-// TODO: possibly make sure these work as they should
 void Scheduler::statInterruptCheck() 
 {
     bool tmp = statInterruptLine;
     byte& lcd_stat = memory[Memory::LCD_STAT];
     u8 ppuMode = lcd_stat & 0b0011;
-    statInterruptLine = ((lcd_stat & 0b01000000) && (lcd_stat & 0b0100)) || 
+    statInterruptLine = ((lcd_stat & 0b01000000) && (lcd_stat & 0b0100))            || 
                         ((ppuMode != 3) && (lcd_stat & (0b00001000 << ppuMode)));
 
     if (tmp < statInterruptLine) 
