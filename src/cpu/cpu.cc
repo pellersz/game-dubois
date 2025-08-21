@@ -2,10 +2,7 @@
 #include "mem.h"
 #include "scheduler.h"
 #include "types.h"
-#include <chrono>
-#include <cstdio>
 #include <cstdlib>
-#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <ios>
@@ -14,7 +11,6 @@
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
-#include <thread>
 #include <unistd.h>
 #include <variant>
 
@@ -59,10 +55,6 @@ void Cpu::setNF(bool val) { f = val ? f | 0b01000000 : f & 0b10111111; }
 
 void Cpu::setZF(bool val) { f = val ? f | 0b10000000 : f & 0b01111111; } 
 
-void Cpu::stackStep() { --sp; }
-
-void Cpu::stackStepBack() { ++sp; }
-
 void Cpu::stack2Step() { sp -= 2; }
 
 void Cpu::stack2StepBack() { sp += 2; }
@@ -84,6 +76,32 @@ void Cpu::executeNext()
     }  
     
     scheduler.push(4 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
+}
+
+bool Cpu::handleInterupts() 
+{         
+    int a;
+    byte& int_e = memory[Memory::IE_REG];
+    byte& int_f = memory[Memory::INTERRUPT_FLAG];
+
+    if (ime && (int_f & int_e)) 
+    {
+        for (int i = 0; i < 7; ++i) 
+        {
+            if ((1 << i) & int_e & int_f) 
+            {
+                halted = false;
+                ime = false;
+                int_f &= ~(1 << i);
+                opPush(pc);   
+                pc = 0x40 + i * 8;
+
+                scheduler.push(5 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 u8 regular_bytes[] =  
@@ -128,7 +146,8 @@ u8 regular_cycles[] =
 
 // you might not like it, but this is peak instruction handling
 // also, some instructions have variable cycles, these will update the scheduler and the program counter, and use return instead of break
-void Cpu::executeRegular(byte op_code) {
+void Cpu::executeRegular(byte op_code) 
+{
     switch (op_code) 
     {
         case 0x00: {op_0x00(); break;} case 0x01: {op_0x01(); break;} case 0x02: {op_0x02(); break;} case 0x03: {op_0x03(); break;} 
@@ -245,7 +264,8 @@ u8 cb_cycles[] =
 // you might not like it, but this is peak instruction handling
 void Cpu::executeBC(byte op_code) 
 {
-    switch (op_code) {
+    switch (op_code) 
+    {
         case 0x00: {opCb_0x00(); break;} case 0x01: {opCb_0x01(); break;} case 0x02: {opCb_0x02(); break;} case 0x03: {opCb_0x03(); break;} 
         case 0x04: {opCb_0x04(); break;} case 0x05: {opCb_0x05(); break;} case 0x06: {opCb_0x06(); break;} case 0x07: {opCb_0x07(); break;} 
         case 0x08: {opCb_0x08(); break;} case 0x09: {opCb_0x09(); break;} case 0x0a: {opCb_0x0a(); break;} case 0x0b: {opCb_0x0b(); break;} 
@@ -311,34 +331,9 @@ void Cpu::executeBC(byte op_code)
         case 0xf8: {opCb_0xf8(); break;} case 0xf9: {opCb_0xf9(); break;} case 0xfa: {opCb_0xfa(); break;} case 0xfb: {opCb_0xfb(); break;} 
         case 0xfc: {opCb_0xfc(); break;} case 0xfd: {opCb_0xfd(); break;} case 0xfe: {opCb_0xfe(); break;} case 0xff: {opCb_0xff(); break;} 
     }
+
     programCounterStep(cb_bytes[op_code]);
     scheduler.push(cb_cycles[op_code], CPU_EXEC);
-}
-
-bool Cpu::handleInterupts() 
-{         
-    int a;
-    byte& int_e = memory[Memory::IE_REG];
-    byte& int_f = memory[Memory::INTERRUPT_FLAG];
-
-    if (ime && (int_f & int_e)) 
-    {
-        for (int i = 0; i < 7; ++i) 
-        {
-            if ((1 << i) & int_e & int_f) 
-            {
-                halted = false;
-                ime = false;
-                int_f &= ~(1 << i);
-                opPush(pc);   
-                pc = 0x40 + i * 8;
-
-                scheduler.push(5 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 void Cpu::writtenToMemory(unsigned short addr, byte old_val) 
@@ -373,7 +368,7 @@ int read_number(std::string str)
     return res;
 }
 
-// ideally i would get a library with json parsing, but cmake said no, so we are doing this by hand
+// ideally i would get a library with json parsing, but cmake said no, so we are doing it by hand very inflexibly
 void Cpu::test(std::string filename)
 {
     struct stat stat_buf;
@@ -401,7 +396,8 @@ void Cpu::test(std::string filename)
 
     std::cout << "we in this " << std::endl;
 
-    while (std::getline(file, str)) {
+    while (std::getline(file, str)) 
+    {
         if (state == -1) 
         {
             if (str.find("{") != std::variant_npos)
@@ -572,44 +568,28 @@ void Cpu::test(std::string filename)
                     val2 = read_number(str);
             }
         }
-
     }
 }
 
 std::string Cpu::toString() 
 {
-    //std::stringstream s;
-    //s << std::hex << "a = " << (int) a << "; "
-    //              << "f = " << (int) f << "; "
-    //              << "b = " << (int) b << "; "
-    //              << "c = " << (int) c << "; "
-    //              << "d = " << (int) d << "; "
-    //              << "e = " << (int) e << "; "
-    //              << "h = " << (int) h << "; "
-    //              << "l = " << (int) l << "; "
-    //              << "sp = " << (int) sp << "; "
-    //              << "pc = " << (int) pc << "; "
-    //              << "mem[pc] = " << (int) memory[pc] << "; "
-    //              << "last in stack = " << memory(sp) << "; "
-    //              << "currnet instruction: " << getAsm();
-
-    //return s.str();
     std::stringstream s;
+    auto w = std::setw(2);
+
     s << std::hex << std::setfill('0') << std::uppercase 
-                  << "A:" << std::setw(2) << (int) a << " "
-                  << "F:" << std::setw(2) << (int) f << " "
-                  << "B:" << std::setw(2) << (int) b << " "
-                  << "C:" << std::setw(2) << (int) c << " "
-                  << "D:" << std::setw(2) << (int) d << " "
-                  << "E:" << std::setw(2) << (int) e << " "
-                  << "H:" << std::setw(2) << (int) h << " "
-                  << "L:" << std::setw(2) << (int) l << " "
-                  << "SP:" << std::setw(4) << (int) sp << " "
-                  << "PC:" << std::setw(4) << (int) pc << " "
-                  << "PCMEM:" << std::setw(2) << (int) memory[pc] << "," << std::setw(2) << (int) memory[pc + 1] << "," << std::setw(2) << (int) memory[pc + 2] << "," << std::setw(2) << (int) memory[pc + 3];
+                  << "A:"     << w << (int) a << " "
+                  << "F:"     << w << (int) f << " "
+                  << "B:"     << w << (int) b << " "
+                  << "C:"     << w << (int) c << " "
+                  << "D:"     << w << (int) d << " "
+                  << "E:"     << w << (int) e << " "
+                  << "H:"     << w << (int) h << " "
+                  << "L:"     << w << (int) l << " "
+                  << "SP:"    << std::setw(4) << (int) sp << " "
+                  << "PC:"    << std::setw(4) << (int) pc << " "
+                  << "PCMEM:" << w << (int) memory[pc] << "," << w << (int) memory[pc + 1] << "," << w << (int) memory[pc + 2] << "," << w << (int) memory[pc + 3];
 
     return s.str();
-
 }
 
 std::string Cpu::getAsm() 
@@ -755,6 +735,7 @@ std::string Cpu::getAsm()
         case 0xfc: {return "set 7, h";} case 0xfd: {return "set 7, l";} case 0xfe: {return "set 7, (hl)";} case 0xff: {return "set 7, a";}
     }
 
+    // this should be unreachable because all opcodes return
     return "nothing";
 }
 

@@ -4,7 +4,6 @@
 #include "controller.h"
 #include "cpu.h"
 #include "mem.h"
-#include <fstream>
 #include <memory>
 #include <queue>
 #include "ppu.h"
@@ -41,11 +40,8 @@ public:
 
     void push(unsigned short, Process);
     void replace(Process, unsigned short);
-    bool pop();
     void run();
-    bool debugPop(bool&, int&, word&, std::ofstream&);
     void debugRun();
-    void handleDebugStop(bool&, int&, word&);
     void stop();
 
     void statInterruptCheck();
@@ -79,7 +75,9 @@ private:
     byte last_boot_rom;
     byte last_ly = 255;
 
+    bool pop();
     void tick();
+    void handleDebugStop(bool&, int&);
 };
 
 #endif

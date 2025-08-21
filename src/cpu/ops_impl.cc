@@ -1,8 +1,6 @@
 #include "cpu.h"
 #include "scheduler.h"
 #include "types.h"
-#include <cstdlib>
-#include <iostream>
 
 /////////////////////////////////////////////////////////////////
 // Helper instructions
@@ -58,7 +56,11 @@ void Cpu::opAdc(byte val)
     a += val + cf; 
     setCF((a < tmp) || (a == tmp && cf));
     setZF(!a);
-    setHF(((a & 0b1111) < (tmp & 0b1111)) || ((a & 0b1111) == (tmp & 0b1111) && cf));
+    setHF
+    (
+        ((a & 0b1111) < (tmp & 0b1111)) || 
+        ((a & 0b1111) == (tmp & 0b1111) && cf)
+    );
     setNF(false);
 }
 
@@ -79,7 +81,11 @@ void Cpu::opSbc(byte val)
     a -= val + cf; 
     setCF((tmp < a) || (a == tmp && cf)); 
     setZF(!a); 
-    setHF((a & 0b1111) > (tmp & 0b1111) || ((a & 0b1111) == (tmp & 0b1111) && cf));
+    setHF
+    (
+        ((a & 0b1111) > (tmp & 0b1111)) || 
+        ((a & 0b1111) == (tmp & 0b1111) && cf)
+    );
     setNF(true);
 }
 
@@ -333,8 +339,6 @@ void Cpu::opReti()
     opEi();
 }
 
-
-// TODO: make this not use the conditional version, also, do this with 0xcd
 void Cpu::opRst(u8 addr) 
 { 
     opPush(pc + 1);   
@@ -1071,7 +1075,8 @@ void Cpu::op_0xf6() { opOr(memory[pc + 1]); }
 
 void Cpu::op_0xf7() { opRst(8 * 6); } 
 
-void Cpu::op_0xf8() { 
+void Cpu::op_0xf8() 
+{ 
     word tmp = sp + (offs) memory[pc + 1];
     opLd(l, h, tmp); 
     setCF((byte) sp > (byte) tmp); 

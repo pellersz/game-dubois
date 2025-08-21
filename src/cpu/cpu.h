@@ -5,6 +5,7 @@
 #include "mem.h"
 #include <string>
 
+// used to populate arrays in a compact manner
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
 
 class Scheduler;
@@ -17,7 +18,6 @@ public:
     ~Cpu();
     void executeNext();
     // TODO: put this back
-    bool handleInterupts();
     void setPC(word);
     void test(std::string);
     std::string toString();
@@ -41,14 +41,13 @@ protected:
     byte e;
     byte h;
     byte l;
-    word sp = 0xa000u;
+    word sp = 0xa000;
     word pc = 0;
     bool ime = false;
     bool halted = false;
 
     Memory& memory;
     Scheduler& scheduler;
-    // while the cpu does not communicate with the joypad directly, the implementation will be simpler like this
 
     word getAF();
     word getBC();
@@ -67,11 +66,11 @@ protected:
     void setHF(bool);
     void setCF(bool);
 
-    void stackStep();
-    void stackStepBack();
     void stack2Step();
     void stack2StepBack();
     void programCounterStep(u8);
+
+    bool handleInterupts();
 
     void executeRegular(byte);
     void executeBC(byte);
@@ -156,7 +155,7 @@ protected:
     void opNop();
     void opStop();
 
-    // yup, i'll be implementing this shit
+    // all opcodes
     void op_0x00();  void op_0x01();  void op_0x02();  void op_0x03();  void op_0x04();  void op_0x05();  void op_0x06();  void op_0x07(); 
     void op_0x08();  void op_0x09();  void op_0x0a();  void op_0x0b();  void op_0x0c();  void op_0x0d();  void op_0x0e();  void op_0x0f(); 
     void op_0x10();  void op_0x11();  void op_0x12();  void op_0x13();  void op_0x14();  void op_0x15();  void op_0x16();  void op_0x17(); 

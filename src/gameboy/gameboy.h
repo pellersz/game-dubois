@@ -14,7 +14,7 @@
 
 class GameBoy {
 public:
-    GameBoy(Memory&, Controller&, Scheduler&, Cpu&, Ppu&, Screen&);
+    GameBoy();
     
     void load(std::shared_ptr<Cartridge>);
     void unload();
@@ -22,12 +22,12 @@ public:
     void run(bool);
 
 private:
-    Memory& memory;
-    Controller& controller;
-    Scheduler& scheduler;
-    Cpu& cpu;
-    Ppu& ppu;
-    Screen& screen;
+    Memory memory;
+    Controller controller = Controller(memory);
+    Screen screen;
+    Ppu ppu = Ppu(memory, screen);
+    Scheduler scheduler = Scheduler(memory, controller, ppu, screen);
+    Cpu cpu = Cpu(memory, scheduler);
     std::shared_ptr<Cartridge> cartridge = nullptr;
 };
 

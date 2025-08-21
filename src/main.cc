@@ -33,8 +33,9 @@ int main(int argc, char** argv)
     //    std::cout << std::endl << s.str() << std::endl;
     //    cpu.test(s.str());
     //}
-    GameBoy gameboy(mem, cont, sc, cpu, ppu, screen); 
-    gameboy.load(std::make_shared<Cartridge>("./tests/tetris.gb"));
+    //GameBoy gameboy(mem, cont, sc, cpu, ppu, screen); 
+    GameBoy gameboy;
+    gameboy.load(std::make_shared<Cartridge>("./tests/dr_mario.gb"));
 
     if (argc == 1) 
         gameboy.run(false);

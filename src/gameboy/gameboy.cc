@@ -1,23 +1,14 @@
 #include "gameboy.h"
 #include "cartridge.h"
-#include "controller.h"
 #include "cpu.h"
 #include "mem.h"
-#include "ppu.h"
 #include "scheduler.h"
-#include "screen.h"
-#include <iomanip>
 #include <iostream>
 #include <memory>
 
-GameBoy::GameBoy(Memory& memory, Controller& controller, Scheduler& scheduler, Cpu& cpu, Ppu& ppu, Screen& screen) : 
-    memory(memory), 
-    controller(controller), 
-    scheduler(scheduler),
-    cpu(cpu),
-    ppu(ppu),
-    screen(screen)
-{ }
+GameBoy::GameBoy() {
+    scheduler.init(std::make_shared<Cpu>(cpu));
+}
 
 const byte boot_rom[] = 
 {
