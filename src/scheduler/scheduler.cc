@@ -112,8 +112,8 @@ bool Scheduler::pop()
             ++memory[Memory::LCD_Y];
 
             push(456 * Ppu::TIME_UNIT, VBLANK);
-            while(next_dot_time > std::chrono::steady_clock::now()) {}
-            next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
+            //while(next_dot_time > std::chrono::steady_clock::now()) {}
+            //next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
  
             byte& lcd_stat = memory[Memory::LCD_STAT];
             lcd_stat = (lcd_stat & 0b11111100) + 0b01;
@@ -390,5 +390,11 @@ void Scheduler::statInterruptCheck()
         memory[Memory::INTERRUPT_FLAG] |= 0b0010;
 }
 
-void Scheduler::tick() { time += 4; }
+void Scheduler::tick() 
+{
+    while(next_dot_time > std::chrono::steady_clock::now()) {}
+    next_dot_time += SYSTEM_CLOCKS_PER_DOT;
+
+    time += 4; 
+}
 

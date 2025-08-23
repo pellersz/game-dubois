@@ -1,3 +1,4 @@
+#include "apu/speaker.h"
 #include "cartridge.h"
 #include "gameboy.h"
 #include <iostream>
@@ -149,7 +150,8 @@ int main(int argc, char** argv)
     
     ma_device_uninit(&device);
 
-    return 0;
+    Speaker speaker;
+
     //for(int i = 0; i < 0x100; ++i)
     //{
     //    std::stringstream s;

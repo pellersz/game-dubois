@@ -63,7 +63,7 @@ private:
         ProcessGreater 
     > schedule;
 
-    constexpr static const auto SYSTEM_CLOCKS_PER_DOT = round<system_clock::duration>(duration<double>(1./60));
+    constexpr static const auto SYSTEM_CLOCKS_PER_DOT = round<system_clock::duration>(duration<double>(1.0 / 1048576));
     time_point<std::chrono::steady_clock> next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
     unsigned long long time = 0;
 
