@@ -61,6 +61,7 @@ void Cpu::stack2StepBack() { sp += 2; }
 
 void Cpu::programCounterStep(u8 count) { pc += count; }
 
+// TODO: remove the scheduler as a dependency and just return the time elapsed for the scheduler
 void Cpu::executeNext() 
 {
     if (halted && (memory[Memory::IE_REG] & memory[Memory::INTERRUPT_FLAG]))
@@ -315,6 +316,7 @@ void Cpu::executeBC(byte op_code)
     scheduler.push(cb_cycles[op_code], CPU_EXEC);
 }
 
+// TODO: write to div register
 void Cpu::writtenToMemory(unsigned short addr, byte old_val) 
 {
     switch (addr) 
