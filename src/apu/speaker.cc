@@ -2,93 +2,69 @@
 
 Speaker::Speaker() 
 {
-    ma_device_config deviceConfig;
-    ma_device device;
+    ma_device_config device_config;
  
-    my_data_source s;
+    device_config = ma_device_config_init(ma_device_type_playback);
+    device_config.playback.format   = ma_format_f32;
+    device_config.playback.channels = 2;
+    device_config.sampleRate        = 48000;
+    device_config.dataCallback      = dataCallback;
+    device_config.pUserData         = &channel3;
 
-    deviceConfig = ma_device_config_init(ma_device_type_playback);
-    deviceConfig.playback.format   = ma_format_f32;
-    deviceConfig.playback.channels = 2;
-    deviceConfig.sampleRate        = 48000;
-    deviceConfig.dataCallback      = dataCallback;
-    deviceConfig.pUserData         = &s;
-
-    if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
+    if (ma_device_init(NULL, &device_config, &device) != MA_SUCCESS)
+    {
         printf("Failed to open playback device.\n");
         return;
     }
 
-    printf("Device Name: %s\n", device.playback.name);
+    initApuData(48000, 220, &channel3);
 
-    //ma_waveform_init(&sineWaveConfig, &sineWave);
-
-    initApuData(48000, 220, &s);
-
-    if (ma_device_start(&device) != MA_SUCCESS) {
+    if (ma_device_start(&device) != MA_SUCCESS)
+    {
         printf("Failed to start playback device.\n");
         ma_device_uninit(&device);
         return;
     }
-    
-    printf("Press Enter to quit...\n");
-    getchar();
-    
-    ma_device_uninit(&device);
-
 }
 
-Speaker::~Speaker() {}
+Speaker::~Speaker() { ma_device_uninit(&device); }
 
-ma_result Speaker::apuDataRead(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead)
+ma_result Speaker::apuDataRead(ma_data_source* p_data_source, void* p_frames_out, ma_uint64 frame_count, ma_uint64* p_frames_read)
 {
-    // Read data here. Output in the same format returned by my_data_source_get_data_format().
-    ma_uint64 iFrame;
-    ma_uint64 iChannel;
+    Channel3* m_data = (Channel3*) p_data_source;
+    float* frames_out_f32 = (float*)p_frames_out;
 
-    my_data_source* m_data = (my_data_source*) pDataSource;
-    float* pFramesOutF32 = (float*)pFramesOut;
-    for (iFrame = 0; iFrame < frameCount; iFrame += 1) {
+    for (int i_frame = 0; i_frame < frame_count; i_frame += 1)
+    {
         double f = m_data->time - (ma_int64)m_data->time;
         double s;
     
-        if (f < 0.5) {
+        if (f < 0.5) 
             s = 0.2f;
-        } else {
+        else
             s = -0.2f;
-        }
     
         m_data->time += m_data->advance;
 
-        for (iChannel = 0; iChannel < 2; iChannel += 1) {
-            pFramesOutF32[iFrame*2 + iChannel] = s;
-        }
+        for (int iChannel = 0; iChannel < 2; iChannel += 1)
+            frames_out_f32[i_frame*2 + iChannel] = s;
     }
     return MA_SUCCESS;
 }
 
-ma_result Speaker::apuDataSeek(ma_data_source* pDataSource, ma_uint64 frameIndex)
-{
-    // Seek to a specific PCM frame here. Return MA_NOT_IMPLEMENTED if seeking is not supported.
-    return MA_NOT_IMPLEMENTED;
-}
+ma_result Speaker::apuDataSeek(ma_data_source* p_data_source, ma_uint64 frame_index) { return MA_NOT_IMPLEMENTED; }
 
-ma_result Speaker::getDataFormat(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCap)
+ma_result Speaker::getDataFormat(ma_data_source* p_data_source, ma_format* p_format, ma_uint32* p_channels, ma_uint32* p_sample_rate, ma_channel* p_channel_map, size_t channel_map_cap)
 {
-    // Return the format of the data here.
-    *pFormat = ma_format_f32;
-    *pChannels = 2;
-    *pSampleRate = 48000;
+    *p_format = ma_format_f32;
+    *p_channels = 2;
+    *p_sample_rate = 48000;
     return MA_SUCCESS;
 }
 
-ma_result Speaker::getDataCursor(ma_data_source* pDataSource, ma_uint64* pCursor)
-{
-    // Retrieve the current position of the cursor here. Return MA_NOT_IMPLEMENTED and set *pCursor to 0 if there is no notion of a cursor.
-    return MA_NOT_IMPLEMENTED;
-}
+ma_result Speaker::getDataCursor(ma_data_source* p_data_source, ma_uint64* p_cursor) { return MA_NOT_IMPLEMENTED; }
 
-ma_result Speaker::initApuData(double sampleRate, double frequency, my_data_source* pMyDataSource)
+ma_result Speaker::initApuData(double sample_rate, double frequency, Channel3* p_channel3)
 {
     ma_result result;
     ma_data_source_config baseConfig;
@@ -96,32 +72,25 @@ ma_result Speaker::initApuData(double sampleRate, double frequency, my_data_sour
     baseConfig = ma_data_source_config_init();
     baseConfig.vtable = &DATA_SOURCE_VTABLE;
 
-    result = ma_data_source_init(&baseConfig, &pMyDataSource->base);
-    if (result != MA_SUCCESS) {
+    result = ma_data_source_init(&baseConfig, &p_channel3->base);
+    if (result != MA_SUCCESS)
         return result;
-    }
 
-    pMyDataSource->advance = (1.0 / (sampleRate / frequency));
+    p_channel3->advance = (1.0 / (sample_rate / frequency));
 
     return MA_SUCCESS;
 }
 
-void Speaker::uninitApuData(my_data_source* pMyDataSource)
+void Speaker::uninitApuData(Channel3* p_channel3) { ma_data_source_uninit(&p_channel3->base); }
+
+void Speaker::dataCallback(ma_device* p_device, void* p_output, const void* p_input, ma_uint32 frame_count)
 {
-    // ... do the uninitialization of your custom data source here ...
+    Channel3* pSineWave;
 
-    // You must uninitialize the base data source.
-    ma_data_source_uninit(&pMyDataSource->base);
-}
+    pSineWave = (Channel3*)p_device->pUserData;
 
-void Speaker::dataCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
-{
-    my_data_source* pSineWave;
+    apuDataRead(pSineWave, p_output, frame_count, NULL);
 
-    pSineWave = (my_data_source*)pDevice->pUserData;
-
-    apuDataRead(pSineWave, pOutput, frameCount, NULL);
-
-    (void)pInput;   /* Unused. */
+    (void)p_input;   /* Unused. */
 }
 

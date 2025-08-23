@@ -67,7 +67,7 @@ private:
     time_point<std::chrono::steady_clock> next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
     unsigned long long time = 0;
 
-    std::shared_ptr<Cpu> cpu = nullptr;
+    std::shared_ptr<Cpu> p_cpu = nullptr;
     Memory& memory;
     Controller& controller;
     Ppu& ppu;

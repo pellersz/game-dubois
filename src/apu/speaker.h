@@ -4,11 +4,11 @@
 #include <cstdio>
 #include <miniaudio.h>
 
-struct my_data_source
+struct Channel3
 {
     ma_data_source_base base;
     double time = 0;
-    double advance = 0.01;
+    double advance;
 };
 
 class Speaker 
@@ -18,6 +18,9 @@ public:
     ~Speaker();
 
 private:
+    ma_device device;
+    Channel3 channel3;
+
     static ma_result apuDataRead(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
     
     static ma_result apuDataSeek(ma_data_source* pDataSource, ma_uint64 frameIndex);
@@ -37,9 +40,9 @@ private:
         0
     };
     
-    ma_result initApuData(double sampleRate, double frequency, my_data_source* pMyDataSource);
+    ma_result initApuData(double sampleRate, double frequency, Channel3* pMyDataSource);
 
-    void uninitApuData(my_data_source* pMyDataSource);
+    void uninitApuData(Channel3* pMyDataSource);
 
     static void dataCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 };

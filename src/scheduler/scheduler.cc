@@ -32,7 +32,7 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     schedule.push(ProcessStart(time, HANDLE_CONTROL));
 }
 
-void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { cpu = cpu_ptr; }
+void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { p_cpu = cpu_ptr; }
 
 void Scheduler::push(unsigned short duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
@@ -66,7 +66,7 @@ bool Scheduler::pop()
         {
             // since only the cpu cares about controller input, it only should update before it
             controller.updatePressed();
-            cpu->executeNext();
+            p_cpu->executeNext();
 
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
                     (memory[Memory::BOOT_ROM_MAPPING] == 1))
@@ -246,7 +246,7 @@ bool Scheduler::pop()
 
 void Scheduler::run() 
 { 
-    if (cpu == nullptr) 
+    if (p_cpu == nullptr) 
     {
         std::cout << "Initialize the cpu, bozo";
         return;
@@ -330,7 +330,7 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at)
 
 void Scheduler::debugRun() 
 { 
-    if (cpu == nullptr) 
+    if (p_cpu == nullptr) 
     {
         std::cout << "Initialize the cpu, bozo";
         return;
@@ -358,12 +358,12 @@ void Scheduler::debugRun()
                 (schedule.top().second == CPU_EXEC) && 
                 (
                     (stop_at == -1)                             || 
-                    (!mode && (stop_at == cpu->getPC()))        || 
-                    (mode && (stop_at == memory[cpu->getPC()]))
+                    (!mode && (stop_at == p_cpu->getPC()))        || 
+                    (mode && (stop_at == memory[p_cpu->getPC()]))
                 )
             )
             {
-                std::cout << cpu->toString() << "\n" << cpu->getAsm() << "\n" << std::endl;
+                std::cout << p_cpu->toString() << "\n" << p_cpu->getAsm() << "\n" << std::endl;
                 handleDebugStop(mode, stop_at);
             }
             //if (!interrupt)
