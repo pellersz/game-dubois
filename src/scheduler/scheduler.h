@@ -8,6 +8,7 @@
 #include <queue>
 #include "ppu.h"
 #include "screen.h"
+#include "apu.h"
 #include <unistd.h>
 #include <chrono>
 
@@ -22,7 +23,10 @@ enum Process
     OAM_SCAN,
     DRAW_PIXELS,
     HBLANK,
-    HANDLE_CONTROL
+    HANDLE_CONTROL,
+    CH1_SWEEP,
+    CH1_ENVELOPE,
+    SAMPLE
 };
 
 using namespace std::chrono;
@@ -32,12 +36,15 @@ typedef std::pair<unsigned long long, Process> ProcessStart;
 class Scheduler 
 {
 public: 
+    const static int MASTER_CLOCK_FREQUENCY = 4194304;
+    const static int SYSTEM_CLOCK_FREQUENCY = MASTER_CLOCK_FREQUENCY / 4;
     constexpr static const unsigned short TIMA_PERIODS[4] = { 1024, 16, 64, 256 };
 
-    Scheduler(Memory&, Controller&, Ppu&, Screen&);
+    Scheduler(Memory&, Controller&, Ppu&, Screen&, Apu&);
     void init(std::shared_ptr<Cpu>);
 
     void push(unsigned short, Process);
+    void remove(Process);
     void replace(Process, unsigned short);
     
     void run();
@@ -72,6 +79,7 @@ private:
     Controller& controller;
     Ppu& ppu;
     Screen& screen;
+    Apu& apu;
     
     byte last_div;
     byte last_boot_rom;

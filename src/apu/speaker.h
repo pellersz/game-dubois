@@ -3,23 +3,19 @@
 
 #include <cstdio>
 #include <miniaudio.h>
-
-struct Channel3
-{
-    ma_data_source_base base;
-    double time = 0;
-    double advance;
-};
+#include "channels.h"
 
 class Speaker 
 {   
 public:
+    Channels channels;
+
     Speaker();
     ~Speaker();
 
 private:
+    // needed for lifetime
     ma_device device;
-    Channel3 channel3;
 
     static ma_result apuDataRead(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
     
@@ -40,9 +36,9 @@ private:
         0
     };
     
-    ma_result initApuData(double sampleRate, double frequency, Channel3* pMyDataSource);
+    ma_result initApuData(double sampleRate, double frequency, Channels* pMyDataSource);
 
-    void uninitApuData(Channel3* pMyDataSource);
+    void uninitApuData(Channels* pMyDataSource);
 
     static void dataCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 };

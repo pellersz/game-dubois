@@ -1,6 +1,7 @@
 #ifndef CPU_H 
 #define CPU_H
 
+#include "apu.h"
 #include "types.h"
 #include "mem.h"
 #include <string>
@@ -15,7 +16,7 @@ class Cpu
 public:
     static const u8 CLOCKS_BETWEEN_EXEC = 4;
 
-    Cpu(Memory&, Scheduler&);
+    Cpu(Memory&, Scheduler&, Apu&);
     ~Cpu();
 
     void executeNext();
@@ -52,6 +53,7 @@ protected:
 
     Memory& memory;
     Scheduler& scheduler;
+    Apu& apu;
 
     word getAF();
     word getBC();

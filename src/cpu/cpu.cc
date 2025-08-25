@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "apu.h"
 #include "mem.h"
 #include "scheduler.h"
 #include "types.h"
@@ -15,7 +16,7 @@
 #include <variant>
 
 // without this, the cycle definions would be too long
-Cpu::Cpu(Memory& memory, Scheduler& scheduler) : memory(memory), scheduler(scheduler) {}
+Cpu::Cpu(Memory& memory, Scheduler& scheduler, Apu& apu) : memory(memory), scheduler(scheduler), apu(apu) {}
 
 Cpu::~Cpu() {}
 
@@ -316,11 +317,12 @@ void Cpu::executeBC(byte op_code)
     scheduler.push(cb_cycles[op_code], CPU_EXEC);
 }
 
-// TODO: write to div register
+// TODO: this is not a very good way to do this, it assumes the cpu to know things about others (at least is should be int the scheduler
 void Cpu::writtenToMemory(unsigned short addr, byte old_val) 
 {
     switch (addr) 
     {
+        case Memory::DIVIDER_REGISTER: { memory[addr] = 0; break; }
         case Memory::OAM_DMA_ADDR:  { memory.oamDma(memory[addr]); break; }
         case Memory::TIMER_CONTROL: 
         {
@@ -334,6 +336,56 @@ void Cpu::writtenToMemory(unsigned short addr, byte old_val)
             lcd_stat = (lcd_stat & 0b11111100) + (old_val & 0b11); 
             scheduler.statInterruptCheck();
             break;
+        }
+        case Memory::NR10: 
+        {
+            byte new_val = memory[Memory::NR10];
+            u8 pace = new_val & 0b01110000;
+            if (!pace)
+                scheduler.remove(CH1_SWEEP);
+            else if (!(old_val & 0b01110000))
+                scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 128), CH1_SWEEP);
+
+            break;
+        }
+        case Memory::NR11: { apu.nr11Changed(); break; }
+        case Memory::NR12: 
+        { 
+            u8 pace = memory[addr] & 0b0111;
+            if (!pace) 
+                scheduler.remove(CH1_ENVELOPE);
+            else if (!(old_val & 0b0111))
+                scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 64), CH1_ENVELOPE);
+
+            apu.nr12Changed();
+            break; 
+        }
+        case Memory::NR14: 
+        { 
+            if (memory[Memory::NR14] & 0b10000000)
+            {
+                scheduler.remove(CH1_SWEEP);
+                scheduler.remove(CH1_ENVELOPE);
+
+                u8 sweep_pace = (memory[Memory::NR10] >> 4) & 0b0111;
+                if (sweep_pace) 
+                    scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (sweep_pace * 128), CH1_SWEEP);
+
+                u8 envelope_pace = memory[Memory::NR12] & 0b0111;
+                if (envelope_pace) 
+                    scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (envelope_pace * 64), CH1_ENVELOPE);
+            }
+            apu.nr14Changed();
+            break;
+        }
+        case Memory::NR21: { apu.nr21Changed(); break; }
+        case Memory::NR51: { apu.soundPanningChanged(); }
+        case Memory::NR52: 
+        { 
+            byte& nr52 = memory[addr];
+            nr52 = (nr52 & 0b11110000) + (old_val & 0b00001111);
+            apu.audioMasterChanged(); 
+            break; 
         }
     }
 }
@@ -368,7 +420,7 @@ void Cpu::test(std::string filename)
     int val2 = -1;
     bool left_paren = false;
     Memory other_mem;
-    Cpu central_dog_unit(other_mem, scheduler);
+    Cpu central_dog_unit(other_mem, scheduler, apu);
     std::string name;
     int addrs[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     int addr_counter = 0;

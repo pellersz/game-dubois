@@ -1,4 +1,5 @@
 #include "speaker.h"
+#include <iostream>
 
 Speaker::Speaker() 
 {
@@ -9,7 +10,7 @@ Speaker::Speaker()
     device_config.playback.channels = 2;
     device_config.sampleRate        = 48000;
     device_config.dataCallback      = dataCallback;
-    device_config.pUserData         = &channel3;
+    device_config.pUserData         = &channels;
 
     if (ma_device_init(NULL, &device_config, &device) != MA_SUCCESS)
     {
@@ -17,7 +18,7 @@ Speaker::Speaker()
         return;
     }
 
-    initApuData(48000, 220, &channel3);
+    initApuData(48000, 220, &channels);
 
     if (ma_device_start(&device) != MA_SUCCESS)
     {
@@ -40,9 +41,9 @@ ma_result Speaker::apuDataRead(ma_data_source* p_data_source, void* p_frames_out
         double s;
     
         if (f < 0.5) 
-            s = 0.2f;
+            s = 0.1f;
         else
-            s = -0.2f;
+            s = -0.1f;
     
         m_data->time += m_data->advance;
 
@@ -64,7 +65,7 @@ ma_result Speaker::getDataFormat(ma_data_source* p_data_source, ma_format* p_for
 
 ma_result Speaker::getDataCursor(ma_data_source* p_data_source, ma_uint64* p_cursor) { return MA_NOT_IMPLEMENTED; }
 
-ma_result Speaker::initApuData(double sample_rate, double frequency, Channel3* p_channel3)
+ma_result Speaker::initApuData(double sample_rate, double frequency, Channels* p_channels)
 {
     ma_result result;
     ma_data_source_config baseConfig;
@@ -72,16 +73,16 @@ ma_result Speaker::initApuData(double sample_rate, double frequency, Channel3* p
     baseConfig = ma_data_source_config_init();
     baseConfig.vtable = &DATA_SOURCE_VTABLE;
 
-    result = ma_data_source_init(&baseConfig, &p_channel3->base);
+    result = ma_data_source_init(&baseConfig, &p_channels->base);
     if (result != MA_SUCCESS)
         return result;
 
-    p_channel3->advance = (1.0 / (sample_rate / frequency));
+    //p_channels->advance = (1.0 / (sample_rate / frequency));
 
     return MA_SUCCESS;
 }
 
-void Speaker::uninitApuData(Channel3* p_channel3) { ma_data_source_uninit(&p_channel3->base); }
+void Speaker::uninitApuData(Channels* p_channels) { ma_data_source_uninit(&p_channels->base); }
 
 void Speaker::dataCallback(ma_device* p_device, void* p_output, const void* p_input, ma_uint32 frame_count)
 {

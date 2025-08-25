@@ -1,5 +1,7 @@
 #include "scheduler.h"
 #include "GLFW/glfw3.h"
+#include "apu.h"
+#include "channels.h"
 #include "controller.h"
 #include "cpu.h"
 #include "mem.h"
@@ -14,11 +16,12 @@
 
 using namespace std::chrono;
 
-Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& screen) : 
+Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& screen, Apu& apu) : 
     memory(memory), 
     controller(controller), 
     ppu(ppu),
-    screen(screen)
+    screen(screen),
+    apu(apu)
 { 
     last_div = memory[Memory::DIVIDER_REGISTER];
 
@@ -37,15 +40,14 @@ void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { p_cpu = cpu_ptr; }
 void Scheduler::push(unsigned short duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
 // This is acceptable because there are only 6 events at a time
-void Scheduler::replace(Process process, unsigned short duration) 
-{
+
+void Scheduler::remove(Process process) {
     std::priority_queue<
         ProcessStart,
         std::vector<ProcessStart>,
         ProcessGreater 
     > new_schedule;
 
-    new_schedule.push(ProcessStart {time + duration, process});
     while (!schedule.empty()) 
     {
         if (schedule.top().second != process)
@@ -54,6 +56,12 @@ void Scheduler::replace(Process process, unsigned short duration)
     }
 
     schedule = new_schedule;
+}
+
+void Scheduler::replace(Process process, unsigned short duration) 
+{
+    remove(process);
+    schedule.push(ProcessStart {time + duration, process});
 }
 
 bool Scheduler::pop() 
@@ -238,7 +246,45 @@ bool Scheduler::pop()
 
             break;
         }
-    };
+        case CH1_SWEEP: 
+        {
+            byte nr10 = memory[Memory::NR10];
+            bool direction = nr10 & 0b00001000;
+            u8 step = nr10 & 0b0111;
+            byte& nr13 = memory[Memory::NR13];
+            byte& nr14 = memory[Memory::NR14];
+
+            unsigned short old_period = nr13 + ((nr14 & 0b1111) << 8); 
+            unsigned short offs = old_period >> step;
+            unsigned short new_period; 
+            if (direction) 
+                new_period = old_period - offs;
+            else 
+            {
+                new_period = old_period + offs;  
+                if (new_period > 0x0f77)
+                {
+                    apu.turnOnOffDac(Ch1, false);
+                    break;
+                }
+            }
+
+            u8 pace = (memory[Memory::NR10] >> 4) & 0b0111;
+            push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 128), CH1_SWEEP);
+            nr13 = new_period;
+            nr14 = ((new_period & 0x0f00) >> 8) + (nr14 & 0b11110000);
+            break;
+        }
+        case CH1_ENVELOPE:
+        {
+            apu.envelope(Ch1);
+            u8 pace = memory[Memory::NR12] & 0b0111;
+            push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 64), CH1_ENVELOPE);
+
+            break;
+        }
+        case SAMPLE: { apu.sample(); break; }
+        };
 
     schedule.pop(); 
     return go_next;
@@ -394,6 +440,10 @@ void Scheduler::tick()
 {
     while(next_dot_time > std::chrono::steady_clock::now()) {}
     next_dot_time += SYSTEM_CLOCKS_PER_DOT;
+
+    apu.tickPeriod1(1);
+    apu.tickPeriod2(1);
+    apu.tickPeriod1(2);
 
     time += 4; 
 }

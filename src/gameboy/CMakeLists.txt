@@ -9,6 +9,8 @@ target_include_directories(gameboy PRIVATE ../scheduler)
 target_include_directories(gameboy PRIVATE ../controller)
 target_include_directories(gameboy PRIVATE ../cartridge)
 target_include_directories(gameboy PRIVATE ../screen)
+target_include_directories(gameboy PRIVATE ../apu)
 
 target_link_libraries(gameboy PRIVATE glfw)
+target_link_libraries(gameboy PRIVATE miniaudio)
 target_link_libraries(gameboy PRIVATE controller)
