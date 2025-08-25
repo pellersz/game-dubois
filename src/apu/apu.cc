@@ -11,22 +11,26 @@ void Apu::turnOnOffDac(ChannelType type, bool val)
     {
         case Ch1: 
         {
-            speaker.channels.channel1.on = val; 
+            channels.channel1.dacOn = val; 
+                channels.channel1.on = channels.channel1.on && val; 
             break; 
         }
         case Ch2: 
         {
-            speaker.channels.channel2.on = val;
+            channels.channel2.dacOn = val;
+            channels.channel2.on = channels.channel2.on && val; 
             break; 
         }
         case Ch3: 
         {
-            speaker.channels.channel3.on = val;
+            channels.channel3.dacOn = val;
+            channels.channel3.on = channels.channel3.on && val; 
             break;
         }
         case Ch4: 
         {
-            speaker.channels.channel4.on = val;
+            channels.channel4.dacOn = val;
+            channels.channel4.on = channels.channel4.on && val; 
             break;
         }
     }
@@ -38,72 +42,113 @@ void Apu::turnOnOffDac(ChannelType type, bool val)
 
 void Apu::audioMasterChanged() 
 {
-    for (int i = 0; i < 4; ++i)
-        turnOnOffDac((ChannelType)i, false);
+    if (!(memory[Memory::NR52] & 0b10000000))
+    {
+        on = false;
+        for (int i = 0; i < 4; ++i)
+            turnOnOffDac((ChannelType)i, false);
+    } 
+    else 
+        on = true;
 }
 
 // this would be much better with an array
 void Apu::soundPanningChanged()
 {
     byte panning = memory[Memory::NR51];
-    speaker.channels.channel1.rightEnabled = panning & 0b00000001;
-    speaker.channels.channel2.rightEnabled = panning & 0b00000010;
-    speaker.channels.channel3.rightEnabled = panning & 0b00000100;
-    speaker.channels.channel4.rightEnabled = panning & 0b00001000;
-    speaker.channels.channel1.leftEnabled  = panning & 0b00010000;
-    speaker.channels.channel2.leftEnabled  = panning & 0b00100000;
-    speaker.channels.channel3.leftEnabled  = panning & 0b01000000;
-    speaker.channels.channel4.leftEnabled  = panning & 0b10000000;
+    channels.channel1.rightEnabled = panning & 0b00000001;
+    channels.channel2.rightEnabled = panning & 0b00000010;
+    channels.channel3.rightEnabled = panning & 0b00000100;
+    channels.channel4.rightEnabled = panning & 0b00001000;
+    channels.channel1.leftEnabled  = panning & 0b00010000;
+    channels.channel2.leftEnabled  = panning & 0b00100000;
+    channels.channel3.leftEnabled  = panning & 0b01000000;
+    channels.channel4.leftEnabled  = panning & 0b10000000;
 }
 
-void Apu::envelope(ChannelType type)
+void Apu::leftRightVolumeChanged()
+{
+    byte nr50 = memory[Memory::NR50];
+    // TODO: constants
+    leftVolume = (1. / 9.) * (((nr50 >> 4) & 0b0111) + 1);
+    rightVolume = (1. / 9.) * ((nr50 & 0b0111) + 1);
+}
+
+// this should be handled better
+bool Apu::envelope(ChannelType type)
 {
     switch (type) 
     {
-        case Ch1: { speaker.channels.channel1.envelope += speaker.channels.channel1.envelopeDir; break; }
-        case Ch2: { speaker.channels.channel2.envelope += speaker.channels.channel2.envelopeDir; break; }
-        case Ch3: break;
-        case Ch4: { speaker.channels.channel4.envelope += speaker.channels.channel4.envelopeDir; break; }
+        case Ch1: 
+        { 
+            float amplitude; 
+            amplitude += channels.channel1.envelopeDir ? VOLUME_UNIT : -VOLUME_UNIT; 
+            if ((amplitude < -1.0) || (amplitude > 1.0))
+                return false; 
+            channels.channel1.amplitude = amplitude;
+            return true;
+        }
+        case Ch2: 
+        { 
+            float amplitude; 
+            amplitude += channels.channel2.envelopeDir ? VOLUME_UNIT : -VOLUME_UNIT; 
+            if ((amplitude < -1.0) || (amplitude > 1.0))
+                return false; 
+            channels.channel2.amplitude = amplitude;
+            return true;
+        }        
+        case Ch3: return false;
+        case Ch4: 
+        { 
+            float amplitude; 
+            amplitude += channels.channel4.envelopeDir ? VOLUME_UNIT : -VOLUME_UNIT; 
+            if ((amplitude < -1.0) || (amplitude > 1.0))
+                return false; 
+            channels.channel4.amplitude = amplitude;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Apu::incrementTimer(ChannelType type) 
+{
+    switch (type) 
+    {
+        case Ch1: { ++channels.channel1.stop_timer; break; }
+        case Ch2: { ++channels.channel2.stop_timer; break; }
+        case Ch3: { ++channels.channel3.stop_timer; break; }
+        case Ch4: { ++channels.channel4.stop_timer; break; }
     }
 }
 
-void Apu::nr11Changed() 
-{
-    byte nr11 = memory[Memory::NR11];
-    speaker.channels.channel1.dutyRatio = SquareChannel::DUTY_RATIOS[(nr11 >> 6) & 0b11];
-}
+void Apu::nr11Changed() { channels.channel1.duty = SquareChannel::DUTYS[(memory[Memory::NR11] >> 6) & 0b11]; }
 
 void Apu::nr12Changed()
 {
     byte nr12 = memory[Memory::NR12];
-    speaker.channels.channel1.envelopeDir = (nr12 & 0b00001000) ? -1 : 1;
+    channels.channel1.envelopeDir = (nr12 & 0b00001000) ? -1 : 1;
     if (!(nr12 & 0b11111000))
         turnOnOffDac(Ch1, false);
 }
 
 void Apu::nr14Changed()
 {
-    byte nr14 = memory[Memory::NR14];
-    speaker.channels.channel2.lengthEnabled = nr14 & 0b01000000;
-    if (nr14 & 0b10000000)
+    if (memory[Memory::NR14] & 0b10000000)
     {
-        speaker.channels.channel1.on = true;
+        channels.channel1.on = channels.channel1.dacOn;
         ch1Shadow = memory[Memory::NR13] + (memory[Memory::NR14] << 8);
-        if (speaker.channels.channel1.stop_timer >= 64) 
-            speaker.channels.channel1.stop_timer = memory[Memory::NR11] & 0b00111111;
-        speaker.channels.channel1.envelope = 0;
-        speaker.channels.channel1.amplitude = -1. + (memory[Memory::NR12] >> 4) * VOLUME_UNIT;
-
-        byte nr10 = memory[Memory::NR10];
-        u8 step = nr10 & 0b0111;
-        u8 pace = (nr10 >> 4) & 0b0111;
+        if (channels.channel1.stop_timer >= 64) 
+            channels.channel1.stop_timer = memory[Memory::NR11] & 0b00111111;
+        channels.channel1.amplitude = ((memory[Memory::NR12] >> 4) - 8) * VOLUME_UNIT - 1;
     }
 }
 
 void Apu::nr21Changed()
 {
     byte nr21 = memory[Memory::NR21];
-    speaker.channels.channel2.dutyRatio = SquareChannel::DUTY_RATIOS[(nr21 >> 6) & 0b11];
+    channels.channel2.duty = SquareChannel::DUTYS[(nr21 >> 6) & 0b11];
 }
 
 void Apu::tickPeriod1(u8 val)
@@ -114,7 +159,8 @@ void Apu::tickPeriod1(u8 val)
     if ((ch1Shadow & 0x7ff) < (tmp & 0x7ff))
     {
         ch1Shadow = memory[Memory::NR13] + (memory[Memory::NR14] << 8);
-        sample1();
+        if (++channels.channel1.time >= 8)
+            channels.channel2.time = 0;
     }
 }
 
@@ -126,7 +172,8 @@ void Apu::tickPeriod2(u8 val)
     if ((ch2Shadow & 0x7ff) < (tmp & 0x7ff))
     {
         ch2Shadow = memory[Memory::NR23] + (memory[Memory::NR24] << 8);
-        sample2();
+        if (++channels.channel2.time >= 8)
+            channels.channel2.time = 0;
     }
 }
 
@@ -142,11 +189,56 @@ void Apu::tickPeriod3(u8 val)
     }
 }
 
-void Apu::sample1() {}
+float Apu::sample1() 
+{
+    Channel1 channel1 = channels.channel1;
+    if (channel1.dacOn) 
+    {
+        if (channel1.on) 
+            return ((channel1.duty << channel1.time) & 0b10000000) ? channel1.amplitude : 0; 
+        return 1.0;
+    }
+    return 0;
+}
 
-void Apu::sample2() {}
+float Apu::sample2() 
+{
+    Channel1 channel2 = channels.channel1;
+    if (channel2.dacOn) 
+    {
+        if (channel2.on) 
+            return ((channel2.duty << channel2.time) & 0b10000000) ? channel2.amplitude : 0; 
+        return 1.0;
+    }
+    return 0;
+}
 
-void Apu::sample3() {}
+float Apu::sample3() 
+{
+    return 0;
+}
 
-void Apu::sample() {}
+float Apu::sample4() 
+{
+    return 0;
+}
 
+void Apu::sample() 
+{
+    float s1 = sample1(), s2 = sample2(), s3 = sample3(), s4 = sample4();   
+    float left = 
+        (channels.channel1.leftEnabled ? s1 : 0) +
+        (channels.channel2.leftEnabled ? s2 : 0) +
+        (channels.channel3.leftEnabled ? s3 : 0) +
+        (channels.channel1.leftEnabled ? s4 : 0)
+    ;
+
+    float right = 
+        (channels.channel1.rightEnabled ? s1 : 0) +
+        (channels.channel2.rightEnabled ? s2 : 0) +
+        (channels.channel3.rightEnabled ? s3 : 0) +
+        (channels.channel1.rightEnabled ? s4 : 0)
+    ;
+}
+
+bool Apu::isOn() { return on; }

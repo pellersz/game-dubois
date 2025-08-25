@@ -15,14 +15,14 @@ enum ChannelType
 class Channel 
 {
 public:
+    bool dacOn;
     bool on;
 
-    u8 stop_timer = 0;
+    int stop_timer = 0;
     bool leftEnabled;
     bool rightEnabled;
-    bool lengthEnabled;
 
-    double time = 0;
+    int time = 0;
     double advance;   
     float amplitude;
 
@@ -32,14 +32,13 @@ public:
 class SquareChannel: public Channel
 {
 public:
-    float dutyRatio;
-    constexpr static const float DUTY_RATIOS[] = { 0.125, 0.25, 0.5, 1.0 };
+    u8 duty;
+    constexpr static const byte DUTYS[] = { 0b11111110, 0b01111110, 0b01111000, 0b10000001 };
 };
 
 class Enveloped 
 {
 public:
-    u8 envelope = 0;
     offs envelopeDir = 1;
 };
 
@@ -73,7 +72,6 @@ public:
 class Channels 
 {
 public:
-    ma_data_source_base base;
     Channel1 channel1;
     Channel2 channel2;
     Channel3 channel3;

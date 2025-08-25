@@ -162,6 +162,7 @@ void Ppu::drawObjectTile
     word data = memory(Memory::TILES + tile_offs * TILE_BYTE_SIZE + 2 * y_offs);
    
     offs orientation = x_flip ? 1 : -1;
+    // TODO: while this is very cool, it is also slow, just make two cases
     for (int i = x_flip ? 0 : 7; (i + 1) % 9; i += orientation)
     {
         u8 index_index = (data & 0b0001) + ((data >> 7) & 0b0010);

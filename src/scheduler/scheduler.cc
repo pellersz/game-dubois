@@ -270,21 +270,32 @@ bool Scheduler::pop()
             }
 
             u8 pace = (memory[Memory::NR10] >> 4) & 0b0111;
-            push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 128), CH1_SWEEP);
+            push(MASTER_CLOCK_FREQUENCY / (pace * 128), CH1_SWEEP);
             nr13 = new_period;
             nr14 = ((new_period & 0x0f00) >> 8) + (nr14 & 0b11110000);
             break;
         }
         case CH1_ENVELOPE:
-        {
-            apu.envelope(Ch1);
+        { 
             u8 pace = memory[Memory::NR12] & 0b0111;
-            push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 64), CH1_ENVELOPE);
+            if (apu.envelope(Ch1))
+                push(MASTER_CLOCK_FREQUENCY / (pace * 64), CH1_ENVELOPE);
 
             break;
         }
-        case SAMPLE: { apu.sample(); break; }
-        };
+        case CH1_TIME: 
+        {
+            apu.incrementTimer(Ch1);
+            push(MASTER_CLOCK_FREQUENCY / 256, CH1_TIME);
+            break;
+        }
+        case SAMPLE: 
+        { 
+            apu.sample();
+            push(87, SAMPLE);
+            break; 
+        }
+    };
 
     schedule.pop(); 
     return go_next;

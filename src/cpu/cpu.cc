@@ -339,47 +339,75 @@ void Cpu::writtenToMemory(unsigned short addr, byte old_val)
         }
         case Memory::NR10: 
         {
-            byte new_val = memory[Memory::NR10];
-            u8 pace = new_val & 0b01110000;
-            if (!pace)
-                scheduler.remove(CH1_SWEEP);
-            else if (!(old_val & 0b01110000))
-                scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 128), CH1_SWEEP);
-
+            if (apu.isOn())
+            {
+                byte new_val = memory[Memory::NR10];
+                u8 pace = new_val & 0b01110000;
+                if (!pace)
+                    scheduler.remove(CH1_SWEEP);
+                else if (!(old_val & 0b01110000))
+                    scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 128), CH1_SWEEP);
+            }
             break;
         }
-        case Memory::NR11: { apu.nr11Changed(); break; }
+        case Memory::NR11: 
+        { 
+            if (apu.isOn())
+                apu.nr11Changed();
+            break; 
+        }
         case Memory::NR12: 
         { 
-            u8 pace = memory[addr] & 0b0111;
-            if (!pace) 
-                scheduler.remove(CH1_ENVELOPE);
-            else if (!(old_val & 0b0111))
-                scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 64), CH1_ENVELOPE);
+            if (apu.isOn())
+            {
+                u8 pace = memory[addr] & 0b0111;
+                if (!pace) 
+                    scheduler.remove(CH1_ENVELOPE);
+                else if (!(old_val & 0b0111))
+                    scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (pace * 64), CH1_ENVELOPE);
 
-            apu.nr12Changed();
+                apu.nr12Changed();
+            }
             break; 
         }
         case Memory::NR14: 
         { 
-            if (memory[Memory::NR14] & 0b10000000)
+            if (apu.isOn())
             {
-                scheduler.remove(CH1_SWEEP);
-                scheduler.remove(CH1_ENVELOPE);
+                u8 nr14 = memory[Memory::NR14];
+                if (nr14 & 0b10000000)
+                {
+                    scheduler.remove(CH1_SWEEP);
+                    scheduler.remove(CH1_ENVELOPE);
+                    scheduler.remove(CH1_TIME);
 
-                u8 sweep_pace = (memory[Memory::NR10] >> 4) & 0b0111;
-                if (sweep_pace) 
-                    scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (sweep_pace * 128), CH1_SWEEP);
+                    u8 sweep_pace = (memory[Memory::NR10] >> 4) & 0b0111;
+                    if (sweep_pace) 
+                        scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (sweep_pace * 128), CH1_SWEEP);
 
-                u8 envelope_pace = memory[Memory::NR12] & 0b0111;
-                if (envelope_pace) 
-                    scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (envelope_pace * 64), CH1_ENVELOPE);
+                    u8 envelope_pace = memory[Memory::NR12] & 0b0111;
+                    if (envelope_pace) 
+                        scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / (envelope_pace * 64), CH1_ENVELOPE);
+
+                    if (nr14 & 0b01000000) 
+                        scheduler.push(Scheduler::MASTER_CLOCK_FREQUENCY / 256, CH1_TIME);
+                }
+                apu.nr14Changed();
             }
-            apu.nr14Changed();
             break;
         }
-        case Memory::NR21: { apu.nr21Changed(); break; }
-        case Memory::NR51: { apu.soundPanningChanged(); }
+        case Memory::NR21: 
+        { 
+            if (apu.isOn())
+                apu.nr21Changed(); 
+            break; 
+        }
+        case Memory::NR51: 
+        {
+            if (apu.isOn())
+                apu.soundPanningChanged(); 
+            break; 
+        }
         case Memory::NR52: 
         { 
             byte& nr52 = memory[addr];

@@ -3,12 +3,22 @@
 
 #include <cstdio>
 #include <miniaudio.h>
-#include "channels.h"
+
+class SampleBuffer 
+{
+public:
+    ma_data_source_base base;
+    float values[10000];
+    int count;
+
+    void copy(float*, unsigned short);
+    void sample(float);
+};
 
 class Speaker 
 {   
 public:
-    Channels channels;
+    SampleBuffer sampleBuffer;
 
     Speaker();
     ~Speaker();
@@ -17,13 +27,13 @@ private:
     // needed for lifetime
     ma_device device;
 
-    static ma_result apuDataRead(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
+    static ma_result apuDataRead(ma_data_source*, void*, ma_uint64, ma_uint64*);
     
-    static ma_result apuDataSeek(ma_data_source* pDataSource, ma_uint64 frameIndex);
+    static ma_result apuDataSeek(ma_data_source*, ma_uint64);
 
-    static ma_result getDataFormat(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCap);
+    static ma_result getDataFormat(ma_data_source*, ma_format*, ma_uint32*, ma_uint32*, ma_channel*, size_t);
 
-    static ma_result getDataCursor(ma_data_source* pDataSource, ma_uint64* pCursor);
+    static ma_result getDataCursor(ma_data_source*, ma_uint64*);
 
     constexpr static const ma_data_source_vtable DATA_SOURCE_VTABLE =
     {
@@ -36,11 +46,11 @@ private:
         0
     };
     
-    ma_result initApuData(double sampleRate, double frequency, Channels* pMyDataSource);
+    ma_result initApuData(double, double, SampleBuffer*);
 
-    void uninitApuData(Channels* pMyDataSource);
+    void uninitApuData(SampleBuffer*);
 
-    static void dataCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
+    static void dataCallback(ma_device*, void*, const void*, ma_uint32);
 };
 
 #endif

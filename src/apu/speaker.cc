@@ -10,7 +10,7 @@ Speaker::Speaker()
     device_config.playback.channels = 2;
     device_config.sampleRate        = 48000;
     device_config.dataCallback      = dataCallback;
-    device_config.pUserData         = &channels;
+    device_config.pUserData         = &sampleBuffer;
 
     if (ma_device_init(NULL, &device_config, &device) != MA_SUCCESS)
     {
@@ -18,7 +18,7 @@ Speaker::Speaker()
         return;
     }
 
-    initApuData(48000, 220, &channels);
+    initApuData(48000, 220, &sampleBuffer);
 
     if (ma_device_start(&device) != MA_SUCCESS)
     {
@@ -32,7 +32,7 @@ Speaker::~Speaker() { ma_device_uninit(&device); }
 
 ma_result Speaker::apuDataRead(ma_data_source* p_data_source, void* p_frames_out, ma_uint64 frame_count, ma_uint64* p_frames_read)
 {
-    Channel3* m_data = (Channel3*) p_data_source;
+    SampleBuffer* m_data = (SampleBuffer*) p_data_source;
     float* frames_out_f32 = (float*)p_frames_out;
 
     for (int i_frame = 0; i_frame < frame_count; i_frame += 1)
@@ -65,7 +65,7 @@ ma_result Speaker::getDataFormat(ma_data_source* p_data_source, ma_format* p_for
 
 ma_result Speaker::getDataCursor(ma_data_source* p_data_source, ma_uint64* p_cursor) { return MA_NOT_IMPLEMENTED; }
 
-ma_result Speaker::initApuData(double sample_rate, double frequency, Channels* p_channels)
+ma_result Speaker::initApuData(double sample_rate, double frequency, SampleBuffer* p_buffer)
 {
     ma_result result;
     ma_data_source_config baseConfig;
@@ -73,7 +73,7 @@ ma_result Speaker::initApuData(double sample_rate, double frequency, Channels* p
     baseConfig = ma_data_source_config_init();
     baseConfig.vtable = &DATA_SOURCE_VTABLE;
 
-    result = ma_data_source_init(&baseConfig, &p_channels->base);
+    result = ma_data_source_init(&baseConfig, &p_buffer->base);
     if (result != MA_SUCCESS)
         return result;
 
@@ -82,15 +82,15 @@ ma_result Speaker::initApuData(double sample_rate, double frequency, Channels* p
     return MA_SUCCESS;
 }
 
-void Speaker::uninitApuData(Channels* p_channels) { ma_data_source_uninit(&p_channels->base); }
+void Speaker::uninitApuData(SampleBuffer* p_sample_buffer) { ma_data_source_uninit(&p_sample_buffer->base); }
 
 void Speaker::dataCallback(ma_device* p_device, void* p_output, const void* p_input, ma_uint32 frame_count)
 {
-    Channel3* pSineWave;
+    SampleBuffer* buffer;
 
-    pSineWave = (Channel3*)p_device->pUserData;
+    buffer = (SampleBuffer*)p_device->pUserData;
 
-    apuDataRead(pSineWave, p_output, frame_count, NULL);
+    apuDataRead(buffer, p_output, frame_count, NULL);
 
     (void)p_input;   /* Unused. */
 }

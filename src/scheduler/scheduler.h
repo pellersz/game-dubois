@@ -26,6 +26,7 @@ enum Process
     HANDLE_CONTROL,
     CH1_SWEEP,
     CH1_ENVELOPE,
+    CH1_TIME,
     SAMPLE
 };
 

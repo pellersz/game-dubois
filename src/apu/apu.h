@@ -8,15 +8,17 @@
 class Apu 
 {
 public:
-    constexpr static const float VOLUME_UNIT = 1. / 8.;
+    constexpr static const float VOLUME_UNIT = 1. / 7.5;
 
     Apu(Memory&, Speaker&);
     
     void turnOnOffDac(ChannelType, bool);
     void audioMasterChanged();
     void soundPanningChanged();
+    void leftRightVolumeChanged();
     
-    void envelope(ChannelType);
+    bool envelope(ChannelType);
+    void incrementTimer(ChannelType);
     
     void nr11Changed();
     void nr12Changed();
@@ -28,14 +30,21 @@ public:
     void tickPeriod2(u8);
     void tickPeriod3(u8);
 
-    void sample1();
-    void sample2();
-    void sample3();
+    float sample1();
+    float sample2();
+    float sample3();
+    float sample4();
     void sample();
+
+    bool isOn();
 
 private:
     Memory& memory;
     Speaker& speaker;
+    Channels channels;
+    bool on;
+    float leftVolume;
+    float rightVolume;
 
     unsigned short ch1Shadow;
     unsigned short ch2Shadow;
