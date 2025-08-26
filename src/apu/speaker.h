@@ -8,11 +8,11 @@ class SampleBuffer
 {
 public:
     ma_data_source_base base;
-    float values[10000];
-    int count;
+    float buffer[10000];
+    int count = 0;
 
-    void copy(float*, unsigned short);
-    void sample(float);
+    unsigned short copy(float*, unsigned short);
+    void sample(float, float);
 };
 
 class Speaker 

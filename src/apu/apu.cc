@@ -232,6 +232,7 @@ void Apu::sample()
         (channels.channel3.leftEnabled ? s3 : 0) +
         (channels.channel1.leftEnabled ? s4 : 0)
     ;
+    left *= leftVolume;
 
     float right = 
         (channels.channel1.rightEnabled ? s1 : 0) +
@@ -239,6 +240,9 @@ void Apu::sample()
         (channels.channel3.rightEnabled ? s3 : 0) +
         (channels.channel1.rightEnabled ? s4 : 0)
     ;
+    right *= rightVolume;
+
+    speaker.sampleBuffer.sample(left, right);
 }
 
 bool Apu::isOn() { return on; }

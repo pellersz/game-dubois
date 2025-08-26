@@ -27,17 +27,18 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
 
     last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
 
-    schedule.push(ProcessStart(time, CPU_EXEC)); 
-    schedule.push(ProcessStart(time, UPDATE_DIV));
-    schedule.push(ProcessStart(time, UPDATE_TIMA));
-    schedule.push(ProcessStart(time, VBLANK_START));
-    schedule.push(ProcessStart(time, LYC_LY_CMP));
-    schedule.push(ProcessStart(time, HANDLE_CONTROL));
+    push(0, CPU_EXEC);
+    push(0, UPDATE_DIV);
+    push(0, UPDATE_TIMA);
+    push(0, VBLANK_START);
+    push(0, LYC_LY_CMP);
+    push(0, HANDLE_CONTROL);
+    push(0, SAMPLE);
 }
 
 void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { p_cpu = cpu_ptr; }
 
-void Scheduler::push(unsigned short duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
+void Scheduler::push(unsigned int duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
 // This is acceptable because there are only 6 events at a time
 
@@ -278,7 +279,8 @@ bool Scheduler::pop()
         case CH1_ENVELOPE:
         { 
             u8 pace = memory[Memory::NR12] & 0b0111;
-            if (apu.envelope(Ch1))
+            //std::cout << MASTER_CLOCK_FREQUENCY / (pace * 64) << " ";
+            if (apu.envelope(Ch1) && pace)
                 push(MASTER_CLOCK_FREQUENCY / (pace * 64), CH1_ENVELOPE);
 
             break;

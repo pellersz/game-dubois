@@ -44,7 +44,7 @@ public:
     Scheduler(Memory&, Controller&, Ppu&, Screen&, Apu&);
     void init(std::shared_ptr<Cpu>);
 
-    void push(unsigned short, Process);
+    void push(unsigned int, Process);
     void remove(Process);
     void replace(Process, unsigned short);
     

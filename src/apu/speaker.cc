@@ -1,5 +1,31 @@
 #include "speaker.h"
+#include <cstring>
 #include <iostream>
+
+void SampleBuffer::sample(float left, float right)
+{
+    buffer[count] = left;
+    buffer[count + 1] = right;
+    count += 2;
+    if (count >= 5000)
+        count = 0;
+}
+
+unsigned short SampleBuffer::copy(float* dest, unsigned short count)
+{
+    if (count <= this->count)
+    {
+        memcpy(dest, buffer, count);
+        memcpy(buffer, buffer + count, this->count - count);
+        this->count -= count;
+        return count;
+    }
+    else {
+        memcpy(dest, buffer, this->count);
+        this->count = 0;
+        return this->count;
+    }
+}
 
 Speaker::Speaker() 
 {
@@ -32,24 +58,9 @@ Speaker::~Speaker() { ma_device_uninit(&device); }
 
 ma_result Speaker::apuDataRead(ma_data_source* p_data_source, void* p_frames_out, ma_uint64 frame_count, ma_uint64* p_frames_read)
 {
-    SampleBuffer* m_data = (SampleBuffer*) p_data_source;
-    float* frames_out_f32 = (float*)p_frames_out;
-
-    for (int i_frame = 0; i_frame < frame_count; i_frame += 1)
-    {
-        double f = m_data->time - (ma_int64)m_data->time;
-        double s;
-    
-        if (f < 0.5) 
-            s = 0.1f;
-        else
-            s = -0.1f;
-    
-        m_data->time += m_data->advance;
-
-        for (int iChannel = 0; iChannel < 2; iChannel += 1)
-            frames_out_f32[i_frame*2 + iChannel] = s;
-    }
+    SampleBuffer* p_buffer = (SampleBuffer*) p_data_source;
+    float* p_frames_out_f32 = (float*)p_frames_out;
+    p_buffer->copy(p_frames_out_f32, frame_count);
     return MA_SUCCESS;
 }
 
@@ -86,12 +97,7 @@ void Speaker::uninitApuData(SampleBuffer* p_sample_buffer) { ma_data_source_unin
 
 void Speaker::dataCallback(ma_device* p_device, void* p_output, const void* p_input, ma_uint32 frame_count)
 {
-    SampleBuffer* buffer;
-
-    buffer = (SampleBuffer*)p_device->pUserData;
-
-    apuDataRead(buffer, p_output, frame_count, NULL);
-
-    (void)p_input;   /* Unused. */
+    //SampleBuffer* buffer = (SampleBuffer*)p_device->pUserData;
+    apuDataRead(p_device->pUserData, p_output, frame_count, NULL);
 }
 
