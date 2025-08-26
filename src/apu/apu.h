@@ -43,8 +43,8 @@ private:
     Speaker& speaker;
     Channels channels;
     bool on;
-    float leftVolume;
-    float rightVolume;
+    float leftVolume = 0.25;
+    float rightVolume = 0.25;
 
     unsigned short ch1Shadow;
     unsigned short ch2Shadow;

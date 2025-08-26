@@ -2,6 +2,7 @@
 #include "channels.h"
 #include "mem.h"
 #include "speaker.h"
+#include <iostream>
 
 Apu::Apu(Memory& memory, Speaker& speaker): memory(memory), speaker(speaker) {}
 
@@ -70,18 +71,18 @@ void Apu::leftRightVolumeChanged()
 {
     byte nr50 = memory[Memory::NR50];
     // TODO: constants
-    leftVolume = (1. / 9.) * (((nr50 >> 4) & 0b0111) + 1);
-    rightVolume = (1. / 9.) * ((nr50 & 0b0111) + 1);
+    leftVolume  = (1. / (4 * 9.)) * (((nr50 >> 4) & 0b0111) + 1);
+    rightVolume = (1. / (4 * 9.)) * ((nr50 & 0b0111) + 1);
 }
 
-// this should be handled better
+// TODO: this should be handled better
 bool Apu::envelope(ChannelType type)
 {
     switch (type) 
     {
         case Ch1: 
         { 
-            float amplitude; 
+            float amplitude = channels.channel1.amplitude; 
             amplitude += channels.channel1.envelopeDir ? VOLUME_UNIT : -VOLUME_UNIT; 
             if ((amplitude < -1.0) || (amplitude > 1.0))
                 return false; 
@@ -90,7 +91,7 @@ bool Apu::envelope(ChannelType type)
         }
         case Ch2: 
         { 
-            float amplitude; 
+            float amplitude = channels.channel2.amplitude; 
             amplitude += channels.channel2.envelopeDir ? VOLUME_UNIT : -VOLUME_UNIT; 
             if ((amplitude < -1.0) || (amplitude > 1.0))
                 return false; 
@@ -100,7 +101,7 @@ bool Apu::envelope(ChannelType type)
         case Ch3: return false;
         case Ch4: 
         { 
-            float amplitude; 
+            float amplitude = channels.channel4.amplitude; 
             amplitude += channels.channel4.envelopeDir ? VOLUME_UNIT : -VOLUME_UNIT; 
             if ((amplitude < -1.0) || (amplitude > 1.0))
                 return false; 
@@ -116,14 +117,34 @@ void Apu::incrementTimer(ChannelType type)
 {
     switch (type) 
     {
-        case Ch1: { ++channels.channel1.stop_timer; break; }
-        case Ch2: { ++channels.channel2.stop_timer; break; }
-        case Ch3: { ++channels.channel3.stop_timer; break; }
-        case Ch4: { ++channels.channel4.stop_timer; break; }
+        case Ch1: 
+        { 
+            if (++channels.channel1.stopTimer == 64)
+                channels.channel1.on = false;
+            break; 
+        }
+        case Ch2: 
+        { 
+            if (++channels.channel1.stopTimer == 64)
+                channels.channel1.on = false;
+            break; 
+        }
+        case Ch3: 
+        { 
+            if (++channels.channel1.stopTimer == 64)
+                channels.channel1.on = false;
+            break; 
+        }
+        case Ch4: 
+        { 
+            if (++channels.channel1.stopTimer == 64)
+                channels.channel1.on = false;
+            break; 
+        }
     }
 }
 
-void Apu::nr11Changed() { channels.channel1.duty = SquareChannel::DUTYS[(memory[Memory::NR11] >> 6) & 0b11]; }
+void Apu::nr11Changed() { channels.channel1.duty = SquareChannel::DUTYS[memory[Memory::NR11] >> 6]; }
 
 void Apu::nr12Changed()
 {
@@ -139,17 +160,13 @@ void Apu::nr14Changed()
     {
         channels.channel1.on = channels.channel1.dacOn;
         ch1Shadow = memory[Memory::NR13] + (memory[Memory::NR14] << 8);
-        if (channels.channel1.stop_timer >= 64) 
-            channels.channel1.stop_timer = memory[Memory::NR11] & 0b00111111;
-        channels.channel1.amplitude = ((memory[Memory::NR12] >> 4) - 8) * VOLUME_UNIT - 1;
+        if (channels.channel1.stopTimer >= 64) 
+            channels.channel1.stopTimer = memory[Memory::NR11] & 0b00111111;
+        channels.channel1.amplitude = 1 - (memory[Memory::NR12] >> 4) * VOLUME_UNIT;
     }
 }
 
-void Apu::nr21Changed()
-{
-    byte nr21 = memory[Memory::NR21];
-    channels.channel2.duty = SquareChannel::DUTYS[(nr21 >> 6) & 0b11];
-}
+void Apu::nr21Changed() { channels.channel2.duty = SquareChannel::DUTYS[memory[Memory::NR21] >> 6]; }
 
 void Apu::tickPeriod1(u8 val)
 {
@@ -195,7 +212,7 @@ float Apu::sample1()
     if (channel1.dacOn) 
     {
         if (channel1.on) 
-            return ((channel1.duty << channel1.time) & 0b10000000) ? channel1.amplitude : 0; 
+            return ((channel1.duty << channel1.time) & 0b10000000) ? channel1.amplitude : -channel1.amplitude; 
         return 1.0;
     }
     return 0;
@@ -207,7 +224,7 @@ float Apu::sample2()
     if (channel2.dacOn) 
     {
         if (channel2.on) 
-            return ((channel2.duty << channel2.time) & 0b10000000) ? channel2.amplitude : 0; 
+            return ((channel2.duty << channel2.time) & 0b10000000) ? channel2.amplitude : -channel2.amplitude; 
         return 1.0;
     }
     return 0;
@@ -232,6 +249,7 @@ void Apu::sample()
         (channels.channel3.leftEnabled ? s3 : 0) +
         (channels.channel1.leftEnabled ? s4 : 0)
     ;
+
     left *= leftVolume;
 
     float right = 

@@ -412,6 +412,12 @@ void Cpu::writtenToMemory(unsigned short addr, byte old_val)
         { 
             byte& nr52 = memory[addr];
             nr52 = (nr52 & 0b11110000) + (old_val & 0b00001111);
+            bool on_before = old_val & 0b10000000;
+            bool on_now = nr52 & 0b10000000;
+            if (!on_before && on_now)
+                scheduler.push(0, SAMPLE);
+            else if (on_before && !on_now)
+                scheduler.remove(SAMPLE);
             apu.audioMasterChanged(); 
             break; 
         }

@@ -8,7 +8,7 @@ class SampleBuffer
 {
 public:
     ma_data_source_base base;
-    float buffer[10000];
+    float buffer[10000] = {0};
     int count = 0;
 
     unsigned short copy(float*, unsigned short);

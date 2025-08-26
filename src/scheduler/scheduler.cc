@@ -33,7 +33,6 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     push(0, VBLANK_START);
     push(0, LYC_LY_CMP);
     push(0, HANDLE_CONTROL);
-    push(0, SAMPLE);
 }
 
 void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { p_cpu = cpu_ptr; }
@@ -279,7 +278,6 @@ bool Scheduler::pop()
         case CH1_ENVELOPE:
         { 
             u8 pace = memory[Memory::NR12] & 0b0111;
-            //std::cout << MASTER_CLOCK_FREQUENCY / (pace * 64) << " ";
             if (apu.envelope(Ch1) && pace)
                 push(MASTER_CLOCK_FREQUENCY / (pace * 64), CH1_ENVELOPE);
 
@@ -294,7 +292,7 @@ bool Scheduler::pop()
         case SAMPLE: 
         { 
             apu.sample();
-            push(87, SAMPLE);
+            push(88, SAMPLE);
             break; 
         }
     };

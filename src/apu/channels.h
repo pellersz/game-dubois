@@ -18,7 +18,7 @@ public:
     bool dacOn;
     bool on;
 
-    int stop_timer = 0;
+    int stopTimer = 0;
     bool leftEnabled;
     bool rightEnabled;
 
