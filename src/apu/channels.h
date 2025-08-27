@@ -15,8 +15,8 @@ enum ChannelType
 class Channel 
 {
 public:
-    bool dacOn;
-    bool on;
+    bool dacOn = false;
+    bool on = false;
 
     int stopTimer = 0;
     bool leftEnabled;

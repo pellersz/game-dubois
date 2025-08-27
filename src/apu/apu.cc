@@ -2,7 +2,9 @@
 #include "channels.h"
 #include "mem.h"
 #include "speaker.h"
+#include <iomanip>
 #include <iostream>
+#include <unistd.h>
 
 Apu::Apu(Memory& memory, Speaker& speaker): memory(memory), speaker(speaker) {}
 
@@ -13,7 +15,7 @@ void Apu::turnOnOffDac(ChannelType type, bool val)
         case Ch1: 
         {
             channels.channel1.dacOn = val; 
-                channels.channel1.on = channels.channel1.on && val; 
+            channels.channel1.on = channels.channel1.on && val; 
             break; 
         }
         case Ch2: 
@@ -83,8 +85,8 @@ bool Apu::envelope(ChannelType type)
         case Ch1: 
         { 
             float amplitude = channels.channel1.amplitude; 
-            amplitude += channels.channel1.envelopeDir ? VOLUME_UNIT : -VOLUME_UNIT; 
-            if ((amplitude < -1.0) || (amplitude > 1.0))
+            amplitude += channels.channel1.envelopeDir ? -VLUME_UNIT : VLUME_UNIT; 
+            if ((amplitude < 0) || (amplitude > 1))
                 return false; 
             channels.channel1.amplitude = amplitude;
             return true;
@@ -126,19 +128,19 @@ void Apu::incrementTimer(ChannelType type)
         case Ch2: 
         { 
             if (++channels.channel1.stopTimer == 64)
-                channels.channel1.on = false;
+                channels.channel2.on = false;
             break; 
         }
         case Ch3: 
         { 
             if (++channels.channel1.stopTimer == 64)
-                channels.channel1.on = false;
+                channels.channel3.on = false;
             break; 
         }
         case Ch4: 
         { 
             if (++channels.channel1.stopTimer == 64)
-                channels.channel1.on = false;
+                channels.channel4.on = false;
             break; 
         }
     }
@@ -150,8 +152,9 @@ void Apu::nr12Changed()
 {
     byte nr12 = memory[Memory::NR12];
     channels.channel1.envelopeDir = (nr12 & 0b00001000) ? -1 : 1;
-    if (!(nr12 & 0b11111000))
-        turnOnOffDac(Ch1, false);
+    bool new_dac_on = (nr12 & 0b11111000);
+    if (channels.channel1.dacOn != new_dac_on)
+        turnOnOffDac(Ch1, new_dac_on);
 }
 
 void Apu::nr14Changed()
@@ -159,10 +162,12 @@ void Apu::nr14Changed()
     if (memory[Memory::NR14] & 0b10000000)
     {
         channels.channel1.on = channels.channel1.dacOn;
+        memory[Memory::NR52] |= 0b0001;
         ch1Shadow = memory[Memory::NR13] + (memory[Memory::NR14] << 8);
         if (channels.channel1.stopTimer >= 64) 
             channels.channel1.stopTimer = memory[Memory::NR11] & 0b00111111;
         channels.channel1.amplitude = 1 - (memory[Memory::NR12] >> 4) * VOLUME_UNIT;
+        channels.channel1.amplitude = (memory[Memory::NR12] >> 4) * VLUME_UNIT;
     }
 }
 
@@ -177,7 +182,7 @@ void Apu::tickPeriod1(u8 val)
     {
         ch1Shadow = memory[Memory::NR13] + (memory[Memory::NR14] << 8);
         if (++channels.channel1.time >= 8)
-            channels.channel2.time = 0;
+            channels.channel1.time = 0;
     }
 }
 
@@ -197,12 +202,12 @@ void Apu::tickPeriod2(u8 val)
 void Apu::tickPeriod3(u8 val)
 {
     unsigned short tmp = ch1Shadow;
-    ch1Shadow += val;
+    ch3Shadow += val;
 
-    if ((ch1Shadow & 0x7ff) < (tmp & 0x7ff))
+    if ((ch3Shadow & 0x7ff) < (tmp & 0x7ff))
     {
-        ch1Shadow = memory[Memory::NR33] + (memory[Memory::NR34] << 8);
-        sample3();
+        ch3Shadow = memory[Memory::NR33] + (memory[Memory::NR34] << 8);
+        
     }
 }
 
@@ -212,7 +217,7 @@ float Apu::sample1()
     if (channel1.dacOn) 
     {
         if (channel1.on) 
-            return ((channel1.duty << channel1.time) & 0b10000000) ? channel1.amplitude : -channel1.amplitude; 
+            return ((channel1.duty << channel1.time) & 0b10000000) ? channel1.amplitude : -channel1.amplitude;
         return 1.0;
     }
     return 0;
@@ -220,7 +225,8 @@ float Apu::sample1()
 
 float Apu::sample2() 
 {
-    Channel1 channel2 = channels.channel1;
+    return 0;
+    Channel2 channel2 = channels.channel2;
     if (channel2.dacOn) 
     {
         if (channel2.on) 
@@ -243,23 +249,32 @@ float Apu::sample4()
 void Apu::sample() 
 {
     float s1 = sample1(), s2 = sample2(), s3 = sample3(), s4 = sample4();   
-    float left = 
+    
+    //if (s1 > 0.6)
+    //    std::cout << s1 << " ";
+
+    float unfiltered_left = 
         (channels.channel1.leftEnabled ? s1 : 0) +
         (channels.channel2.leftEnabled ? s2 : 0) +
         (channels.channel3.leftEnabled ? s3 : 0) +
-        (channels.channel1.leftEnabled ? s4 : 0)
+        (channels.channel4.leftEnabled ? s4 : 0)
     ;
+    unfiltered_left *= leftVolume;
+    float left = unfiltered_left - hpfBiasLeft;
 
-    left *= leftVolume;
-
-    float right = 
+    float unfiltered_right = 
         (channels.channel1.rightEnabled ? s1 : 0) +
         (channels.channel2.rightEnabled ? s2 : 0) +
         (channels.channel3.rightEnabled ? s3 : 0) +
-        (channels.channel1.rightEnabled ? s4 : 0)
+        (channels.channel4.rightEnabled ? s4 : 0)
     ;
-    right *= rightVolume;
+    unfiltered_right *= rightVolume;
+    float right = unfiltered_right - hpfBiasRight;
 
+    hpfBiasLeft  = unfiltered_left  - HPF_MULTIPLIER * left;
+    hpfBiasRight = unfiltered_right - HPF_MULTIPLIER * right;
+
+    //std::cout << hpfBiasLeft << " ";
     speaker.sampleBuffer.sample(left, right);
 }
 

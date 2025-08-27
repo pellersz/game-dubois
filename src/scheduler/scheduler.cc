@@ -120,8 +120,6 @@ bool Scheduler::pop()
             ++memory[Memory::LCD_Y];
 
             push(456 * Ppu::TIME_UNIT, VBLANK);
-            //while(next_dot_time > std::chrono::steady_clock::now()) {}
-            //next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
  
             byte& lcd_stat = memory[Memory::LCD_STAT];
             lcd_stat = (lcd_stat & 0b11111100) + 0b01;
@@ -262,7 +260,7 @@ bool Scheduler::pop()
             else 
             {
                 new_period = old_period + offs;  
-                if (new_period > 0x0f77)
+                if (new_period > 0x07ff)
                 {
                     apu.turnOnOffDac(Ch1, false);
                     break;
@@ -454,7 +452,7 @@ void Scheduler::tick()
 
     apu.tickPeriod1(1);
     apu.tickPeriod2(1);
-    apu.tickPeriod1(2);
+    apu.tickPeriod3(2);
 
     time += 4; 
 }

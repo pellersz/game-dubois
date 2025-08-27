@@ -9,6 +9,7 @@ class Apu
 {
 public:
     constexpr static const float VOLUME_UNIT = 1. / 7.5;
+    constexpr static const float VLUME_UNIT  = 1. / 15;
 
     Apu(Memory&, Speaker&);
     
@@ -39,12 +40,17 @@ public:
     bool isOn();
 
 private:
+    constexpr static const float HPF_MULTIPLIER = 0.996;
+
     Memory& memory;
     Speaker& speaker;
     Channels channels;
+
     bool on;
-    float leftVolume = 0.25;
-    float rightVolume = 0.25;
+    float leftVolume   = 0.25;
+    float rightVolume  = 0.25;
+    float hpfBiasLeft  = 0.0;
+    float hpfBiasRight = 0.0;
 
     unsigned short ch1Shadow;
     unsigned short ch2Shadow;

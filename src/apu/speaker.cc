@@ -13,11 +13,16 @@ void SampleBuffer::sample(float left, float right)
 
 unsigned short SampleBuffer::copy(float* dest, unsigned short count)
 {
-    std::cout << count << " " << this->count << " " << buffer[0] << " " << buffer[1] << std::endl;
+    //std::cout << count << " " << this->count << " " << buffer[0] << " " << buffer[1] << std::endl;
     count = 2 * count;
-    for (int i = 0; i < count; i += 2)
-        std::cout << buffer[i] << " ";
+    while ((this->count < count) && this->count);
 
+    for (int i = 0; i < count; i += 2)
+        std::cout << buffer[i] << " "; 
+
+    //for (int i = 0; i < count + 1; ++i){
+    //    dest[i] = ((i / 60) % 2 ? 1 : -1) * 0.3; }
+    //return 0;
     if (count <= this->count)
     {
         memcpy(dest, buffer, count);
@@ -122,7 +127,5 @@ void Speaker::dataCallback
     const void* p_input,
     ma_uint32 frame_count
 )
-{
-    apuDataRead(p_device->pUserData, p_output, frame_count, NULL);
-}
+{ apuDataRead(p_device->pUserData, p_output, frame_count, NULL); }
 

@@ -372,6 +372,7 @@ void Cpu::writtenToMemory(unsigned short addr, byte old_val)
         }
         case Memory::NR14: 
         { 
+            std::cout << "b " << (int) memory[Memory::NR14] << std::endl;
             if (apu.isOn())
             {
                 u8 nr14 = memory[Memory::NR14];
