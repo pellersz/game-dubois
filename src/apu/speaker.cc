@@ -17,24 +17,30 @@ unsigned short SampleBuffer::copy(float* dest, unsigned short count)
     count = 2 * count;
     while ((this->count < count) && this->count);
 
-    for (int i = 0; i < count; i += 2)
-        std::cout << buffer[i] << " "; 
+    //for (int i = 0; i < count; i += 2)
+    //    std::cout << buffer[i] << " "; 
 
     //for (int i = 0; i < count + 1; ++i){
     //    dest[i] = ((i / 60) % 2 ? 1 : -1) * 0.3; }
     //return 0;
+    //for (int i = 0; i < count; ++i)
+    //    dest[i] = ((i / 450) % 2) ? -0.1 : 0.1;
+    //memcpy(dest, buffer, count);
     if (count <= this->count)
     {
-        memcpy(dest, buffer, count);
-        memcpy(buffer, buffer + count, this->count - count);
+        //TODO: sizeof
+        memcpy(dest, buffer, 4 * count);
+        memcpy(buffer, buffer + count, 4 * (this->count - count));
         this->count -= count;
         return count;
     }
     else 
     {
-        memcpy(dest, buffer, this->count);
-        this->count = 0;
-        return this->count;
+        int current_count = this->count;
+        memcpy(dest, buffer, 4 * current_count);
+        memset(dest + current_count, 0, 4 * (count - current_count));
+        this->count -= current_count;
+        return current_count;
     }
 }
 
@@ -46,6 +52,7 @@ Speaker::Speaker()
     device_config.playback.format   = ma_format_f32;
     device_config.playback.channels = 2;
     device_config.sampleRate        = 48000;
+    //device_config.periodSizeInFrames = 1800;
     device_config.dataCallback      = dataCallback;
     device_config.pUserData         = &sampleBuffer;
 

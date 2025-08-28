@@ -290,7 +290,7 @@ bool Scheduler::pop()
         case SAMPLE: 
         { 
             apu.sample();
-            push(88, SAMPLE);
+            push(86, SAMPLE);
             break; 
         }
     };
