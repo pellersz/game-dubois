@@ -26,10 +26,21 @@ public:
     void nr14Changed();
 
     void nr21Changed();
+    void nr22Changed();
+    void nr24Changed();
+
+    void nr30Changed();
+    void nr32Changed();
+    void nr34Changed();
+
+    void nr42Changed();
+    void nr43Changed();
+    void nr44Changed();
 
     void tickPeriod1(u8);
     void tickPeriod2(u8);
     void tickPeriod3(u8);
+    void ch4Shift();
 
     float sample1();
     float sample2();
@@ -40,7 +51,7 @@ public:
     bool isOn();
 
 private:
-    constexpr static const float HPF_MULTIPLIER = 0.996;
+    constexpr static const float HPF_MULTIPLIER = 0.9930;
 
     Memory& memory;
     Speaker& speaker;

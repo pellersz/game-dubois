@@ -15,17 +15,6 @@ unsigned short SampleBuffer::copy(float* dest, unsigned short count)
 {
     //std::cout << count << " " << this->count << " " << buffer[0] << " " << buffer[1] << std::endl;
     count = 2 * count;
-    while ((this->count < count) && this->count);
-
-    //for (int i = 0; i < count; i += 2)
-    //    std::cout << buffer[i] << " "; 
-
-    //for (int i = 0; i < count + 1; ++i){
-    //    dest[i] = ((i / 60) % 2 ? 1 : -1) * 0.3; }
-    //return 0;
-    //for (int i = 0; i < count; ++i)
-    //    dest[i] = ((i / 450) % 2) ? -0.1 : 0.1;
-    //memcpy(dest, buffer, count);
     if (count <= this->count)
     {
         //TODO: sizeof
@@ -36,12 +25,19 @@ unsigned short SampleBuffer::copy(float* dest, unsigned short count)
     }
     else 
     {
-        int current_count = this->count;
-        memcpy(dest, buffer, 4 * current_count);
-        memset(dest + current_count, 0, 4 * (count - current_count));
-        this->count -= current_count;
-        return current_count;
+        int currenct_count = this->count;
+        float counter = 0;
+        float diff = (float) currenct_count / count;
+        for(unsigned short i = 0; i < count / 2; ++i, counter += diff)
+        {
+            int conter_int = counter;
+            dest[2 * i] = buffer[2 * conter_int];
+            dest[2 * i + 1] = buffer[2 * conter_int + 1];
+        }
+        memcpy(buffer, buffer + currenct_count, 4 * (this->count - currenct_count));
+        this->count -= currenct_count;
     }
+    return 0;
 }
 
 Speaker::Speaker() 

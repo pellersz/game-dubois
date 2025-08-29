@@ -287,6 +287,55 @@ bool Scheduler::pop()
             push(MASTER_CLOCK_FREQUENCY / 256, CH1_TIME);
             break;
         }
+        case CH2_ENVELOPE:
+        { 
+            u8 pace = memory[Memory::NR22] & 0b0111;
+            if (apu.envelope(Ch2) && pace)
+                push(MASTER_CLOCK_FREQUENCY / (pace * 64), CH2_ENVELOPE);
+
+            break;
+        }
+        case CH2_TIME: 
+        {
+            apu.incrementTimer(Ch2);
+            push(MASTER_CLOCK_FREQUENCY / 256, CH2_TIME);
+            break;
+        }
+        case CH3_TIME:
+        {
+            apu.incrementTimer(Ch3);
+            push(MASTER_CLOCK_FREQUENCY / 256, CH3_TIME);
+            break;
+        }
+        case CH4_SHIFT:
+        {
+            apu.ch4Shift();
+
+            byte nr43 = memory[Memory::NR43];
+
+            float divider = nr43 & 0b0111;
+            if (!divider)
+                divider = 0.5;
+
+            float shift = 1 << (nr43 >> 4);
+
+            push(Scheduler::MASTER_CLOCK_FREQUENCY / (16 * divider * shift), CH4_SHIFT);
+            break;
+        }
+        case CH4_ENVELOPE:
+        {
+            u8 pace = memory[Memory::NR42] & 0b0111;
+            if (apu.envelope(Ch4) && pace)
+                push(MASTER_CLOCK_FREQUENCY / (pace * 64), CH4_ENVELOPE);
+
+            break;
+        }
+        case CH4_TIME:
+        {
+            apu.incrementTimer(Ch4);
+            push(MASTER_CLOCK_FREQUENCY / 256, CH4_TIME);
+            break;           
+        }
         case SAMPLE: 
         { 
             apu.sample();
@@ -447,7 +496,8 @@ void Scheduler::statInterruptCheck()
 
 void Scheduler::tick() 
 {
-    while(next_dot_time > std::chrono::steady_clock::now()) {}
+    // TODO: do something with the time
+    while(next_dot_time > std::chrono::steady_clock::now());
     next_dot_time += SYSTEM_CLOCKS_PER_DOT;
 
     apu.tickPeriod1(1);

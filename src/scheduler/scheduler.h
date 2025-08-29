@@ -27,6 +27,12 @@ enum Process
     CH1_SWEEP,
     CH1_ENVELOPE,
     CH1_TIME,
+    CH2_ENVELOPE,
+    CH2_TIME,
+    CH3_TIME,
+    CH4_SHIFT,
+    CH4_ENVELOPE,
+    CH4_TIME,
     SAMPLE
 };
 

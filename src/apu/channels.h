@@ -32,8 +32,8 @@ public:
 class SquareChannel: public Channel
 {
 public:
-    u8 duty;
     constexpr static const byte DUTYS[] = { 0b11111110, 0b01111110, 0b01111000, 0b10000001 };
+    u8 duty;
 };
 
 class Enveloped 
@@ -51,20 +51,21 @@ public:
 class Channel2: public SquareChannel, public Enveloped 
 {
 public:
-    u8 envelope = 0;
     virtual void setPeriodValue(unsigned short period) override;
 };
 
 class Channel3: public Channel
 {
 public:
+    constexpr static const float VOLUME_LEVELS[] = { 0, 1, 0.5, 0.25 };
+    float volumeLevel;
     virtual void setPeriodValue(unsigned short period) override;
 };
 
 class Channel4: public Channel, public Enveloped
 {
 public:
-    u8 envelope = 0;
+    unsigned short lfsr;
 
     virtual void setPeriodValue(unsigned short period) override;
 };
