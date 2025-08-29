@@ -11,13 +11,15 @@ public:
     static const u8 TIME_UNIT = 1;
 
     Ppu(Memory&, Screen&);
+    
     void oamScan();
     void drawLine();
     void hBlank();
     void vBlank();
+    void resetWindowY();
+    
     void printTiles();
     void printUsedTiles();
-    void resetWindowY();
 
 private:
     static const byte WHITE      = 255;
@@ -57,7 +59,7 @@ private:
         u8,
         u8, 
         u8, 
-        u8[],
+        u8*,
         bool
     );
 
@@ -69,7 +71,7 @@ private:
         u8, 
         bool,
         bool,
-        u8[]
+        u8*
     );
 
     void drawBackground();

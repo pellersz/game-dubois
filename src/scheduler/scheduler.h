@@ -45,6 +45,10 @@ class Scheduler
 public: 
     const static int MASTER_CLOCK_FREQUENCY = 4194304;
     const static int SYSTEM_CLOCK_FREQUENCY = MASTER_CLOCK_FREQUENCY / 4;
+    const static int ENVELOPE_FREQUENCY = 64;
+    const static int SOUND_TIMER_FREQUENCY = 256;
+    const static int CH1_SWEEP_FREQUENCY = 128;
+    const static int CH4_SHIFT_TIME = MASTER_CLOCK_FREQUENCY / 16;
     constexpr static const unsigned short TIMA_PERIODS[4] = { 1024, 16, 64, 256 };
 
     Scheduler(Memory&, Controller&, Ppu&, Screen&, Apu&);
@@ -53,6 +57,8 @@ public:
     void push(unsigned int, Process);
     void remove(Process);
     void replace(Process, unsigned short);
+
+    void writtenToMemory(unsigned short, byte);
     
     void run();
     void debugRun();
@@ -81,7 +87,7 @@ private:
     time_point<std::chrono::steady_clock> next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
     unsigned long long time = 0;
 
-    std::shared_ptr<Cpu> p_cpu = nullptr;
+    std::shared_ptr<Cpu> pCpu = nullptr;
     Memory& memory;
     Controller& controller;
     Ppu& ppu;

@@ -50,7 +50,7 @@ void Ppu::drawBackgroundTile
     u8 lcd_y,
     u8 tile_offs, 
     u8 y_offs, 
-    u8 color_indices[],
+    u8 *color_indices,
     bool bg_area
 ) 
 {
@@ -152,7 +152,7 @@ void Ppu::drawObjectTile
     u8 y_offs, 
     bool x_flip,
     bool priority,
-    u8 color_indices[]
+    u8 *color_indices
 ) 
 {
     byte not_prio_color;
@@ -218,6 +218,8 @@ void Ppu::hBlank() {}
 
 void Ppu::vBlank() {}
 
+void Ppu::resetWindowY() { winYCounter = 0; }
+
 void Ppu::printTiles() 
 {
     const char t[] = {' ', '@', '@', '@'};
@@ -278,5 +280,3 @@ void Ppu::printUsedTiles()
     }
     std::cout << std::endl;
 }
-
-void Ppu::resetWindowY() { winYCounter = 0; }

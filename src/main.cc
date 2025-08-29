@@ -13,10 +13,15 @@ int main(int argc, char** argv)
     //    std::cout << std::endl << s.str() << std::endl;
     //    cpu.test(s.str());
     //}
-    GameBoy gameboy;
-    gameboy.load(std::make_shared<Cartridge>("./tests/dr_mario.gb"));
+    if (argc == 1)
+    {
+        std::cout << "Need at least one argument";
+        return 1;
+    }
 
-    if (argc == 1) 
+    GameBoy gameboy;
+    gameboy.load(std::make_shared<Cartridge>(argv[1]));
+    if (argc == 2) 
         gameboy.run(false);
     else 
         gameboy.run(true);

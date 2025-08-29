@@ -17,7 +17,6 @@ public:
     static const u8 CLOCKS_BETWEEN_EXEC = 4;
 
     Cpu(Memory&, Scheduler&, Apu&);
-    ~Cpu();
 
     void executeNext();
 
@@ -81,8 +80,6 @@ protected:
     void executeRegular(byte);
     void executeBC(byte);
     
-    void writtenToMemory(unsigned short, byte);
-
     // load
     void opLd(byte&, byte);
     void opLd(word&, word);

@@ -446,7 +446,7 @@ void Cpu::op_0x02()
     unsigned short addr = getBC();
     byte old_val = memory[addr];
     opLd(memory[addr], a); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x03() { opInc(c, b); } 
@@ -465,8 +465,8 @@ void Cpu::op_0x08()
     byte old_val1 = memory[addr];
     byte old_val2 = memory[addr + 1];
     opLd(memory[addr], memory[addr + 1], sp); 
-    writtenToMemory(addr, old_val1);
-    writtenToMemory(addr + 1, old_val2);
+    scheduler.writtenToMemory(addr, old_val1);
+    scheduler.writtenToMemory(addr + 1, old_val2);
 } 
 
 void Cpu::op_0x09() { opAdd(getBC()); } 
@@ -492,7 +492,7 @@ void Cpu::op_0x12()
     unsigned short addr = getDE();
     byte old_val = memory[addr];
     opLd(memory[addr], a); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x13() { opInc(e, d); } 
@@ -530,7 +530,7 @@ void Cpu::op_0x22()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], a);
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
     opInc(l, h);
 } 
 
@@ -573,7 +573,7 @@ void Cpu::op_0x32()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], a);
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
     opDec(l, h);
 } 
 
@@ -584,7 +584,7 @@ void Cpu::op_0x34()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opInc(memory[addr]);
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x35() 
@@ -592,7 +592,7 @@ void Cpu::op_0x35()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opDec(memory[addr]);
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x36() 
@@ -600,7 +600,7 @@ void Cpu::op_0x36()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], memory[pc + 1]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x37() { opScf(); } 
@@ -726,7 +726,7 @@ void Cpu::op_0x70()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], b); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x71() 
@@ -734,7 +734,7 @@ void Cpu::op_0x71()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], c); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x72() 
@@ -742,7 +742,7 @@ void Cpu::op_0x72()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], d);  
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x73() 
@@ -750,7 +750,7 @@ void Cpu::op_0x73()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], e); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x74() 
@@ -758,7 +758,7 @@ void Cpu::op_0x74()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], h);
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x75() 
@@ -766,7 +766,7 @@ void Cpu::op_0x75()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], l); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x76() { opHalt(); } 
@@ -776,7 +776,7 @@ void Cpu::op_0x77()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opLd(memory[addr], a); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0x78() { opLd(a, b); } 
@@ -1005,7 +1005,7 @@ void Cpu::op_0xe0()
     unsigned short addr = 0xff00 + memory[pc + 1];
     byte old_val = memory[addr];
     opLd(memory[addr], a); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0xe1() { opPop(l, h); } 
@@ -1015,7 +1015,7 @@ void Cpu::op_0xe2()
     unsigned short addr = 0xff00 + c;
     byte old_val = memory[addr];
     opLd(memory[addr], a); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0xe3() { opNop(); } 
@@ -1041,7 +1041,7 @@ void Cpu::op_0xea()
     unsigned short addr = memory(pc + 1);
     byte old_val = memory[addr];
     opLd(memory[addr], a);
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::op_0xeb() { opNop(); } 
@@ -1120,7 +1120,7 @@ void Cpu::opCb_0x06()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRlc(memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x07() { opRlc(a); } 
@@ -1142,7 +1142,7 @@ void Cpu::opCb_0x0e()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRrc(memory[addr]);
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x0f() { opRrc(a); } 
@@ -1164,7 +1164,7 @@ void Cpu::opCb_0x16()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRl(memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x17() { opRl(a); } 
@@ -1186,7 +1186,7 @@ void Cpu::opCb_0x1e()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRr(memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x1f() { opRr(a); } 
@@ -1208,7 +1208,7 @@ void Cpu::opCb_0x26()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSla(memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x27() { opSla(a); } 
@@ -1230,7 +1230,7 @@ void Cpu::opCb_0x2e()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSra(memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x2f() { opSra(a); } 
@@ -1252,7 +1252,7 @@ void Cpu::opCb_0x36()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSwap(memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 
 } 
 
@@ -1275,7 +1275,7 @@ void Cpu::opCb_0x3e()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSrl(memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x3f() { opSrl(a); } 
@@ -1425,7 +1425,7 @@ void Cpu::opCb_0x86()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRes(0, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x87() { opRes(0, a); } 
@@ -1447,7 +1447,7 @@ void Cpu::opCb_0x8e()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRes(1, memory[addr]);
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x8f() { opRes(1, a); } 
@@ -1469,7 +1469,7 @@ void Cpu::opCb_0x96()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRes(2, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x97() { opRes(2, a); } 
@@ -1491,7 +1491,7 @@ void Cpu::opCb_0x9e()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRes(3, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0x9f() { opRes(3, a); } 
@@ -1513,7 +1513,7 @@ void Cpu::opCb_0xa6()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRes(4, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xa7() { opRes(4, a); } 
@@ -1535,7 +1535,7 @@ void Cpu::opCb_0xae()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRes(5, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xaf() { opRes(5, a); } 
@@ -1557,7 +1557,7 @@ void Cpu::opCb_0xb6()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRes(6, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xb7() { opRes(6, a); } 
@@ -1579,7 +1579,7 @@ void Cpu::opCb_0xbe()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opRes(7, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xbf() { opRes(7, a); } 
@@ -1601,7 +1601,7 @@ void Cpu::opCb_0xc6()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSet(0, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xc7() { opSet(0, a); } 
@@ -1623,7 +1623,7 @@ void Cpu::opCb_0xce()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSet(1, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xcf() { opSet(1, a); } 
@@ -1645,7 +1645,7 @@ void Cpu::opCb_0xd6()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSet(2, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xd7() { opSet(2, a); } 
@@ -1667,7 +1667,7 @@ void Cpu::opCb_0xde()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSet(3, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xdf() { opSet(3, a); }  
@@ -1689,7 +1689,7 @@ void Cpu::opCb_0xe6()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSet(4, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xe7() { opSet(4, a); } 
@@ -1711,7 +1711,7 @@ void Cpu::opCb_0xee()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSet(5, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xef() { opSet(5, a); } 
@@ -1733,7 +1733,7 @@ void Cpu::opCb_0xf6()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSet(6, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xf7() { opSet(6, a); } 
@@ -1755,7 +1755,7 @@ void Cpu::opCb_0xfe()
     unsigned short addr = getHL();
     byte old_val = memory[addr];
     opSet(7, memory[addr]); 
-    writtenToMemory(addr, old_val);
+    scheduler.writtenToMemory(addr, old_val);
 } 
 
 void Cpu::opCb_0xff() { opSet(7, a); }
