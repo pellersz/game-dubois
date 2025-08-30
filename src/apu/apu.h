@@ -13,13 +13,15 @@ public:
 
     Apu(Memory&, Speaker&);
     
-    void turnOnOffDac(ChannelType, bool);
     void audioMasterChanged();
     void soundPanningChanged();
     void leftRightVolumeChanged();
     
     bool envelope(ChannelType);
     void incrementTimer(ChannelType);
+    void tickPeriod(ChannelType, u8);
+
+    bool ch1Sweep();
     
     void nr11Changed();
     void nr12Changed();
@@ -37,9 +39,6 @@ public:
     void nr43Changed();
     void nr44Changed();
 
-    void tickPeriod1(u8);
-    void tickPeriod2(u8);
-    void tickPeriod3(u8);
     void ch4Shift();
 
     float sample1();
@@ -51,6 +50,7 @@ public:
     bool isOn();
 
 private:
+    constexpr const static float SPEAKER_VOLUME_UNIT = (1. / (4 * 9.));
     constexpr static const float HPF_MULTIPLIER = 0.9930;
 
     Memory& memory;
@@ -67,6 +67,9 @@ private:
     unsigned short ch2Shadow;
     unsigned short ch3Shadow;
     unsigned short ch4Shadow;
+
+    void envelopedNrx2Changed(unsigned short nr_addr, Channel& channel, bool& envelope_dir);
+    void turnOnOffDac(Channel&, bool);
 };
 
 #endif

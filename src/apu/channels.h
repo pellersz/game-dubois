@@ -16,17 +16,17 @@ class Channel
 {
 public:
     bool dacOn = false;
-    bool on = false;
+    bool on    = false;
 
     int stopTimer = 0;
-    bool leftEnabled;
-    bool rightEnabled;
 
-    int time = 0;
-    double advance;   
-    float amplitude;
+    bool leftEnabled  = 0;
+    bool rightEnabled = 0;
 
-    virtual void setPeriodValue(unsigned short) = 0;
+    int progress    = 0;
+    float amplitude = 0;
+
+    u8 type;
 };
 
 class SquareChannel: public Channel
@@ -39,35 +39,35 @@ public:
 class Enveloped 
 {
 public:
-    offs envelopeDir = 1;
+    bool envelopeDir = 1;
 };
 
 class Channel1: public SquareChannel, public Enveloped 
-{
+{ 
 public:
-    virtual void setPeriodValue(unsigned short period) override;
+    Channel1() { type = 1; }
 };
 
 class Channel2: public SquareChannel, public Enveloped 
 {
 public:
-    virtual void setPeriodValue(unsigned short period) override;
+    Channel2() { type = 2; }
 };
 
 class Channel3: public Channel
 {
 public:
+    Channel3() { type = 3; }
     constexpr static const float VOLUME_LEVELS[] = { 0, 1, 0.5, 0.25 };
     float volumeLevel;
-    virtual void setPeriodValue(unsigned short period) override;
 };
 
 class Channel4: public Channel, public Enveloped
 {
 public:
-    unsigned short lfsr;
-
-    virtual void setPeriodValue(unsigned short period) override;
+    Channel4() { type = 4; }
+    unsigned short lfsr = 0;
+    bool bit_8 = 0;
 };
 
 class Channels 

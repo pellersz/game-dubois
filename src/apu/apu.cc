@@ -8,58 +8,13 @@
 
 Apu::Apu(Memory& memory, Speaker& speaker): memory(memory), speaker(speaker) {}
 
-void Apu::turnOnOffDac(ChannelType type, bool val)
+void Apu::turnOnOffDac(Channel& channel, bool val)
 {
-    switch (type) 
-    {
-        case Ch1: 
-        {
-            Channel1& channel1 = channels.channel1;
-            channel1.dacOn = val; 
-            if (!val)
-            {
-                channel1.on = false;
-                memory[Memory::NR52] &= 0b11111110;
-            }
-            break; 
-        }
-        case Ch2: 
-        {
-            Channel2& channel2 = channels.channel2;
-            channel2.dacOn = val;
-            if (!val)
-            {
-                channel2.on = false;
-                memory[Memory::NR52] &= 0b11111101;
-            }
-            break; 
-        }
-        case Ch3: 
-        {
-            Channel3& channel3 = channels.channel3;
-            channel3.dacOn = val;
-            if (!val)
-            {
-                channel3.on = false;
-                memory[Memory::NR52] &= 0b11111011;
-            }
-            break;
-        }
-        case Ch4: 
-        {
-            Channel4& channel4 = channels.channel4;
-            channel4.dacOn = val;
-            if (!val)
-            {
-                channel4.on = false;
-                memory[Memory::NR52] &= 0b11110111;
-            }
-            break;
-        }
-    }
+    channel.dacOn = val; 
+    if (!val) channel.on = false;
 
     byte& nr52 = memory[Memory::NR52];
-    byte mask = 1 << type;
+    byte mask = 1 << (channel.type - 1);
     nr52 = val ? (nr52 | mask) : (nr52 & ~mask);
 }
 
@@ -68,14 +23,15 @@ void Apu::audioMasterChanged()
     if (!(memory[Memory::NR52] & 0b10000000))
     {
         on = false;
-        for (int i = 0; i < 4; ++i)
-            turnOnOffDac((ChannelType)i, false);
+        turnOnOffDac(channels.channel1, false);
+        turnOnOffDac(channels.channel2, false);
+        turnOnOffDac(channels.channel3, false);
+        turnOnOffDac(channels.channel4, false);
     } 
     else 
         on = true;
 }
 
-// this would be much better with an array
 void Apu::soundPanningChanged()
 {
     byte panning = memory[Memory::NR51];
@@ -92,50 +48,43 @@ void Apu::soundPanningChanged()
 void Apu::leftRightVolumeChanged()
 {
     byte nr50 = memory[Memory::NR50];
-    // TODO: constants
-    leftVolume  = (1. / (4 * 9.)) * (((nr50 >> 4) & 0b0111) + 1);
-    rightVolume = (1. / (4 * 9.)) * ((nr50 & 0b0111) + 1);
+    leftVolume  = SPEAKER_VOLUME_UNIT * (((nr50 >> 4) & 0b0111) + 1);
+    rightVolume = SPEAKER_VOLUME_UNIT * ((nr50 & 0b0111) + 1);
 }
 
-// TODO: this should be handled better
 bool Apu::envelope(ChannelType type)
 {
+    float* old_amplitude;
+    bool envelopeDir;
     switch (type) 
     {
         case Ch1: 
         { 
-            Channel1& channel1 = channels.channel1;
-            float amplitude = channel1.amplitude; 
-            amplitude += channel1.envelopeDir ? -VLUME_UNIT : VLUME_UNIT; 
-            if ((amplitude < 0) || (amplitude > 1))
-                return false; 
-            channel1.amplitude = amplitude;
-            return true;
+            old_amplitude = &channels.channel1.amplitude; 
+            envelopeDir = channels.channel1.envelopeDir;
+            break;
         }
         case Ch2: 
         { 
-            Channel2& channel2 = channels.channel2;
-            float amplitude = channel2.amplitude; 
-            amplitude += channel2.envelopeDir ? -VLUME_UNIT : VLUME_UNIT; 
-            if ((amplitude < 0) || (amplitude > 1))
-                return false; 
-            channel2.amplitude = amplitude;
-            return true;
+            old_amplitude = &channels.channel2.amplitude; 
+            envelopeDir = channels.channel2.envelopeDir;
+            break;
         }        
         case Ch3: return false;
         case Ch4: 
         { 
-            Channel4& channel4 = channels.channel4;
-            float amplitude = channel4.amplitude; 
-            amplitude += channel4.envelopeDir ? -VLUME_UNIT : VLUME_UNIT; 
-            if ((amplitude < 0) || (amplitude > 1))
-                return false; 
-            channel4.amplitude = amplitude;
-            return true;
+            old_amplitude = &channels.channel4.amplitude; 
+            envelopeDir = channels.channel4.envelopeDir;
+            break;
         }
     }
 
-    return false;
+    float new_amplitude = *old_amplitude;
+    new_amplitude += envelopeDir ? -VLUME_UNIT : VLUME_UNIT; 
+    if ((new_amplitude < 0) || (new_amplitude > 1))
+        return false; 
+    *old_amplitude = new_amplitude;
+    return true;
 }
 
 void Apu::incrementTimer(ChannelType type) 
@@ -169,16 +118,94 @@ void Apu::incrementTimer(ChannelType type)
     }
 }
 
+void Apu::tickPeriod(ChannelType type, u8 val)
+{
+    unsigned short* ch_shadow;
+    Channel* channel;
+    unsigned short nr_addr;
+    u8 period = 8;
+    
+    switch (type) {
+        case Ch1:
+        {
+            ch_shadow = &ch1Shadow;
+            channel = &channels.channel1;
+            nr_addr = Memory::NR13;
+            break;
+        }
+        case Ch2:
+        {
+            ch_shadow = &ch2Shadow;
+            channel = &channels.channel2;
+            nr_addr = Memory::NR23;
+            break;
+        }
+        case Ch3:
+        {
+            ch_shadow = &ch3Shadow;
+            channel = &channels.channel3;
+            nr_addr = Memory::NR33;
+            period = 32;
+            break;
+        }
+        case Ch4:
+            return;
+    }
+
+    unsigned short tmp = *ch_shadow;
+    *ch_shadow += val;
+
+    if ((*ch_shadow & 0x7ff) < (tmp & 0x7ff))
+    {
+        *ch_shadow = memory[nr_addr] + (memory[nr_addr + 1] << 8);
+        if (++(channel->progress) >= period)
+            channel->progress = 0;
+    }
+}
+
+void Apu::envelopedNrx2Changed(unsigned short nr_addr, Channel& channel, bool& envelope_dir) 
+{
+    byte nr = memory[nr_addr];
+    envelope_dir = (nr & 0b00001000) ? -1 : 1;
+    bool new_dac_on = (nr & 0b11111000);
+    if (channel.dacOn != new_dac_on)
+        turnOnOffDac(channel, new_dac_on);   
+}
+
+bool Apu::ch1Sweep() 
+{
+    byte nr10 = memory[Memory::NR10];
+    bool direction = nr10 & 0b00001000;
+    u8 step = nr10 & 0b0111;
+    byte& nr13 = memory[Memory::NR13];
+    byte& nr14 = memory[Memory::NR14];
+
+    unsigned short old_period = nr13 + ((nr14 & 0b0111) << 8); 
+    unsigned short offs = old_period >> step;
+    unsigned short new_period; 
+
+    if (direction) 
+        new_period = old_period - offs;
+    else 
+    {
+        new_period = old_period + offs;  
+        if (new_period > 0x07ff)
+        {
+            turnOnOffDac(channels.channel1, false);
+            return false;
+        }
+    }
+
+    nr13 = new_period;
+    nr14 = ((new_period & 0x0700) >> 8) + (nr14 & 0b11111000);
+    return true;
+}
+
 void Apu::nr11Changed() { channels.channel1.duty = SquareChannel::DUTYS[memory[Memory::NR11] >> 6]; }
 
 void Apu::nr12Changed()
 {
-    byte nr12 = memory[Memory::NR12];
-    Channel1& channel1 = channels.channel1;
-    channel1.envelopeDir = (nr12 & 0b00001000) ? -1 : 1;
-    bool new_dac_on = (nr12 & 0b11111000);
-    if (channel1.dacOn != new_dac_on)
-        turnOnOffDac(Ch1, new_dac_on);
+    envelopedNrx2Changed(Memory::NR12, channels.channel1, channels.channel1.envelopeDir);
 }
 
 void Apu::nr14Changed()
@@ -199,12 +226,7 @@ void Apu::nr21Changed() { channels.channel2.duty = SquareChannel::DUTYS[memory[M
 
 void Apu::nr22Changed() 
 { 
-    byte nr22 = memory[Memory::NR22];
-    Channel2& channel2 = channels.channel2;
-    channel2.envelopeDir = (nr22 & 0b00001000) ? -1 : 1;
-    bool new_dac_on = (nr22 & 0b11111000);
-    if (channel2.dacOn != new_dac_on)
-        turnOnOffDac(Ch2, new_dac_on);
+    envelopedNrx2Changed(Memory::NR22, channels.channel2, channels.channel2.envelopeDir);
 }
 
 void Apu::nr24Changed()
@@ -224,8 +246,9 @@ void Apu::nr24Changed()
 void Apu::nr30Changed() 
 { 
     bool new_dac_on = (memory[Memory::NR30] & 0b10000000);
-    if (channels.channel3.dacOn != new_dac_on)
-        turnOnOffDac(Ch3, new_dac_on);
+    Channel3& channel3 = channels.channel3;
+    if (channel3.dacOn != new_dac_on)
+        turnOnOffDac(channel3, new_dac_on);
 }
 
 void Apu::nr32Changed()
@@ -241,7 +264,7 @@ void Apu::nr34Changed()
         channel3.on = channel3.dacOn;
         memory[Memory::NR52] |= 0b0100;
         ch3Shadow = memory[Memory::NR33] + (memory[Memory::NR34] << 8);
-        channel3.time = 0;
+        channel3.progress = 0;
         if (channel3.stopTimer >= 0x100) 
             channel3.stopTimer = memory[Memory::NR31] & 0b00111111;
         channel3.amplitude = (memory[Memory::NR32] >> 4) * VLUME_UNIT;
@@ -250,18 +273,10 @@ void Apu::nr34Changed()
 
 void Apu::nr42Changed()
 {
-    byte nr42 = memory[Memory::NR42];
-    Channel4& channel4 = channels.channel4;
-    channel4.envelopeDir = (nr42 & 0b00001000) ? -1 : 1;
-    bool new_dac_on = (nr42 & 0b11111000);
-    if (channel4.dacOn != new_dac_on)
-        turnOnOffDac(Ch4, new_dac_on);   
+    envelopedNrx2Changed(Memory::NR42, channels.channel4, channels.channel4.envelopeDir);
 }
 
-void Apu::nr43Changed() 
-{
-    memory[Memory::NR43] & 0b1000;
-}
+void Apu::nr43Changed() { channels.channel4.bit_8 = memory[Memory::NR43] & 0b1000; }
 
 void Apu::nr44Changed()
 {
@@ -277,53 +292,23 @@ void Apu::nr44Changed()
     }
 }
 
-void Apu::tickPeriod1(u8 val)
-{
-    unsigned short tmp = ch1Shadow;
-    ch1Shadow += val;
-
-    if ((ch1Shadow & 0x7ff) < (tmp & 0x7ff))
-    {
-        ch1Shadow = memory[Memory::NR13] + (memory[Memory::NR14] << 8);
-        if (++channels.channel1.time >= 8)
-            channels.channel1.time = 0;
-    }
-}
-
-void Apu::tickPeriod2(u8 val)
-{
-    unsigned short tmp = ch2Shadow;
-    ch2Shadow += val;
-
-    if ((ch2Shadow & 0x7ff) < (tmp & 0x7ff))
-    {
-        ch2Shadow = memory[Memory::NR23] + (memory[Memory::NR24] << 8);
-        if (++channels.channel2.time >= 8)
-            channels.channel2.time = 0;
-    }
-}
-
-void Apu::tickPeriod3(u8 val)
-{
-    unsigned short tmp = ch3Shadow;
-    ch3Shadow += val;
-
-    if ((ch3Shadow & 0x7ff) < (tmp & 0x7ff))
-    {
-        ch3Shadow = memory[Memory::NR33] + (memory[Memory::NR34] << 8);
-        if (++channels.channel3.time >= 32)
-            channels.channel3.time = 0;
-    }
-}
-
 void Apu::ch4Shift()
 {
-    unsigned short& lfsr = channels.channel4.lfsr;
-    lfsr >>= 1;
+    Channel4& channel4 = channels.channel4;
+    unsigned short& lfsr = channel4.lfsr;
+
     bool next = ((lfsr & 0b0001) == ((lfsr >> 1) & 0b0001));
+
     lfsr |= (next << 15);
-    if (memory[Memory::NR43] & 0b00001000)
-        lfsr |= (next << 7);
+    if (channel4.bit_8)
+        if (next != (bool)(lfsr & 0b10000000))
+        {
+            if (next)
+                lfsr |= 0b10000000;
+            else 
+                lfsr &= 0b01111111;
+        }
+    lfsr >>= 1;
 }
 
 float Apu::sample1() 
@@ -332,8 +317,7 @@ float Apu::sample1()
     if (channel1.dacOn) 
     {
         if (channel1.on) 
-            return ((channel1.duty << channel1.time) & 0b10000000) ? channel1.amplitude : -channel1.amplitude;
-        return 1.0;
+            return ((channel1.duty << channel1.progress) & 0b10000000) ? channel1.amplitude : -channel1.amplitude;
     }
     return 0;
 }
@@ -344,8 +328,7 @@ float Apu::sample2()
     if (channel2.dacOn) 
     {
         if (channel2.on) 
-            return ((channel2.duty << channel2.time) & 0b10000000) ? channel2.amplitude : -channel2.amplitude; 
-        return 1.0;
+            return ((channel2.duty << channel2.progress) & 0b10000000) ? channel2.amplitude : -channel2.amplitude; 
     }
     return 0;
 }
@@ -357,15 +340,14 @@ float Apu::sample3()
     {
         if (channel3.on) 
         {
-            u8 val = memory[Memory::WAVE_PATTERN + channel3.time / 2];
-            if (!(channel3.time % 2))
+            u8 val = memory[Memory::WAVE_PATTERN + channel3.progress / 2];
+            if (!(channel3.progress % 2))
                 val >>= 4;
             else
                 val &= 0b1111;
             
             return channel3.volumeLevel * (1 - val * VOLUME_UNIT); 
         }
-        return 1.0;
     }
     return 0;
 }
@@ -376,8 +358,7 @@ float Apu::sample4()
     if (channel4.dacOn) 
     {
         if (channel4.on) 
-            return (channel4.lfsr & 0b0001) ? channel4.amplitude : 1.0; 
-        return 1.0;
+            return (channel4.lfsr & 0b0001) ? channel4.amplitude : -channel4.amplitude; 
     }
     return 0;
 }
@@ -385,9 +366,6 @@ float Apu::sample4()
 void Apu::sample() 
 {
     float s1 = sample1(), s2 = sample2(), s3 = sample3(), s4 = sample4();   
-    
-    //if (s1 > 0.6)
-    //    std::cout << s1 << " ";
 
     float unfiltered_left = 
         (channels.channel1.leftEnabled ? s1 : 0) +

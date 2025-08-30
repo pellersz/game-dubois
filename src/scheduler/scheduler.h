@@ -33,7 +33,8 @@ enum Process
     CH4_SHIFT,
     CH4_ENVELOPE,
     CH4_TIME,
-    SAMPLE
+    SAMPLE,
+    WAIT
 };
 
 using namespace std::chrono;
@@ -83,8 +84,9 @@ private:
         ProcessGreater 
     > schedule;
 
-    constexpr static const auto SYSTEM_CLOCKS_PER_DOT = round<system_clock::duration>(duration<double>(1.0 / 1048576));
-    time_point<std::chrono::steady_clock> next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
+    const static int TIME_BETWEEN_WAIT = 500;
+    constexpr static const auto WAITING_TIME = TIME_BETWEEN_WAIT * round<system_clock::duration>(duration<double>(1.0 / 4194304));
+    time_point<std::chrono::system_clock> next_dot_time = system_clock::now() + WAITING_TIME;
     unsigned long long time = 0;
 
     std::shared_ptr<Cpu> pCpu = nullptr;

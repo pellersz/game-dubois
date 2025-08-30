@@ -13,13 +13,11 @@ void SampleBuffer::sample(float left, float right)
 
 unsigned short SampleBuffer::copy(float* dest, unsigned short count)
 {
-    //std::cout << count << " " << this->count << " " << buffer[0] << " " << buffer[1] << std::endl;
     count = 2 * count;
     if (count <= this->count)
     {
-        //TODO: sizeof
-        memcpy(dest, buffer, 4 * count);
-        memcpy(buffer, buffer + count, 4 * (this->count - count));
+        memcpy(dest, buffer, sizeof(float) * count);
+        memcpy(buffer, buffer + count, sizeof(float) * (this->count - count));
         this->count -= count;
         return count;
     }
@@ -34,7 +32,7 @@ unsigned short SampleBuffer::copy(float* dest, unsigned short count)
             dest[2 * i] = buffer[2 * conter_int];
             dest[2 * i + 1] = buffer[2 * conter_int + 1];
         }
-        memcpy(buffer, buffer + currenct_count, 4 * (this->count - currenct_count));
+        memcpy(buffer, buffer + currenct_count, sizeof(float) * (this->count - currenct_count));
         this->count -= currenct_count;
     }
     return 0;
@@ -48,7 +46,6 @@ Speaker::Speaker()
     device_config.playback.format   = ma_format_f32;
     device_config.playback.channels = 2;
     device_config.sampleRate        = 48000;
-    //device_config.periodSizeInFrames = 1800;
     device_config.dataCallback      = dataCallback;
     device_config.pUserData         = &sampleBuffer;
 
@@ -115,8 +112,6 @@ ma_result Speaker::initApuData(double sample_rate, double frequency, SampleBuffe
     result = ma_data_source_init(&baseConfig, &p_buffer->base);
     if (result != MA_SUCCESS)
         return result;
-
-    //p_channels->advance = (1.0 / (sample_rate / frequency));
 
     return MA_SUCCESS;
 }

@@ -33,6 +33,7 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     push(0, VBLANK_START);
     push(0, LYC_LY_CMP);
     push(0, HANDLE_CONTROL);
+    push(100, WAIT);
 }
 
 void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { pCpu = cpu_ptr; }
@@ -258,7 +259,7 @@ void Scheduler::writtenToMemory(unsigned short addr, byte old_val)
                     if (nr44 & 0b01000000) 
                         push(MASTER_CLOCK_FREQUENCY / SOUND_TIMER_FREQUENCY, CH4_TIME);
                 }
-                apu.nr24Changed();
+                apu.nr44Changed();
             }
             break;
         }
@@ -466,31 +467,11 @@ bool Scheduler::pop()
         }
         case CH1_SWEEP: 
         {
-            byte nr10 = memory[Memory::NR10];
-            bool direction = nr10 & 0b00001000;
-            u8 step = nr10 & 0b0111;
-            byte& nr13 = memory[Memory::NR13];
-            byte& nr14 = memory[Memory::NR14];
-
-            unsigned short old_period = nr13 + ((nr14 & 0b1111) << 8); 
-            unsigned short offs = old_period >> step;
-            unsigned short new_period; 
-            if (direction) 
-                new_period = old_period - offs;
-            else 
+            if (apu.ch1Sweep())
             {
-                new_period = old_period + offs;  
-                if (new_period > 0x07ff)
-                {
-                    apu.turnOnOffDac(Ch1, false);
-                    break;
-                }
+                u8 pace = (memory[Memory::NR10] >> 4) & 0b0111;
+                push(pace * MASTER_CLOCK_FREQUENCY / CH1_SWEEP_FREQUENCY, CH1_SWEEP);
             }
-
-            u8 pace = (memory[Memory::NR10] >> 4) & 0b0111;
-            push(pace * MASTER_CLOCK_FREQUENCY / CH1_SWEEP_FREQUENCY, CH1_SWEEP);
-            nr13 = new_period;
-            nr14 = ((new_period & 0x0f00) >> 8) + (nr14 & 0b11110000);
             break;
         }
         case CH1_ENVELOPE:
@@ -562,6 +543,19 @@ bool Scheduler::pop()
             push(86, SAMPLE);
             break; 
         }
+        case WAIT:
+        {
+            if (next_dot_time > system_clock::now())
+            {
+                while (next_dot_time > system_clock::now());
+                next_dot_time += WAITING_TIME;
+            }
+            else 
+                next_dot_time = system_clock::now() + WAITING_TIME;
+
+            push(TIME_BETWEEN_WAIT, WAIT);
+            break;
+        }
     };
 
     schedule.pop(); 
@@ -577,7 +571,7 @@ void Scheduler::run()
     } 
 
     bool go_next = true;
-    next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
+    next_dot_time = system_clock::now() + WAITING_TIME;
 
     while (go_next && !glfwWindowShouldClose(screen.getWindow())) 
     {
@@ -668,7 +662,7 @@ void Scheduler::debugRun()
     std::cout << std::endl;
 
     bool go_next = true;
-    next_dot_time = steady_clock::now() + SYSTEM_CLOCKS_PER_DOT;
+    next_dot_time = system_clock::now() + WAITING_TIME;
 
     //std::ofstream f("log");
     //f << cpu->toString() << std::endl;
@@ -717,12 +711,12 @@ void Scheduler::statInterruptCheck()
 void Scheduler::tick() 
 {
     // TODO: do something with the time
-    while(next_dot_time > std::chrono::steady_clock::now());
-    next_dot_time += SYSTEM_CLOCKS_PER_DOT;
+    //while (next_dot_time > std::chrono::system_clock::now()) {std::cout << "b" << std::endl;};
+    //next_dot_time += WAITING_TIME;
 
-    apu.tickPeriod1(1);
-    apu.tickPeriod2(1);
-    apu.tickPeriod3(2);
+    apu.tickPeriod(Ch1, 1);
+    apu.tickPeriod(Ch2, 1);
+    apu.tickPeriod(Ch3, 2);
 
     time += 4; 
 }

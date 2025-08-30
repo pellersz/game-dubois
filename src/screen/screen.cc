@@ -24,7 +24,8 @@ Screen::Screen()
 
 GLFWwindow* Screen::getWindow() { return window; } 
 
-byte& Screen::operator()(u8 height, u8 width) {
+byte& Screen::operator()(u8 height, u8 width) 
+{
     if (height < LCD_HEIGHT && width < LCD_WIDTH)
         return lcd[(LCD_HEIGHT - height - 1) * LCD_WIDTH + width];
     return dummy;
@@ -36,7 +37,7 @@ void Screen::fillWhite(u8 y) { memset(lcd + y * LCD_WIDTH, 255, LCD_WIDTH); }
 
 void Screen::updateFrame() 
 { 
-    // This might be deprecated, but for a gameboy, this should be fine.
+    // This might be deprecated, but for a gameboy this should be fine.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPixelZoom(5, 5);
     glDrawPixels

@@ -2,6 +2,7 @@
 #include "gameboy.h"
 #include <iostream>
 
+// TODO: make it so that you can alt-tab
 int main(int argc, char** argv) 
 {
     //for(int i = 0; i < 0x100; ++i)
