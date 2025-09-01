@@ -297,6 +297,7 @@ bool Scheduler::pop()
             controller.updatePressed();
             pCpu->executeNext();
 
+            std::cout << pCpu->toString() << " ";
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
                     (memory[Memory::BOOT_ROM_MAPPING] == 1))
             {
