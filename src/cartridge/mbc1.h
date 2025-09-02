@@ -8,23 +8,21 @@
 class Mbc1: public Mbc 
 {
 public:
-    Mbc1(Cartridge&);
-
-    virtual void writtenToRegister(Memory& memory, unsigned short addr, byte val) override;
+    virtual void init(std::shared_ptr<Cartridge>) override;
+    virtual void writeToRegister(unsigned short, byte) override;
 
 private:
-    const bool moreThan512Kb;
-    const u8 bankNo;
+    bool moreThan512Kb = false;
+    bool bankMode = false;
+    u8 bankNo;
     u8 initialMask = 0b11111111;
     u8 secondaryMask = 1 << 7;
 
     bool ramEnable = 0;
     u8 bankSelectorLow5 = 1;
     u8 bankOrRamSelector = 0;
-    u8 lastBankSelector = 1;
-    u8 lastRamSeclector = 0;
 
-    void changedBankNo(Memory&);
+    void changedBankNo();
 };
 
 #endif

@@ -2,11 +2,15 @@
 #define MEM_H
 
 #include "types.h"
+#include <memory>
+
+class Cartridge;
 
 class Memory 
 {
 public:
-    byte& operator[](unsigned short);
+    byte read(unsigned short);
+    void write(unsigned short, byte);
     word operator()(unsigned short);
 
     void writeWord(unsigned short, word);
@@ -84,7 +88,12 @@ public:
     static const unsigned short WRAM_BANK_SELECT = 0xff70; 
 
 private: 
-    byte memory[0x10000];
+    byte videoRam[0x2000];
+    byte workRam[0x2000];
+    byte oam[0xa0];
+    byte last0x100[0x100];
+
+    std::shared_ptr<Cartridge> p_cartridge;
 };
 
 #endif

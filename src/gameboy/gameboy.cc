@@ -30,7 +30,7 @@ const byte boot_rom[] =
 
 void GameBoy::load(std::shared_ptr<Cartridge> cartridge_ptr) 
 { 
-    if(!memory.writeData(0, cartridge_ptr->size, cartridge_ptr->rom)) 
+    if(!memory.writeData(0, cartridge_ptr->size, cartridge_ptr->data)) 
         return;
     cartridge = cartridge_ptr;
 }
@@ -50,7 +50,7 @@ void GameBoy::run(bool debug)
 
     cpu.setPC(0x100);
     
-    memory.writeData(0, 256, cartridge->rom);
+    memory.writeData(0, 256, cartridge->data);
    
     if (!debug)
         scheduler.run();
