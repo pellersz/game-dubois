@@ -294,10 +294,11 @@ bool Scheduler::pop()
         case CPU_EXEC:
         {
             // since only the cpu cares about controller input, it only should update before it
+            // TODO: move this to the controller handling
             controller.updatePressed();
             pCpu->executeNext();
 
-            std::cout << pCpu->toString() << " ";
+            // std::cout << pCpu->toString() << " ";
             if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
                     (memory[Memory::BOOT_ROM_MAPPING] == 1))
             {
