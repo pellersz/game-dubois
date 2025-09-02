@@ -1,4 +1,5 @@
 #include "cartridge.h"
+#include "mem.h"
 #include "types.h"
 #include <cstdio>
 #include <cstring>
@@ -34,3 +35,5 @@ long Cartridge::getFileSize(std::string filename)
     int rc = stat(filename.c_str(), &stat_buf);
     return rc == 0 ? stat_buf.st_size : -1;
 }
+
+void Cartridge::writtenToRegisters(Memory& memory, unsigned short addr, byte val) { mbc.writtenToRegister(memory, addr, val); }
