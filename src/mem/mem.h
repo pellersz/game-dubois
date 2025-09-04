@@ -5,17 +5,22 @@
 #include <memory>
 
 class Cartridge;
+class Scheduler;
+class Apu;
 
 class Memory 
 {
 public:
+    void init(std::shared_ptr<Scheduler>, std::shared_ptr<Apu>);
+    void load(std::shared_ptr<Cartridge>);
     byte read(unsigned short);
     void write(unsigned short, byte);
     word operator()(unsigned short);
 
     void writeWord(unsigned short, word);
-    bool writeData(unsigned short, int, const byte*);
+    byte* getDataPointerToAddress(unsigned short);
     void oamDma(byte);
+    byte& buildIn(unsigned short);
 
     // starting addresses for memory sectors
     static const unsigned short ROMBANK0 = 0x0000;
@@ -92,8 +97,10 @@ private:
     byte workRam[0x2000];
     byte oam[0xa0];
     byte last0x100[0x100];
-
-    std::shared_ptr<Cartridge> p_cartridge;
+    
+    std::shared_ptr<Scheduler> pScheduler;
+    std::shared_ptr<Cartridge> pCartridge;
+    std::shared_ptr<Apu> pApu;
 };
 
 #endif

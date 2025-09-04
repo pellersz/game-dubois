@@ -4,7 +4,6 @@
 #include "controller.h"
 #include "cpu.h"
 #include "mem.h"
-#include <memory>
 #include <queue>
 #include "ppu.h"
 #include "screen.h"
@@ -95,6 +94,22 @@ private:
     Ppu& ppu;
     Screen& screen;
     Apu& apu;
+
+    byte& bootRomMapping;
+    byte& divider;
+    byte& timerControl;
+    byte& timerCounter;
+    byte& timerModulo;
+    byte& interruptFlag;
+    byte& lcdStat;
+    byte& lcdY;
+    byte& lcdCmp;
+
+    byte& nr10;
+    byte& nr12;
+    byte& nr22;
+    byte& nr42;
+    byte& nr43;
     
     byte last_div;
     byte last_boot_rom;

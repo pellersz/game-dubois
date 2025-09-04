@@ -3,10 +3,15 @@
 #include "cpu.h"
 #include "mem.h"
 #include "scheduler.h"
+#include <cstring>
 #include <iostream>
 #include <memory>
 
-GameBoy::GameBoy() { scheduler.init(std::make_shared<Cpu>(cpu)); }
+GameBoy::GameBoy() 
+{ 
+    scheduler.init(std::make_shared<Cpu>(cpu)); 
+    memory.init(std::make_shared<Scheduler>(scheduler), std::make_shared<Apu>(apu));
+}
 
 const byte boot_rom[] = 
 {
@@ -28,29 +33,31 @@ const byte boot_rom[] =
     245,   6,  25, 120, 134,  35,   5,  32, 251, 134,  32, 254,  62,   1, 224,  80
 };
 
-void GameBoy::load(std::shared_ptr<Cartridge> cartridge_ptr) 
+void GameBoy::load(std::shared_ptr<Cartridge> p_cartridge) 
 { 
-    if(!memory.writeData(0, cartridge_ptr->size, cartridge_ptr->data)) 
-        return;
-    cartridge = cartridge_ptr;
+    memory.load(p_cartridge);
+    pCartridge = p_cartridge;
 }
 
-void GameBoy::unload() { cartridge = nullptr; }
+void GameBoy::unload() { pCartridge = nullptr; }
 
 void GameBoy::run(bool debug) 
 { 
-    if (cartridge == nullptr) 
+    if (pCartridge == nullptr) 
     {
         std::cout << "Load a cartridge first bozo" << std::endl;
         return;
     }
 
-    memory.writeData(0, 256, boot_rom);   
+    byte* boot_rom_memory = memory.getDataPointerToAddress(0);
+    byte buf[256];
+    memcpy(buf, boot_rom_memory, 256);
+    memcpy(boot_rom_memory, boot_rom, 256);
+
     scheduler.run(); 
 
     cpu.setPC(0x100);
-    
-    memory.writeData(0, 256, cartridge->data);
+    memcpy(boot_rom_memory, buf, 256);
    
     if (!debug)
         scheduler.run();

@@ -82,11 +82,17 @@ int Cartridge::getRomSize() { return romSize; }
 
 int Cartridge::getRamSize() { return ramSize; }
 
-byte Cartridge::readBank(unsigned short addr) { return data[addr]; }
+byte Cartridge::readBank(unsigned short addr) { return data[mbc.firstBankOffs + addr]; }
+
+byte* Cartridge::getBankPointer(unsigned short addr) { return data + mbc.firstBankOffs + addr; }
 
 byte Cartridge::readBankN(unsigned short addr) { return data[mbc.secondBankOffs + addr]; }
 
+byte* Cartridge::getBankNPointer(unsigned short addr) { return data + mbc.secondBankOffs + addr; }
+
 byte Cartridge::readRam(unsigned short addr) { return data[mbc.ramOffs + addr]; }
+
+byte* Cartridge::getRamPointer(unsigned short addr) { return data + mbc.ramOffs + addr; }
 
 void Cartridge::writeToRegister(unsigned short addr, byte val) { mbc.writeToRegister(addr, val); }
 

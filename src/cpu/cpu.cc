@@ -16,7 +16,13 @@
 #include <variant>
 
 // without this, the cycle definions would be too long
-Cpu::Cpu(Memory& memory, Scheduler& scheduler, Apu& apu) : memory(memory), scheduler(scheduler), apu(apu) {}
+Cpu::Cpu(Memory& memory, Scheduler& scheduler, Apu& apu) : 
+    memory(memory), 
+    scheduler(scheduler),
+    apu(apu),
+    interruptEnable(memory.buildIn(Memory::IE_REG)),
+    interruptFlag(memory.buildIn(Memory::INTERRUPT_FLAG))
+{}
 
 word Cpu::getAF() { return (((word) a) << 8) + f; }
 
@@ -63,7 +69,7 @@ void Cpu::programCounterStep(u8 count) { pc += count; }
 // TODO: remove the scheduler as a dependency and just return the time elapsed for the scheduler
 void Cpu::executeNext() 
 {
-    if (halted && (memory[Memory::IE_REG] & memory[Memory::INTERRUPT_FLAG]))
+    if (halted && (interruptEnable & interruptFlag))
         halted = false;
 
     if (handleInterupts())
@@ -71,7 +77,7 @@ void Cpu::executeNext()
 
     if (!halted) 
     {
-        executeRegular(memory[pc]);
+        executeRegular(memory.read(pc));
             return;
     }  
     
@@ -81,18 +87,16 @@ void Cpu::executeNext()
 bool Cpu::handleInterupts() 
 {         
     int a;
-    byte& int_e = memory[Memory::IE_REG];
-    byte& int_f = memory[Memory::INTERRUPT_FLAG];
 
-    if (ime && (int_f & int_e)) 
+    if (ime && (interruptEnable & interruptFlag)) 
     {
         for (int i = 0; i < 7; ++i) 
         {
-            if ((1 << i) & int_e & int_f) 
+            if ((1 << i) & interruptEnable & interruptFlag) 
             {
                 halted = false;
                 ime = false;
-                int_f &= ~(1 << i);
+                interruptFlag &= ~(1 << i);
                 opPush(pc);   
                 pc = 0x40 + i * 8;
 
@@ -374,7 +378,7 @@ void Cpu::test(std::string filename)
                 std::string before = toString();
                 std::stringstream s;
                 for(int i = 0; i < addr_counter; ++i) 
-                    s << std::hex << (int) memory[addrs[i]] << " ";
+                    s << std::hex << (int) memory.read(addrs[i]) << " ";
 
                 executeNext();
                 ++pc;
@@ -396,7 +400,7 @@ void Cpu::test(std::string filename)
                     fucked = true;
     
                 for(int i = 0; i < addr_counter; i++)
-                    if(memory[addrs[i]] != central_dog_unit.memory[addrs[i]])
+                    if(memory.read(addrs[i]) != central_dog_unit.memory.read(addrs[i]))
                         fucked = true;
 
                 if (name == "    \"name\": \"88 55 51\"," || name == "    \"name\": \"88 fa cf\"," || name == "    \"name\": \"88 96 f8\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"f1 22 11\",")
@@ -409,11 +413,11 @@ void Cpu::test(std::string filename)
                     std::cout << std::endl;
                     std::cout << "into:" << std::endl << "cpu: " << toString() << std::endl << "memory: ";
                     for(int i = 0; i < addr_counter; ++i) 
-                        std::cout << std::hex << (int) memory[addrs[i]] << " ";
+                        std::cout << std::hex << (int) memory.read(addrs[i]) << " ";
 
                     std::cout << std::endl << "does not match" << std::endl << "cpu: " << central_dog_unit.toString() << std::endl << "memory: ";
                     for(int i = 0; i < addr_counter; ++i) 
-                        std::cout << std::hex << (int) central_dog_unit.memory[addrs[i]] << " ";
+                        std::cout << std::hex << (int) central_dog_unit.memory.read(addrs[i]) << " ";
                     exit(0);
                 }
                 else 
@@ -461,7 +465,7 @@ void Cpu::test(std::string filename)
                     state = 1;
                 else 
                 {
-                    memory[val1] = val2;
+                    memory.write(val1, val2);
                     val1 = -1;
                     left_paren = false;
                 }
@@ -511,7 +515,7 @@ void Cpu::test(std::string filename)
                 else 
                 {
                     addrs[addr_counter++] = val1;
-                    central_dog_unit.memory[val1] = val2;
+                    central_dog_unit.memory.write(val1, val2);
                     val1 = -1;
                     left_paren = false;
                 }
@@ -543,7 +547,7 @@ std::string Cpu::toString()
                   << "L:"     << w << (int) l << " "
                   << "SP:"    << std::setw(4) << (int) sp << " "
                   << "PC:"    << std::setw(4) << (int) pc << " "
-                  << "PCMEM:" << w << (int) memory[pc] << "," << w << (int) memory[pc + 1] << "," << w << (int) memory[pc + 2] << "," << w << (int) memory[pc + 3];
+                  << "PCMEM:" << w << (int) memory.read(pc) << "," << w << (int) memory.read(pc + 1) << "," << w << (int) memory.read(pc + 2) << "," << w << (int) memory.read(pc + 3);
 
     return s.str();
 }
@@ -554,23 +558,23 @@ std::string Cpu::getAsm()
     s << std::hex;
     bool cb = false;
  
-    switch (memory[pc]) {
+    switch (memory.read(pc)) {
         case 0x00: {s << "nop"; break;} case 0x01: {s << "ld bc, " << memory(pc + 1); break;} case 0x02: {s << "ld (bc), a"; break;} case 0x03: {s << "inc bc"; break;}
-        case 0x04: {s << "inc b"; break;} case 0x05: {s << "dec b"; break;} case 0x06: {s << "ld b, " << (int) memory[pc + 1]; break;} case 0x07: {s << "rlca"; break;}
+        case 0x04: {s << "inc b"; break;} case 0x05: {s << "dec b"; break;} case 0x06: {s << "ld b, " << (int) memory.read(pc + 1); break;} case 0x07: {s << "rlca"; break;}
         case 0x08: {s << "(" << memory(pc + 1) << "), sp"; break;} case 0x09: {s << "add hl, bc"; break;} case 0x0a: {s << "ld a, (bc)"; break;} case 0x0b: {s << "dec bc"; break;}
-        case 0x0c: {s << "inc c"; break;} case 0x0d: {s << "dec c"; break;} case 0x0e: {s << "ld c, " << (int) memory[pc + 1]; break;} case 0x0f: {s << "rrca"; break;}
+        case 0x0c: {s << "inc c"; break;} case 0x0d: {s << "dec c"; break;} case 0x0e: {s << "ld c, " << (int) memory.read(pc + 1); break;} case 0x0f: {s << "rrca"; break;}
         case 0x10: {s << "stop"; break;} case 0x11: {s << "ld de, " << memory(pc + 1); break;} case 0x12: {s << "ld (de), a"; break;} case 0x13: {s << "inc de"; break;}
-        case 0x14: {s << "inc d"; break;} case 0x15: {s << "dec d"; break;} case 0x16: {s << "ld d, " << (int) memory[pc + 1]; break;} case 0x17: {s << "rla"; break;}
-        case 0x18: {s << "jr " << (int) memory[pc + 1]; break;} case 0x19: {s << "add hl, de"; break;} case 0x1a: {s << "ld a, (de)"; break;} case 0x1b: {s << "dec de"; break;}
-        case 0x1c: {s << "inc e"; break;} case 0x1d: {s << "dec e"; break;} case 0x1e: {s << "ld e, " << (int) memory[pc + 1]; break;} case 0x1f: {s << "rra"; break;}
-        case 0x20: {s << "jr nz, " << (int) memory[pc + 1]; break;} case 0x21: {s << "ld hl, " << memory(pc + 1); break;} case 0x22: {s << "ld (hl+), a"; break;} case 0x23: {s << "inc hl"; break;}
-        case 0x24: {s << "inc h"; break;} case 0x25: {s << "dec h"; break;} case 0x26: {s << "ld h, " << (int) memory[pc + 1]; break;} case 0x27: {s << "daa"; break;}
-        case 0x28: {s << "jr z, " << (int) memory[pc + 1]; break;} case 0x29: {s << "add hl, hl"; break;} case 0x2a: {s << "ld a, (hl+)"; break;} case 0x2b: {s << "dec hl"; break;}
-        case 0x2c: {s << "inc l"; break;} case 0x2d: {s << "dec l"; break;} case 0x2e: {s << "ld l, " << (int) memory[pc + 1]; break;} case 0x2f: {s << "cpl"; break;}
-        case 0x30: {s << "jr nc, " << (int) memory[pc + 1]; break;} case 0x31: {s << "ld sp, " << memory(pc + 1); break;} case 0x32: {s << "ld (hl-), a"; break;} case 0x33: {s << "inc sp"; break;}
-        case 0x34: {s << "inc (hl)"; break;} case 0x35: {s << "dec (hl)"; break;} case 0x36: {s << "ld (hl), " << (int) memory[pc + 1]; break;} case 0x37: {s << "scf"; break;}
-        case 0x38: {s << "jr c, " << (int) memory[pc + 1]; break;} case 0x39: {s << "add hl, sp"; break;} case 0x3a: {s << "ld a, (hl-)"; break;} case 0x3b: {s << "dec sp"; break;}
-        case 0x3c: {s << "inc a"; break;} case 0x3d: {s << "dec a"; break;} case 0x3e: {s << "ld a, " << (int) memory[pc + 1]; break;} case 0x3f: {s << "ccf"; break;}
+        case 0x14: {s << "inc d"; break;} case 0x15: {s << "dec d"; break;} case 0x16: {s << "ld d, " << (int) memory.read(pc + 1); break;} case 0x17: {s << "rla"; break;}
+        case 0x18: {s << "jr " << (int) memory.read(pc + 1); break;} case 0x19: {s << "add hl, de"; break;} case 0x1a: {s << "ld a, (de)"; break;} case 0x1b: {s << "dec de"; break;}
+        case 0x1c: {s << "inc e"; break;} case 0x1d: {s << "dec e"; break;} case 0x1e: {s << "ld e, " << (int) memory.read(pc + 1); break;} case 0x1f: {s << "rra"; break;}
+        case 0x20: {s << "jr nz, " << (int) memory.read(pc + 1); break;} case 0x21: {s << "ld hl, " << memory(pc + 1); break;} case 0x22: {s << "ld (hl+), a"; break;} case 0x23: {s << "inc hl"; break;}
+        case 0x24: {s << "inc h"; break;} case 0x25: {s << "dec h"; break;} case 0x26: {s << "ld h, " << (int) memory.read(pc + 1); break;} case 0x27: {s << "daa"; break;}
+        case 0x28: {s << "jr z, " << (int) memory.read(pc + 1); break;} case 0x29: {s << "add hl, hl"; break;} case 0x2a: {s << "ld a, (hl+)"; break;} case 0x2b: {s << "dec hl"; break;}
+        case 0x2c: {s << "inc l"; break;} case 0x2d: {s << "dec l"; break;} case 0x2e: {s << "ld l, " << (int) memory.read(pc + 1); break;} case 0x2f: {s << "cpl"; break;}
+        case 0x30: {s << "jr nc, " << (int) memory.read(pc + 1); break;} case 0x31: {s << "ld sp, " << memory(pc + 1); break;} case 0x32: {s << "ld (hl-), a"; break;} case 0x33: {s << "inc sp"; break;}
+        case 0x34: {s << "inc (hl)"; break;} case 0x35: {s << "dec (hl)"; break;} case 0x36: {s << "ld (hl), " << (int) memory.read(pc + 1); break;} case 0x37: {s << "scf"; break;}
+        case 0x38: {s << "jr c, " << (int) memory.read(pc + 1); break;} case 0x39: {s << "add hl, sp"; break;} case 0x3a: {s << "ld a, (hl-)"; break;} case 0x3b: {s << "dec sp"; break;}
+        case 0x3c: {s << "inc a"; break;} case 0x3d: {s << "dec a"; break;} case 0x3e: {s << "ld a, " << (int) memory.read(pc + 1); break;} case 0x3f: {s << "ccf"; break;}
         case 0x40: {s << "ld b, b"; break;} case 0x41: {s << "ld b, c"; break;} case 0x42: {s << "ld b, d"; break;} case 0x43: {s << "ld b, e"; break;}
         case 0x44: {s << "ld b, h"; break;} case 0x45: {s << "ld b, l"; break;} case 0x46: {s << "ld b, (hl)"; break;} case 0x47: {s << "ld b, a"; break;}
         case 0x48: {s << "ld c, b"; break;} case 0x49: {s << "ld c, c"; break;} case 0x4a: {s << "ld c, d"; break;} case 0x4b: {s << "ld c, e"; break;}
@@ -604,27 +608,27 @@ std::string Cpu::getAsm()
         case 0xb8: {s << "cp b"; break;} case 0xb9: {s << "cp c"; break;} case 0xba: {s << "cp d"; break;} case 0xbb: {s << "cp e"; break;}
         case 0xbc: {s << "cp h"; break;} case 0xbd: {s << "cp l"; break;} case 0xbe: {s << "cp (hl)"; break;} case 0xbf: {s << "cp a"; break;}
         case 0xc0: {s << "ret nz"; break;} case 0xc1: {s << "pop bc"; break;} case 0xc2: {s << "jp nz, " << memory(pc + 1); break;} case 0xc3: {s << "jp " << memory(pc + 1); break;}
-        case 0xc4: {s << "call nz, " << memory(pc + 1); break;} case 0xc5: {s << "push bc"; break;} case 0xc6: {s << "add a, " << (int) memory[pc + 1]; break;} case 0xc7: {s << "rst 0"; break;}
+        case 0xc4: {s << "call nz, " << memory(pc + 1); break;} case 0xc5: {s << "push bc"; break;} case 0xc6: {s << "add a, " << (int) memory.read(pc + 1); break;} case 0xc7: {s << "rst 0"; break;}
         case 0xc8: {s << "ret z"; break;} case 0xc9: {s << "ret"; break;} case 0xca: {s << "jp z, " << memory(pc + 1); break;} case 0xcb: {cb = true; break;}
-        case 0xcc: {s << "call z, " << memory(pc + 1); break;} case 0xcd: {s << "call " << memory(pc + 1); break;} case 0xce: {s << "adc a, " << (int) memory[pc + 1]; break;} case 0xcf: {s << "rst 8"; break;}
+        case 0xcc: {s << "call z, " << memory(pc + 1); break;} case 0xcd: {s << "call " << memory(pc + 1); break;} case 0xce: {s << "adc a, " << (int) memory.read(pc + 1); break;} case 0xcf: {s << "rst 8"; break;}
         case 0xd0: {s << "ret nc"; break;} case 0xd1: {s << "pop de"; break;} case 0xd2: {s << "jp nc, " << memory(pc + 1); break;} case 0xd3: {s << "problem"; break;}
-        case 0xd4: {s << "call nc, " << memory(pc + 1); break;} case 0xd5: {s << "push de"; break;} case 0xd6: {s << "sub " << (int) memory[pc + 1]; break;} case 0xd7: {s << "rst 10"; break;}
+        case 0xd4: {s << "call nc, " << memory(pc + 1); break;} case 0xd5: {s << "push de"; break;} case 0xd6: {s << "sub " << (int) memory.read(pc + 1); break;} case 0xd7: {s << "rst 10"; break;}
         case 0xd8: {s << "ret c"; break;} case 0xd9: {s << "reti"; break;} case 0xda: {s << "jp c, " << memory(pc + 1); break;} case 0xdb: {s << "problem"; break;}
-        case 0xdc: {s << "call c, " << memory(pc + 1); break;} case 0xdd: {s << "problem"; break;} case 0xde: {s << "sbc a, " << (int) memory[pc + 1]; break;} case 0xdf: {s << "rst 18"; break;}
-        case 0xe0: {s << "ld (" << 0xff00 + (int) memory[pc + 1] << "), a"; break;} case 0xe1: {s << "pop hl"; break;} case 0xe2: {s << "ld (ff00 + c), a"; break;} case 0xe3: {s << "problem"; break;}
-        case 0xe4: {s << "problem"; break;} case 0xe5: {s << "push hl"; break;} case 0xe6: {s << "and " << (int) memory[pc + 1]; break;} case 0xe7: {s << "rst 20"; break;}
-        case 0xe8: {s << "add sp, " << (int) memory[pc + 1]; break;} case 0xe9: {s << "jp hl"; break;} case 0xea: {s << "ld (" <<memory(pc + 1) << "), a"; break;} case 0xeb: {s << "problem"; break;}
-        case 0xec: {s << "problem"; break;} case 0xed: {s << "problem"; break;} case 0xee: {s << "xor " << (int) memory[pc + 1]; break;} case 0xef: {s << "rst 28"; break;}
-        case 0xf0: {s << "ld a, (" << 0xff00 + (int) memory[pc + 1] << ")"; break;} case 0xf1: {s << "pop af"; break;} case 0xf2: {s << "ld a, (c)"; break;} case 0xf3: {s << "di"; break;}
-        case 0xf4: {s << "problem"; break;} case 0xf5: {s << "push af"; break;} case 0xf6: {s << "or " << (int) memory[pc + 1]; break;} case 0xf7: {s << "rst 30"; break;}
-        case 0xf8: {s << "ld hl, sp+" << (int)memory[pc + 1]; break;} case 0xf9: {s << "ld sp, hl"; break;} case 0xfa: {s << "ld a, (" << memory(pc + 1) << ")"; break;} case 0xfb: {s << "ei"; break;}
-        case 0xfc: {s << "problem"; break;} case 0xfd: {s << "problem"; break;} case 0xfe: {s << "cp " << (int) memory[pc + 1]; break;} case 0xff: {s << "rst 38"; break;}
+        case 0xdc: {s << "call c, " << memory(pc + 1); break;} case 0xdd: {s << "problem"; break;} case 0xde: {s << "sbc a, " << (int) memory.read(pc + 1); break;} case 0xdf: {s << "rst 18"; break;}
+        case 0xe0: {s << "ld (" << 0xff00 + (int) memory.read(pc + 1) << "), a"; break;} case 0xe1: {s << "pop hl"; break;} case 0xe2: {s << "ld (ff00 + c), a"; break;} case 0xe3: {s << "problem"; break;}
+        case 0xe4: {s << "problem"; break;} case 0xe5: {s << "push hl"; break;} case 0xe6: {s << "and " << (int) memory.read(pc + 1); break;} case 0xe7: {s << "rst 20"; break;}
+        case 0xe8: {s << "add sp, " << (int) memory.read(pc + 1); break;} case 0xe9: {s << "jp hl"; break;} case 0xea: {s << "ld (" <<memory(pc + 1) << "), a"; break;} case 0xeb: {s << "problem"; break;}
+        case 0xec: {s << "problem"; break;} case 0xed: {s << "problem"; break;} case 0xee: {s << "xor " << (int) memory.read(pc + 1); break;} case 0xef: {s << "rst 28"; break;}
+        case 0xf0: {s << "ld a, (" << 0xff00 + (int) memory.read(pc + 1) << ")"; break;} case 0xf1: {s << "pop af"; break;} case 0xf2: {s << "ld a, (c)"; break;} case 0xf3: {s << "di"; break;}
+        case 0xf4: {s << "problem"; break;} case 0xf5: {s << "push af"; break;} case 0xf6: {s << "or " << (int) memory.read(pc + 1); break;} case 0xf7: {s << "rst 30"; break;}
+        case 0xf8: {s << "ld hl, sp+" << (int)memory.read(pc + 1); break;} case 0xf9: {s << "ld sp, hl"; break;} case 0xfa: {s << "ld a, (" << memory(pc + 1) << ")"; break;} case 0xfb: {s << "ei"; break;}
+        case 0xfc: {s << "problem"; break;} case 0xfd: {s << "problem"; break;} case 0xfe: {s << "cp " << (int) memory.read(pc + 1); break;} case 0xff: {s << "rst 38"; break;}
     }
 
     if (!cb) 
         return s.str();
 
-    switch (memory[pc + 1]) {
+    switch (memory.read(pc + 1)) {
         case 0x00: {return "rlc b";} case 0x01: {return "rlc c";} case 0x02: {return "rlc d";} case 0x03: {return "rlc e";}
         case 0x04: {return "rlc h";} case 0x05: {return "rlc l";} case 0x06: {return "rlc (hl)";} case 0x07: {return "rlc a";}
         case 0x08: {return "rrc b";} case 0x09: {return "rrc c";} case 0x0a: {return "rrc d";} case 0x0b: {return "rrc e";}

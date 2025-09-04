@@ -21,11 +21,25 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     controller(controller), 
     ppu(ppu),
     screen(screen),
-    apu(apu)
+    apu(apu),
+    bootRomMapping(memory.buildIn(Memory::BOOT_ROM_MAPPING)),
+    divider(memory.buildIn(Memory::DIVIDER_REGISTER)),
+    timerControl(memory.buildIn(Memory::TIMER_CONTROL)),
+    timerCounter(memory.buildIn(Memory::TIMER_COUNTER)),
+    timerModulo(memory.buildIn(Memory::TIMER_MODULO)),
+    interruptFlag(memory.buildIn(Memory::INTERRUPT_FLAG)),
+    lcdStat(memory.buildIn(Memory::LCD_STAT)),
+    lcdY(memory.buildIn(Memory::LCD_Y)),
+    lcdCmp(memory.buildIn(Memory::LY_COMPARE)),
+    nr10(memory.buildIn(Memory::NR10)),
+    nr12(memory.buildIn(Memory::NR12)),
+    nr22(memory.buildIn(Memory::NR22)),
+    nr42(memory.buildIn(Memory::NR42)),
+    nr43(memory.buildIn(Memory::NR43))
 { 
-    last_div = memory[Memory::DIVIDER_REGISTER];
+    last_div = memory.read(Memory::DIVIDER_REGISTER);
 
-    last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
+    last_boot_rom = memory.read(Memory::BOOT_ROM_MAPPING);
 
     push(0, CPU_EXEC);
     push(0, UPDATE_DIV);
@@ -299,10 +313,10 @@ bool Scheduler::pop()
             pCpu->executeNext();
 
             // std::cout << pCpu->toString() << " ";
-            if ((last_boot_rom != memory[Memory::BOOT_ROM_MAPPING]) && 
-                    (memory[Memory::BOOT_ROM_MAPPING] == 1))
+            if ((last_boot_rom != bootRomMapping) && 
+                    (bootRomMapping == 1))
             {
-                last_boot_rom = memory[Memory::BOOT_ROM_MAPPING];
+                last_boot_rom = bootRomMapping;
                 go_next = false;
             }
 
@@ -310,7 +324,6 @@ bool Scheduler::pop()
         }
         case UPDATE_DIV: 
         {
-            byte& divider = memory[Memory::DIVIDER_REGISTER];
             push((unsigned short) 256, UPDATE_DIV);
             if (divider == last_div) 
             {
@@ -322,69 +335,65 @@ bool Scheduler::pop()
         } 
         case UPDATE_TIMA: 
         {
-            short val = TIMA_PERIODS[memory[Memory::TIMER_CONTROL] & 0b0011];
+            short val = TIMA_PERIODS[timerControl & 0b0011];
             push(val, UPDATE_TIMA);
-            if (memory[Memory::TIMER_CONTROL] & 0b0100)
+            if (timerControl & 0b0100)
             {
-                byte& tima = ++memory[Memory::TIMER_COUNTER];
-                if (!tima) 
+                ++timerCounter;
+                if (!timerCounter) 
                 {
-                    tima = memory[Memory::TIMER_MODULO];
-                    memory[Memory::INTERRUPT_FLAG] |= 0b0100;
+                    timerCounter = timerModulo;
+                    interruptFlag |= 0b0100;
                 }
             }
             break;
         }
         case VBLANK_START: 
         { 
-            memory[Memory::INTERRUPT_FLAG] |= 0b0001; 
+            interruptFlag |= 0b0001; 
             screen.updateFrame();
             ppu.resetWindowY();
-            ++memory[Memory::LCD_Y];
+            ++lcdY;
 
             push(456 * Ppu::TIME_UNIT, VBLANK);
  
-            byte& lcd_stat = memory[Memory::LCD_STAT];
-            lcd_stat = (lcd_stat & 0b11111100) + 0b01;
+            lcdStat = (lcdStat & 0b11111100) + 0b01;
             statInterruptCheck();
 
             break;
         }
         case VBLANK: 
         {
-            byte& lcd_y = memory[Memory::LCD_Y];
-            if (++lcd_y < 154) 
+            if (++lcdY < 154) 
             {
                 push(456 * Ppu::TIME_UNIT, VBLANK);
                 break;
             }
-            lcd_y = 0;
+            lcdY = 0;
             push(456 * Ppu::TIME_UNIT, OAM_SCAN);
             break;
         }
         case LYC_LY_CMP: 
         { 
-            byte ly = memory[Memory::LCD_Y];
             push(4, LYC_LY_CMP);
-            if (ly == memory[Memory::LY_COMPARE]) 
+            if (lcdY == lcdCmp) 
             {
-                if (last_ly != ly) 
+                if (last_ly != lcdY) 
                 {
-                    memory[Memory::LCD_STAT] |= 0b0100;
+                    lcdStat |= 0b0100;
                     statInterruptCheck();
                     break;
                 }
-                last_ly = ly;
+                last_ly = lcdY;
             }
-            memory[Memory::LCD_STAT] &= 0b11111011;
+            lcdStat &= 0b11111011;
             break;
         }
         case OAM_SCAN: 
         { 
             ppu.oamScan();
 
-            byte& lcd_stat = memory[Memory::LCD_STAT];
-            lcd_stat = (lcd_stat & 0b11111100) + 0b10;
+            lcdStat = (lcdStat & 0b11111100) + 0b10;
             statInterruptCheck();
 
             push(80 * Ppu::TIME_UNIT, DRAW_PIXELS);
@@ -394,10 +403,9 @@ bool Scheduler::pop()
         {
             ppu.drawLine();
             push(172 * Ppu::TIME_UNIT, HBLANK);
-            ++memory[Memory::LCD_Y];
+            ++lcdY;
 
-            byte& lcd_stat = memory[Memory::LCD_STAT];
-            lcd_stat = (lcd_stat & 0b11111100) + 0b11;
+            lcdStat = (lcdStat & 0b11111100) + 0b11;
             statInterruptCheck();
 
             break;
@@ -406,11 +414,10 @@ bool Scheduler::pop()
         {
             ppu.hBlank();
             
-            byte& lcd_stat = memory[Memory::LCD_STAT];
-            lcd_stat = (lcd_stat & 0b11111100) + 0b00;
+            lcdStat = (lcdStat & 0b11111100) + 0b00;
             statInterruptCheck();
 
-            if (memory[Memory::LCD_Y] < 143) 
+            if (lcdY < 143) 
             {
                 push(87 * Ppu::TIME_UNIT, OAM_SCAN);
                 break;
@@ -471,14 +478,14 @@ bool Scheduler::pop()
         {
             if (apu.ch1Sweep())
             {
-                u8 pace = (memory[Memory::NR10] >> 4) & 0b0111;
+                u8 pace = (nr10 >> 4) & 0b0111;
                 push(pace * MASTER_CLOCK_FREQUENCY / CH1_SWEEP_FREQUENCY, CH1_SWEEP);
             }
             break;
         }
         case CH1_ENVELOPE:
         { 
-            u8 pace = memory[Memory::NR12] & 0b0111;
+            u8 pace = nr12 & 0b0111;
             if (apu.envelope(Ch1) && pace)
                 push(pace * MASTER_CLOCK_FREQUENCY / ENVELOPE_FREQUENCY, CH1_ENVELOPE);
 
@@ -492,7 +499,7 @@ bool Scheduler::pop()
         }
         case CH2_ENVELOPE:
         { 
-            u8 pace = memory[Memory::NR22] & 0b0111;
+            u8 pace = nr22 & 0b0111;
             if (apu.envelope(Ch2) && pace)
                 push(pace * MASTER_CLOCK_FREQUENCY / ENVELOPE_FREQUENCY, CH2_ENVELOPE);
 
@@ -514,8 +521,6 @@ bool Scheduler::pop()
         {
             apu.ch4Shift();
 
-            byte nr43 = memory[Memory::NR43];
-
             float divider = nr43 & 0b0111;
             if (!divider)
                 divider = 0.5;
@@ -527,7 +532,7 @@ bool Scheduler::pop()
         }
         case CH4_ENVELOPE:
         {
-            u8 pace = memory[Memory::NR42] & 0b0111;
+            u8 pace = nr42 & 0b0111;
             if (apu.envelope(Ch4) && pace)
                 push(pace * MASTER_CLOCK_FREQUENCY / ENVELOPE_FREQUENCY, CH4_ENVELOPE);
 
@@ -616,7 +621,7 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at)
             {
                 word addr;
                 std::cin >> std::hex >> addr; 
-                std::cout << std::hex << (int) memory[addr] << std::endl;
+                std::cout << std::hex << (int) memory.read(addr) << std::endl;
                 done = false;
                 break; 
             }
@@ -679,7 +684,7 @@ void Scheduler::debugRun()
                 (
                     (stop_at == -1)                             || 
                     (!mode && (stop_at == pCpu->getPC()))        || 
-                    (mode && (stop_at == memory[pCpu->getPC()]))
+                    (mode && (stop_at == memory.read(pCpu->getPC())))
                 )
             )
             {
@@ -701,13 +706,12 @@ void Scheduler::stop() {}
 void Scheduler::statInterruptCheck() 
 {
     bool tmp = statInterruptLine;
-    byte& lcd_stat = memory[Memory::LCD_STAT];
-    u8 ppuMode = lcd_stat & 0b0011;
-    statInterruptLine = ((lcd_stat & 0b01000000) && (lcd_stat & 0b0100))            || 
-                        ((ppuMode != 3) && (lcd_stat & (0b00001000 << ppuMode)));
+    u8 ppuMode = lcdStat & 0b0011;
+    statInterruptLine = ((lcdStat & 0b01000000) && (lcdStat & 0b0100))            || 
+                        ((ppuMode != 3) && (lcdStat & (0b00001000 << ppuMode)));
 
     if (tmp < statInterruptLine) 
-        memory[Memory::INTERRUPT_FLAG] |= 0b0010;
+        interruptFlag |= 0b0010;
 }
 
 void Scheduler::tick() 

@@ -2,7 +2,6 @@
 #include "cartridge.h"
 #include "mbc.h"
 #include "mem.h"
-#include <cstring>
 #include <memory>
 
 void Mbc1::init(std::shared_ptr<Cartridge> p_cartridge) 
@@ -55,3 +54,4 @@ void Mbc1::changedBankNo()
 
     secondBankOffs = new_bank_selector * 0x4000;
 }
+

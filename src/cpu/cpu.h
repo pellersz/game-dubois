@@ -54,6 +54,9 @@ protected:
     Scheduler& scheduler;
     Apu& apu;
 
+    byte& interruptEnable;
+    byte& interruptFlag;
+
     word getAF();
     word getBC();
     word getDE();
@@ -83,6 +86,7 @@ protected:
     // load
     void opLd(byte&, byte);
     void opLd(word&, word);
+    void opLd(word, byte);
     void opLd(byte&, byte&, word);
 
     // arithmetic
@@ -96,9 +100,11 @@ protected:
     void opInc(byte&);
     void opInc(word&);
     void opInc(byte&, byte&);
+    void opIncMemory(unsigned short);
     void opDec(byte&);
     void opDec(word&);
     void opDec(byte&, byte&);
+    void opDecMemory(unsigned short);
 
     // logic
     void opAnd(byte);
@@ -110,21 +116,31 @@ protected:
     // the first byte of these should be a number between 0-7
     void opBit(byte, byte);
     void opRes(byte, byte&);
+    void opRes(byte, unsigned short);
     void opSet(byte, byte&);
+    void opSet(byte, unsigned short);
 
     // bitshift
     void opRl(byte&);
+    void opRl(unsigned short);
     void opRla();
     void opRlc(byte&);
+    void opRlc(unsigned short);
     void opRlca();
     void opRr(byte&);
+    void opRr(unsigned short);
     void opRra();
     void opRrc(byte&);
+    void opRrc(unsigned short);
     void opRrca();
     void opSla(byte&);
+    void opSla(unsigned short);
     void opSra(byte&);
+    void opSra(unsigned short);
     void opSrl(byte&);
+    void opSrl(unsigned short);
     void opSwap(byte&);
+    void opSwap(unsigned short);
 
     // jump and subroutine
     void opCall(word);

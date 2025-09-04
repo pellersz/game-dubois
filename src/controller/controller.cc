@@ -10,15 +10,18 @@ void Controller::buttonReleased(byte button) { pressedVector |= button; }
 
 void Controller::updatePressed() 
 {
-    byte& joypad = memory[Memory::JOYPAD];
+    byte joypad = memory.read(Memory::JOYPAD);
     byte tmp = joypad;
 
+    byte new_val;
     if (~joypad & 0b00100000) 
-        joypad = (joypad & 0b11110000) + (pressedVector & 0b00001111);
+        new_val = (joypad & 0b11110000) + (pressedVector & 0b00001111);
     else
-        joypad = (joypad & 0b11110000) + (pressedVector >> 4);
+        new_val = (joypad & 0b11110000) + (pressedVector >> 4);
 
-    if (joypad < tmp)
-        memory[Memory::INTERRUPT_FLAG] |= 0b00010000;       
+    memory.write(Memory::JOYPAD, new_val);
+
+    if (new_val < tmp)
+        memory.write(Memory::INTERRUPT_FLAG, memory.read(Memory::INTERRUPT_FLAG) | 0b00010000);       
 }
 

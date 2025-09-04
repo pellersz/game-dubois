@@ -1,8 +1,8 @@
 #ifndef CARTRIDGE_H
 #define CARTRIDGE_H
 
-#include "mbc.h"
 #include "mem.h"
+#include "mbc.h"
 #include "types.h"
 #include <string>
 
@@ -19,15 +19,18 @@ public:
     int getRamSize();
 
     byte readBank(unsigned short);
+    byte* getBankPointer(unsigned short);
     byte readBankN(unsigned short);
+    byte* getBankNPointer(unsigned short);
     byte readRam(unsigned short);
+    byte* getRamPointer(unsigned short);
     void writeToRegister(unsigned short, byte);
     void writeToRam(unsigned short, byte);
 
 private: 
-    Mbc mbc;
     int romSize;
     int ramSize;
+    Mbc mbc;
 
     long getFileSize(std::string); 
 };

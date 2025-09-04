@@ -57,6 +57,28 @@ private:
     Speaker& speaker;
     Channels channels;
 
+    byte& nr52;
+    byte& nr51;
+    byte& nr50; 
+    byte& nr10;
+    byte& nr11; 
+    byte& nr12;
+    byte& nr13;
+    byte& nr14;
+    byte& nr21; 
+    byte& nr22;
+    byte& nr23;
+    byte& nr24;
+    byte& nr30;
+    byte& nr31; 
+    byte& nr32;
+    byte& nr33;
+    byte& nr34;
+    byte& nr41; 
+    byte& nr42;
+    byte& nr43;
+    byte& nr44;
+
     bool on;
     float leftVolume   = 0.25;
     float rightVolume  = 0.25;

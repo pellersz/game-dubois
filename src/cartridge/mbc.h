@@ -2,6 +2,7 @@
 #define MBC_H
 
 #include "mem.h"
+#include "types.h"
 #include <memory>
 
 class Cartridge;
