@@ -36,6 +36,14 @@ private:
     Memory& memory;
     Screen& screen;
 
+    byte& lcdc;
+    byte& lcdY;
+    byte& bgPalData;
+    byte& viewX;
+    byte& viewY;
+    byte& winX;
+    byte& winY;
+
     class ObjectLine 
     {
     public:

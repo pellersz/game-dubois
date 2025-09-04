@@ -3,13 +3,13 @@
 
 #include "apu.h"
 #include "types.h"
-#include "mem.h"
 #include <string>
 
 // used to populate arrays in a compact manner
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
 
 class Scheduler;
+class Memory;
 
 class Cpu 
 {

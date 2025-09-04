@@ -38,6 +38,7 @@ target_link_directories(
     PRIVATE src/cpu
     PRIVATE src/mem
     PRIVATE src/scheduler
+    PRIVATE std/controller
     PRIVATE src/cartridge
     PRIVATE src/screen
     PRIVATE src/apu

@@ -2,8 +2,9 @@
 #define APU_H 
 
 #include "channels.h"
-#include "mem.h"
 #include "speaker.h"
+
+class Memory;
 
 class Apu 
 {

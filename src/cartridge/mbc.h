@@ -1,11 +1,11 @@
 #ifndef MBC_H 
 #define MBC_H
 
-#include "mem.h"
 #include "types.h"
 #include <memory>
 
 class Cartridge;
+class Memory;
 
 class Mbc 
 {

@@ -8,6 +8,8 @@ target_include_directories(
     PRIVATE ../cartridge
     PRIVATE ../scheduler
     PRIVATE ../controller
+    PRIVATE ../cpu
     PRIVATE ../apu
+    PRIVATE ../../external/miniaudio
 )
 

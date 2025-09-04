@@ -3,13 +3,15 @@
 
 #include "controller.h"
 #include "cpu.h"
-#include "mem.h"
+#include <memory>
 #include <queue>
-#include "ppu.h"
-#include "screen.h"
 #include "apu.h"
 #include <unistd.h>
 #include <chrono>
+
+class Memory;
+class Ppu;
+class Screen;
 
 enum Process 
 {
@@ -58,8 +60,6 @@ public:
     void remove(Process);
     void replace(Process, unsigned short);
 
-    void writtenToMemory(unsigned short, byte);
-    
     void run();
     void debugRun();
     void stop();

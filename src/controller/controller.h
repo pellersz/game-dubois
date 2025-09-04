@@ -1,8 +1,9 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include "mem.h"
 #include "types.h"
+
+class Memory;
 
 class Controller 
 {

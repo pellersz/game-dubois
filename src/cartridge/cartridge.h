@@ -1,10 +1,11 @@
 #ifndef CARTRIDGE_H
 #define CARTRIDGE_H
 
-#include "mem.h"
 #include "mbc.h"
 #include "types.h"
 #include <string>
+
+class Memory;
 
 class Cartridge 
 {
