@@ -2,5 +2,5 @@
 #include "cartridge.h"
 #include <iostream>
 
-void Mbc::init(std::shared_ptr<Cartridge> p_cartridge) { this->p_cartridge = p_cartridge; }
+void Mbc::init(std::shared_ptr<Cartridge> p_cartridge) { this->pCartridge = p_cartridge; }
 

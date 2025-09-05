@@ -9,7 +9,8 @@ class Memory;
 
 class Cartridge 
 {
-public: 
+public:
+    // TODO: at this point have this as a private
     int size;
     byte *data;
 
@@ -20,18 +21,18 @@ public:
     int getRamSize();
 
     byte readBank(unsigned short);
-    byte* getBankPointer(unsigned short);
+    byte *getBankPointer(unsigned short);
     byte readBankN(unsigned short);
-    byte* getBankNPointer(unsigned short);
+    byte *getBankNPointer(unsigned short);
     byte readRam(unsigned short);
-    byte* getRamPointer(unsigned short);
+    byte *getRamPointer(unsigned short);
     void writeToRegister(unsigned short, byte);
     void writeToRam(unsigned short, byte);
 
 private: 
     int romSize;
     int ramSize = 0;
-    Mbc mbc;
+    Mbc *mbc;
 
     long getFileSize(std::string); 
 };

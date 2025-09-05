@@ -19,7 +19,7 @@ public:
     virtual void writeToRegister(unsigned short, byte) {}
 
 protected:
-    std::shared_ptr<Cartridge> p_cartridge = nullptr;
+    std::shared_ptr<Cartridge> pCartridge = nullptr;
 };
 
 #endif 

@@ -31,11 +31,12 @@ Cartridge::Cartridge(std::string filename)
     fread(data, 1, size, file); 
 
     bool usesRam;
+
     switch (data[0x147])
     {
-        case 0: { mbc =  Mbc(); usesRam = false; break; }
-        case 1: { mbc = Mbc1(); usesRam = false; break; }
-        case 2: { mbc = Mbc1(); usesRam =  true; break; }
+        case 0: { mbc = new  Mbc(); usesRam = false; break; }
+        case 1: { mbc = new Mbc1(); usesRam = false; break; }
+        case 2: { mbc = new Mbc1(); usesRam =  true; break; }
         default: 
         { 
             std::cout << "cartridge type unimplemented or unrecognized" << std::endl;
@@ -84,10 +85,10 @@ Cartridge::Cartridge(std::string filename)
 
         ramSize *= 1024;
         if (ramSize)
-            mbc.ramOffs = romSize;
+            mbc->ramOffs = romSize;
     }
 
-    mbc.init(std::shared_ptr<Cartridge>(this));
+    mbc->init(std::shared_ptr<Cartridge>(this));
 }
 
 Cartridge::~Cartridge() { delete[] data; }
@@ -103,19 +104,19 @@ int Cartridge::getRomSize() { return romSize; }
 
 int Cartridge::getRamSize() { return ramSize; }
 
-byte Cartridge::readBank(unsigned short offs) { return data[mbc.firstBankOffs + offs]; }
+byte Cartridge::readBank(unsigned short offs) { return data[mbc->firstBankOffs + offs]; }
 
-byte* Cartridge::getBankPointer(unsigned short offs) { return data + mbc.firstBankOffs + offs; }
+byte* Cartridge::getBankPointer(unsigned short offs) { return data + mbc->firstBankOffs + offs; }
 
-byte Cartridge::readBankN(unsigned short offs) { return data[mbc.secondBankOffs + offs]; }
+byte Cartridge::readBankN(unsigned short offs) { return data[mbc->secondBankOffs + offs]; }
 
-byte* Cartridge::getBankNPointer(unsigned short offs) { return data + mbc.secondBankOffs + offs; }
+byte* Cartridge::getBankNPointer(unsigned short offs) { return data + mbc->secondBankOffs + offs; }
 
-byte Cartridge::readRam(unsigned short offs) { return data[mbc.ramOffs + offs]; }
+byte Cartridge::readRam(unsigned short offs) { return data[mbc->ramOffs + offs]; }
 
-byte* Cartridge::getRamPointer(unsigned short offs) { return (mbc.ramOffs != -1) ? data + mbc.ramOffs + offs : NULL; }
+byte* Cartridge::getRamPointer(unsigned short offs) { return (mbc->ramOffs != -1) ? data + mbc->ramOffs + offs : NULL; }
 
-void Cartridge::writeToRegister(unsigned short offs, byte val) { mbc.writeToRegister(offs, val); }
+void Cartridge::writeToRegister(unsigned short offs, byte val) { mbc->writeToRegister(offs, val); }
 
-void Cartridge::writeToRam(unsigned short offs, byte val) { if (mbc.ramOffs != -1) data[mbc.ramOffs + offs] = val; }
+void Cartridge::writeToRam(unsigned short offs, byte val) { if (mbc->ramOffs != -1) data[mbc->ramOffs + offs] = val; }
 

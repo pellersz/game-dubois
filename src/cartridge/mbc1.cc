@@ -5,14 +5,15 @@
 #include <iostream>
 #include <memory>
 
+// TODO: even more constants
 void Mbc1::init(std::shared_ptr<Cartridge> p_cartridge) 
 {
-    std::cout << "kll" << std::endl;
     Mbc::init(p_cartridge);
     moreThan512Kb = p_cartridge->getRomSize() > 512 * 1024;
-    bankNo = p_cartridge->size / 0x4000 + (bool) (p_cartridge->size % 0x4000); 
-    for (; !(secondaryMask & p_cartridge->size); secondaryMask >>= 1)
+    bankNo = p_cartridge->getRomSize() / 0x4000; 
+    for (; !(secondaryMask & ((p_cartridge->getRomSize() / 0x4000) - 1)); secondaryMask >>= 1)
         initialMask &= ~secondaryMask;
+    
     secondaryMask = ~secondaryMask;
 }
 
@@ -22,7 +23,7 @@ void Mbc1::writeToRegister(unsigned short addr, byte val)
         ramEnable = ((val & 0b1111) == 0xa);
     else if (addr < 0x4000) 
     {
-        u8 bankSelectorLow5 = val & 0b00011111;
+        bankSelectorLow5 = val & 0b00011111;
         
         if (!bankSelectorLow5)
             bankSelectorLow5 = 1;
@@ -35,12 +36,13 @@ void Mbc1::writeToRegister(unsigned short addr, byte val)
         if (moreThan512Kb)
             changedBankNo();
         else 
-            ramOffs = p_cartridge->getRomSize() + bankOrRamSelector * 8 * 1024;
+            ramOffs = pCartridge->getRomSize() + bankOrRamSelector * 8 * 1024;
     }
     else 
     {
         bankMode = val & 0b0001;
-        firstBankOffs = bankMode ? 0x4000 * (bankOrRamSelector << 7) : 0;
+        int new_first_bank_offs = 0x4000 * (bankOrRamSelector << 7);
+        firstBankOffs = (bankMode && new_first_bank_offs < pCartridge->getRomSize()) ? new_first_bank_offs : 0;
     }
 }
 
@@ -55,5 +57,6 @@ void Mbc1::changedBankNo()
         new_bank_selector &= secondaryMask;
 
     secondBankOffs = new_bank_selector * 0x4000;
+    //std::cout << "changed = " << secondBankOffs << std::endl;
 }
 
