@@ -30,7 +30,7 @@ public:
 
 private: 
     int romSize;
-    int ramSize;
+    int ramSize = 0;
     Mbc mbc;
 
     long getFileSize(std::string); 

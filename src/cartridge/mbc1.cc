@@ -2,10 +2,12 @@
 #include "cartridge.h"
 #include "mbc.h"
 #include "mem.h"
+#include <iostream>
 #include <memory>
 
 void Mbc1::init(std::shared_ptr<Cartridge> p_cartridge) 
 {
+    std::cout << "kll" << std::endl;
     Mbc::init(p_cartridge);
     moreThan512Kb = p_cartridge->getRomSize() > 512 * 1024;
     bankNo = p_cartridge->size / 0x4000 + (bool) (p_cartridge->size % 0x4000); 

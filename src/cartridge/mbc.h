@@ -10,9 +10,9 @@ class Memory;
 class Mbc 
 {
 public:
-    unsigned short firstBankOffs  = 0;
-    unsigned short secondBankOffs = 0x4000;
-    unsigned short ramOffs;
+    int firstBankOffs  = 0;
+    int secondBankOffs = 0x4000;
+    int ramOffs = -1;
 
     virtual void init(std::shared_ptr<Cartridge>);
 

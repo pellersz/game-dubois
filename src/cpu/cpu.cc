@@ -358,6 +358,7 @@ void Cpu::test(std::string filename)
 
     while (std::getline(file, str)) 
     {
+        std::cout << str << std::endl;
         if (state == -1) 
         {
             if (str.find("{") != std::variant_npos)
@@ -380,6 +381,7 @@ void Cpu::test(std::string filename)
                 for(int i = 0; i < addr_counter; ++i) 
                     s << std::hex << (int) memory.read(addrs[i]) << " ";
 
+                std::cout << toString() << std::endl;
                 executeNext();
                 ++pc;
                 state = -1;
@@ -400,7 +402,7 @@ void Cpu::test(std::string filename)
                     fucked = true;
     
                 for(int i = 0; i < addr_counter; i++)
-                    if(memory.read(addrs[i]) != central_dog_unit.memory.read(addrs[i]))
+                    if(*memory.getDataPointerToAddress(addrs[i]) != *central_dog_unit.memory.getDataPointerToAddress(addrs[i]))
                         fucked = true;
 
                 if (name == "    \"name\": \"88 55 51\"," || name == "    \"name\": \"88 fa cf\"," || name == "    \"name\": \"88 96 f8\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"f1 22 11\",")
@@ -465,7 +467,7 @@ void Cpu::test(std::string filename)
                     state = 1;
                 else 
                 {
-                    memory.write(val1, val2);
+                    *memory.getDataPointerToAddress(val1) = val2;
                     val1 = -1;
                     left_paren = false;
                 }
@@ -531,6 +533,20 @@ void Cpu::test(std::string filename)
     }
 }
 
+void Cpu::setAfterBootRomState()
+{
+    a = 0x01;
+    f = 0xb0;
+    b = 0x00;
+    c = 0x13;
+    d = 0x00;
+    e = 0xd8;
+    h = 0x01;
+    l = 0x4d;
+    sp = 0xfffe;
+    pc = 0x100;
+}
+
 std::string Cpu::toString() 
 {
     std::stringstream s;
@@ -538,7 +554,7 @@ std::string Cpu::toString()
 
     s << std::hex << std::setfill('0') << std::uppercase 
                   << "A:"     << w << (int) a << " "
-                  << "F:"     << w << (int) f << " "
+                  << "F:"     << w << (int) (f & 0b11110000) << " "
                   << "B:"     << w << (int) b << " "
                   << "C:"     << w << (int) c << " "
                   << "D:"     << w << (int) d << " "

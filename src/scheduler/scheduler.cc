@@ -37,8 +37,6 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     nr42(memory.buildIn(Memory::NR42)),
     nr43(memory.buildIn(Memory::NR43))
 { 
-    last_div = memory.read(Memory::DIVIDER_REGISTER);
-
     last_boot_rom = memory.read(Memory::BOOT_ROM_MAPPING);
 
     push(0, CPU_EXEC);
@@ -54,7 +52,7 @@ void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { pCpu = cpu_ptr; }
 
 void Scheduler::push(unsigned int duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
-// This is acceptable because there are only 6 events at a time
+// This is acceptable because there are not that many events at a time
 
 void Scheduler::remove(Process process) {
     std::priority_queue<
@@ -88,13 +86,12 @@ bool Scheduler::pop()
         case CPU_EXEC:
         {
             // since only the cpu cares about controller input, it only should update before it
-            // TODO: move this to the controller handling
+            // TODO: move this to the controller handling still
             controller.updatePressed();
             pCpu->executeNext();
 
             // std::cout << pCpu->toString() << " ";
-            if ((last_boot_rom != bootRomMapping) && 
-                    (bootRomMapping == 1))
+            if ((last_boot_rom != bootRomMapping) && (bootRomMapping == 1))
             {
                 last_boot_rom = bootRomMapping;
                 go_next = false;
@@ -105,18 +102,14 @@ bool Scheduler::pop()
         case UPDATE_DIV: 
         {
             push((unsigned short) 256, UPDATE_DIV);
-            if (divider == last_div) 
-            {
-                last_div = ++divider;
-                break;
-            }
-            last_div = (divider = 0);
+            ++divider;
+
             break;
         } 
         case UPDATE_TIMA: 
         {
-            short val = TIMA_PERIODS[timerControl & 0b0011];
-            push(val, UPDATE_TIMA);
+            short duration = TIMA_PERIODS[timerControl & 0b0011];
+            push(duration, UPDATE_TIMA);
             if (timerControl & 0b0100)
             {
                 ++timerCounter;
@@ -131,6 +124,7 @@ bool Scheduler::pop()
         case VBLANK_START: 
         { 
             interruptFlag |= 0b0001; 
+            // TODO: these sould be in one vblank() call
             screen.updateFrame();
             ppu.resetWindowY();
             ++lcdY;
@@ -173,7 +167,7 @@ bool Scheduler::pop()
         { 
             ppu.oamScan();
 
-            lcdStat = (lcdStat & 0b11111100) + 0b10;
+            lcdStat = (lcdStat & 0b11111100) | 0b10;
             statInterruptCheck();
 
             push(80 * Ppu::TIME_UNIT, DRAW_PIXELS);
@@ -185,7 +179,7 @@ bool Scheduler::pop()
             push(172 * Ppu::TIME_UNIT, HBLANK);
             ++lcdY;
 
-            lcdStat = (lcdStat & 0b11111100) + 0b11;
+            lcdStat = (lcdStat & 0b11111100) | 0b11;
             statInterruptCheck();
 
             break;
@@ -451,31 +445,31 @@ void Scheduler::debugRun()
     bool go_next = true;
     next_dot_time = system_clock::now() + WAITING_TIME;
 
-    //std::ofstream f("log");
-    //f << cpu->toString() << std::endl;
+    std::ofstream f("log");
+    //f << pCpu->toString() << std::endl;
 
     while (go_next && !glfwWindowShouldClose(screen.getWindow())) 
     {
         if (schedule.top().first <= time)
         {
-            if 
-            (
-                (schedule.top().second == CPU_EXEC) && 
+            if (schedule.top().second == CPU_EXEC)
+            {
+                if (pCpu->getPC() != 0x50)
+                    f << pCpu->toString() << std::endl;
+                if
                 (
-                    (stop_at == -1)                             || 
+                    (stop_at == -1)                              || 
                     (!mode && (stop_at == pCpu->getPC()))        || 
                     (mode && (stop_at == memory.read(pCpu->getPC())))
                 )
-            )
-            {
-                std::cout << pCpu->toString() << "\n" << pCpu->getAsm() << "\n" << std::endl;
-                handleDebugStop(mode, stop_at);
+                {
+                    std::cout << pCpu->toString() << "\n" << pCpu->getAsm() << "\n" << std::endl;
+                    handleDebugStop(mode, stop_at);
+                }
             }
             //if (!interrupt)
-            //    log << cpu->toString() << std::endl;
             go_next = pop();
-        }
-        else
+        } else
             tick();
     }
 }
@@ -497,9 +491,6 @@ void Scheduler::statInterruptCheck()
 void Scheduler::tick() 
 {
     // TODO: do something with the time
-    //while (next_dot_time > std::chrono::system_clock::now()) {std::cout << "b" << std::endl;};
-    //next_dot_time += WAITING_TIME;
-
     apu.tickPeriod(Ch1, 1);
     apu.tickPeriod(Ch2, 1);
     apu.tickPeriod(Ch3, 2);

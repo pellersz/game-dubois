@@ -36,6 +36,11 @@ Cartridge::Cartridge(std::string filename)
         case 0: { mbc =  Mbc(); usesRam = false; break; }
         case 1: { mbc = Mbc1(); usesRam = false; break; }
         case 2: { mbc = Mbc1(); usesRam =  true; break; }
+        default: 
+        { 
+            std::cout << "cartridge type unimplemented or unrecognized" << std::endl;
+            throw 3;
+        }
     }
 
     switch (data[0x148]) 
@@ -52,21 +57,37 @@ Cartridge::Cartridge(std::string filename)
         case 0x52: { romSize = (1024 + 128); break; }
         case 0x53: { romSize = (1024 + 256); break; }
         case 0x54: { romSize = (1024 + 512); break; }
+        default: 
+        {
+            std::cout << "rom size unrecognized" << std::endl;
+            throw 4;
+        }
     }
     romSize *= 1024;
 
-    switch (data[0x149])
+    if (usesRam)
     {
-        case 0: { ramSize =   0; break; }
-        case 1: { ramSize =   0; break; }
-        case 2: { ramSize =   8; break; }
-        case 3: { ramSize =  32; break; }
-        case 4: { ramSize = 128; break; }
-        case 5: { ramSize =  64; break; }
-    }
-    ramSize *= 1024;
+        switch (data[0x149])
+        {
+            case 0: { ramSize =   0; break; }
+            case 1: { ramSize =   0; break; }
+            case 2: { ramSize =   8; break; }
+            case 3: { ramSize =  32; break; }
+            case 4: { ramSize = 128; break; }
+            case 5: { ramSize =  64; break; }
+            default: 
+            {
+                std::cout << "ram size unrecognized" << std::endl;
+                throw 5;
+            }
+        }
 
-    mbc.init(std::make_shared<Cartridge>(*this));
+        ramSize *= 1024;
+        if (ramSize)
+            mbc.ramOffs = romSize;
+    }
+
+    mbc.init(std::shared_ptr<Cartridge>(this));
 }
 
 Cartridge::~Cartridge() { delete[] data; }
@@ -82,19 +103,19 @@ int Cartridge::getRomSize() { return romSize; }
 
 int Cartridge::getRamSize() { return ramSize; }
 
-byte Cartridge::readBank(unsigned short addr) { return data[mbc.firstBankOffs + addr]; }
+byte Cartridge::readBank(unsigned short offs) { return data[mbc.firstBankOffs + offs]; }
 
-byte* Cartridge::getBankPointer(unsigned short addr) { return data + mbc.firstBankOffs + addr; }
+byte* Cartridge::getBankPointer(unsigned short offs) { return data + mbc.firstBankOffs + offs; }
 
-byte Cartridge::readBankN(unsigned short addr) { return data[mbc.secondBankOffs + addr]; }
+byte Cartridge::readBankN(unsigned short offs) { return data[mbc.secondBankOffs + offs]; }
 
-byte* Cartridge::getBankNPointer(unsigned short addr) { return data + mbc.secondBankOffs + addr; }
+byte* Cartridge::getBankNPointer(unsigned short offs) { return data + mbc.secondBankOffs + offs; }
 
-byte Cartridge::readRam(unsigned short addr) { return data[mbc.ramOffs + addr]; }
+byte Cartridge::readRam(unsigned short offs) { return data[mbc.ramOffs + offs]; }
 
-byte* Cartridge::getRamPointer(unsigned short addr) { return data + mbc.ramOffs + addr; }
+byte* Cartridge::getRamPointer(unsigned short offs) { return (mbc.ramOffs != -1) ? data + mbc.ramOffs + offs : NULL; }
 
-void Cartridge::writeToRegister(unsigned short addr, byte val) { mbc.writeToRegister(addr, val); }
+void Cartridge::writeToRegister(unsigned short offs, byte val) { mbc.writeToRegister(offs, val); }
 
-void Cartridge::writeToRam(unsigned short addr, byte val) { data[mbc.ramOffs + addr] = val; }
+void Cartridge::writeToRam(unsigned short offs, byte val) { if (mbc.ramOffs != -1) data[mbc.ramOffs + offs] = val; }
 

@@ -24,6 +24,7 @@ public:
     void setPC(word);
 
     void test(std::string);
+    void setAfterBootRomState();
 
     std::string toString();
     std::string getAsm();

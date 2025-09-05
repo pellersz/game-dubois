@@ -114,7 +114,15 @@ void Cpu::opInc(word& dest) { ++dest; }
 
 void Cpu::opInc(byte& lo, byte& hi) { hi += !(++lo); }
 
-void Cpu::opIncMemory(unsigned short addr) { memory.write(addr, memory.read(addr) + 1); }
+void Cpu::opIncMemory(unsigned short addr) 
+{ 
+    byte old_val = memory.read(addr);
+    byte new_val = old_val + 1;
+    memory.write(addr, new_val); 
+    setZF(!new_val); 
+    setHF((new_val & 0b1111) < (old_val & 0b1111));
+    setNF(false);
+}
 
 void Cpu::opDec(byte& dest)
 {
@@ -128,7 +136,16 @@ void Cpu::opDec(word& dest) { --dest; }
 
 void Cpu::opDec(byte& lo, byte& hi) { hi -= (--lo == (byte)(-1)); }
 
-void Cpu::opDecMemory(unsigned short addr) { memory.write(addr, memory.read(addr) - 1); }
+void Cpu::opDecMemory(unsigned short addr) 
+{
+    byte old_val = memory.read(addr);
+    byte new_val = old_val - 1;
+    memory.write(addr, new_val); 
+    setZF(!new_val); 
+    setHF((new_val & 0b1111) > (old_val & 0b1111));
+    setNF(true);
+
+}
 
 
 // logic
@@ -556,9 +573,9 @@ void Cpu::op_0x07() { opRlca(); }
 void Cpu::op_0x08() 
 {
     unsigned short addr = memory(pc + 1);
-    
+  
+    memory.write(addr + 1, sp >> 8);
     memory.write(addr, sp);
-    memory.write(addr, sp >> 8);
 } 
 
 void Cpu::op_0x09() { opAdd(getBC()); } 
@@ -1100,7 +1117,7 @@ void Cpu::op_0xe9()
 void Cpu::op_0xea() 
 {
     unsigned short addr = memory(pc + 1);
-    opLd(memory.read(addr), a);
+    opLd(addr, a);
 } 
 
 void Cpu::op_0xeb() { opNop(); } 

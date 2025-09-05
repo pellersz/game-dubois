@@ -228,16 +228,15 @@ void Apu::nr12Changed()
 
 void Apu::nr14Changed()
 {
-    if (nr14 & 0b10000000)
-    {
-        Channel1& channel1 = channels.channel1;
-        channel1.on = channel1.dacOn;
-        nr52 |= 0b0001;
-        ch1Shadow = nr13 + (nr14 << 8);
-        if (channel1.stopTimer >= 0b01000000) 
-            channel1.stopTimer = nr11 & 0b00111111;
-        channel1.amplitude = (nr12 >> 4) * VLUME_UNIT;
-    }
+  if (nr14 & 0b10000000) {
+    Channel1 &channel1 = channels.channel1;
+    channel1.on = channel1.dacOn;
+    nr52 |= 0b0001;
+    ch1Shadow = nr13 + (nr14 << 8);
+    if (channel1.stopTimer >= 0b01000000)
+      channel1.stopTimer = nr11 & 0b00111111;
+    channel1.amplitude = (nr12 >> 4) * VLUME_UNIT;
+  }
 }
 
 void Apu::nr21Changed() { channels.channel2.duty = SquareChannel::DUTYS[nr21 >> 6]; }

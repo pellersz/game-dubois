@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <unistd.h>
 #include "cartridge.h"
 
 void Memory::init
@@ -21,6 +22,8 @@ void Memory::load(std::shared_ptr<Cartridge> pCartridge) { this->pCartridge = pC
 
 byte Memory::read(unsigned short addr)
 {
+    //if (addr == LCD_Y)
+    //    return 0x90;
     switch (addr >> 12)
     {
         case 0:
@@ -112,13 +115,15 @@ void Memory::write(unsigned short addr, byte val)
                     case Memory::DIVIDER_REGISTER: { value_to_change = 0; break; }
                     case Memory::OAM_DMA_ADDR:  
                     { 
-                        oamDma(addr - 0xff00);
+                        oamDma(val);
                         value_to_change = val; 
-                        break; }
+                        break; 
+                    }
                     case Memory::TIMER_CONTROL: 
                     {
-                        short val = Scheduler::TIMA_PERIODS[value_to_change & 0b0011];
-                        pScheduler->replace(UPDATE_TIMA, val); 
+                        unsigned short duration = Scheduler::TIMA_PERIODS[val & 0b0011];
+                        pScheduler->replace(UPDATE_TIMA, duration); 
+                        value_to_change = val;
                         break;
                     }
                     case Memory::LCD_STAT:
@@ -338,10 +343,8 @@ void Memory::write(unsigned short addr, byte val)
                         pApu->audioMasterChanged(); 
                         break; 
                     }
+                    default:{ value_to_change = val; break; }
                 }
-
-                value_to_change = val;
-                last0x100[addr - 0xff00] = val;
             }
         }
         default:
@@ -401,7 +404,7 @@ byte* Memory::getDataPointerToAddress(unsigned short addr)
 void Memory::oamDma(byte val) 
 { 
     if (val < 0xe0)
-        memcpy(oam, getDataPointerToAddress(val * 0x100), 0x100); 
+        memcpy(oam, getDataPointerToAddress(val << 8), 0xa0); 
 }
 
 byte& Memory::buildIn(unsigned short addr) { return *getDataPointerToAddress(addr); }

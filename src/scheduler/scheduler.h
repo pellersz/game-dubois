@@ -42,6 +42,8 @@ using namespace std::chrono;
 
 typedef std::pair<unsigned long long, Process> ProcessStart;
 
+// TODO: more constants
+
 class Scheduler 
 {
 public: 
@@ -111,7 +113,6 @@ private:
     byte& nr42;
     byte& nr43;
     
-    byte last_div;
     byte last_boot_rom;
     byte last_ly = 255;
 

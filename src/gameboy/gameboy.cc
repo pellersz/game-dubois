@@ -3,14 +3,17 @@
 #include "cpu.h"
 #include "mem.h"
 #include "scheduler.h"
+#include <cstdlib>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <memory>
+#include <sstream>
 
 GameBoy::GameBoy() 
 { 
-    scheduler.init(std::make_shared<Cpu>(cpu)); 
-    memory.init(std::make_shared<Scheduler>(scheduler), std::make_shared<Apu>(apu));
+    scheduler.init(std::shared_ptr<Cpu>(&cpu)); 
+    memory.init(std::shared_ptr<Scheduler>(&scheduler), std::shared_ptr<Apu>(&apu));
 }
 
 const byte boot_rom[] = 
@@ -49,19 +52,22 @@ void GameBoy::run(bool debug)
         return;
     }
 
-    byte* boot_rom_memory = memory.getDataPointerToAddress(0);
-    byte buf[256];
-    memcpy(buf, boot_rom_memory, 256);
-    memcpy(boot_rom_memory, boot_rom, 256);
-
-    scheduler.run(); 
-
-    cpu.setPC(0x100);
-    memcpy(boot_rom_memory, buf, 256);
-   
     if (!debug)
+    {
+        byte* boot_rom_memory = memory.getDataPointerToAddress(0);
+        byte buf[256];
+        memcpy(buf, boot_rom_memory, 256);
+        memcpy(boot_rom_memory, boot_rom, 256);
+
+        
         scheduler.run();
-    else 
-        scheduler.debugRun();
+
+        cpu.setPC(0x100);
+        memcpy(boot_rom_memory, buf, 256);
+        scheduler.run();
+        return;
+    }
+    cpu.setAfterBootRomState(); 
+    scheduler.debugRun();
 }
 
