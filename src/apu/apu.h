@@ -2,9 +2,9 @@
 #define APU_H 
 
 #include "channels.h"
-#include "speaker.h"
 
 class Memory;
+class Speaker;
 
 class Apu 
 {
@@ -46,7 +46,7 @@ public:
     float sample2();
     float sample3();
     float sample4();
-    void sample();
+    void  sample();
 
     bool isOn();
 

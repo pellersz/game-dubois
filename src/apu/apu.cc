@@ -2,8 +2,6 @@
 #include "channels.h"
 #include "mem.h"
 #include "speaker.h"
-#include <iomanip>
-#include <iostream>
 #include <unistd.h>
 
 Apu::Apu(Memory& memory, Speaker& speaker): 

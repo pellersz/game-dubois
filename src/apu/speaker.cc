@@ -1,6 +1,5 @@
 #include "speaker.h"
 #include <cstring>
-#include <iostream>
 
 void SampleBuffer::sample(float left, float right)
 {
@@ -55,7 +54,7 @@ Speaker::Speaker()
         return;
     }
 
-    initApuData(48000, 220, &sampleBuffer);
+    initApuData(&sampleBuffer);
 
     if (ma_device_start(&device) != MA_SUCCESS)
     {
@@ -101,7 +100,7 @@ ma_result Speaker::getDataFormat
 
 ma_result Speaker::getDataCursor(ma_data_source* p_data_source, ma_uint64* p_cursor) { return MA_NOT_IMPLEMENTED; }
 
-ma_result Speaker::initApuData(double sample_rate, double frequency, SampleBuffer* p_buffer)
+ma_result Speaker::initApuData(SampleBuffer* p_buffer)
 {
     ma_result result;
     ma_data_source_config baseConfig;

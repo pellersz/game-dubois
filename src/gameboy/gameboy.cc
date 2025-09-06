@@ -3,15 +3,13 @@
 #include "cpu.h"
 #include "mem.h"
 #include "scheduler.h"
-#include <cstdlib>
 #include <cstring>
-#include <iomanip>
 #include <iostream>
 #include <memory>
-#include <sstream>
 
 GameBoy::GameBoy() 
 { 
+    // TODO: somehow get this thing to not throw warnings
     scheduler.init(std::shared_ptr<Cpu>(&cpu)); 
     memory.init(std::shared_ptr<Scheduler>(&scheduler), std::shared_ptr<Apu>(&apu));
 }

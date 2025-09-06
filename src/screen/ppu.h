@@ -1,9 +1,10 @@
 #ifndef PPU_H
 #define PPU_H
 
-#include "screen.h"
-#include "mem.h"
 #include "types.h"
+
+class Memory;
+class Screen;
 
 class Ppu 
 {

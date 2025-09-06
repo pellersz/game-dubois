@@ -1,12 +1,12 @@
 #ifndef CARTRIDGE_H
 #define CARTRIDGE_H
 
-#include "mbc.h"
 #include "types.h"
 #include <memory>
 #include <string>
 
 class Memory;
+class Mbc;
 
 #define KB 1024 
 #define MB 1024 * 1024

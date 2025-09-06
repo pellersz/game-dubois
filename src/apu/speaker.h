@@ -46,7 +46,7 @@ private:
         0
     };
     
-    ma_result initApuData(double, double, SampleBuffer*);
+    ma_result initApuData(SampleBuffer*);
 
     void uninitApuData(SampleBuffer*);
 

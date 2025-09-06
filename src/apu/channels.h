@@ -58,6 +58,7 @@ class Channel3: public Channel
 {
 public:
     Channel3() { type = 3; }
+    
     constexpr static const float VOLUME_LEVELS[] = { 0, 1, 0.5, 0.25 };
     float volumeLevel;
 };
@@ -66,6 +67,7 @@ class Channel4: public Channel, public Enveloped
 {
 public:
     Channel4() { type = 4; }
+    
     unsigned short lfsr = 0;
     bool bit_8 = 0;
 };

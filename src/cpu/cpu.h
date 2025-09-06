@@ -1,7 +1,6 @@
 #ifndef CPU_H 
 #define CPU_H
 
-#include "apu.h"
 #include "types.h"
 #include <string>
 
@@ -9,6 +8,7 @@
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
 
 class Memory;
+class Apu;
 
 class Cpu 
 {
