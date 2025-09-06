@@ -3,6 +3,7 @@
 
 #include "mbc.h"
 #include "types.h"
+#include <memory>
 #include <string>
 
 class Memory;
@@ -14,13 +15,12 @@ class Memory;
 class Cartridge 
 {
 public:
-    // TODO: at this point have this as a private
-    int size;
     byte *data;
 
     Cartridge(std::string);
     ~Cartridge();
    
+    int getSize();
     int getRomSize();
     int getRamSize();
 
@@ -33,10 +33,12 @@ public:
     void writeToRegister(unsigned short, byte);
     void writeToRam(unsigned short, byte);
 
-private: 
+private:
+    int size;
     int romSize;
     int ramSize = 0;
-    Mbc *mbc;
+
+    std::unique_ptr<Mbc> pMbc;
 
     long getFileSize(std::string); 
 };

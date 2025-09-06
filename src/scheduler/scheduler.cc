@@ -321,11 +321,12 @@ bool Scheduler::pop()
         case SAMPLE: 
         { 
             apu.sample();
-            push(86, SAMPLE);
+            push(88, SAMPLE);
             break; 
         }
         case WAIT:
         {
+            // TODO: adjust because it seems a bit too fast
             if (next_dot_time > system_clock::now())
             {
                 while (next_dot_time > system_clock::now());

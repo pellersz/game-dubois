@@ -4,7 +4,6 @@
 #include "mem.h"
 #include <memory>
 
-// TODO: even more constants
 void Mbc1::init(std::shared_ptr<Cartridge> p_cartridge) 
 {
     Mbc::init(p_cartridge);

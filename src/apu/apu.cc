@@ -411,3 +411,4 @@ void Apu::sample()
 }
 
 bool Apu::isOn() { return on; }
+
