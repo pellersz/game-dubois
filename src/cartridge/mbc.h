@@ -14,7 +14,7 @@ public:
     int secondBankOffs = 0x4000;
     int ramOffs = -1;
 
-    virtual void init(std::shared_ptr<Cartridge>);
+    virtual void init(std::shared_ptr<Cartridge> p_cartridge) { pCartridge = p_cartridge; };
 
     virtual void writeToRegister(unsigned short, byte) {}
 

@@ -46,25 +46,24 @@ Cartridge::Cartridge(std::string filename)
 
     switch (data[0x148]) 
     {
-        case    0: { romSize =       32; break; }
-        case    1: { romSize =       64; break; }
-        case    2: { romSize =      128; break; }
-        case    3: { romSize =      256; break; }
-        case    4: { romSize =      512; break; }
-        case    5: { romSize =     1024; break; }
-        case    6: { romSize = 2 * 1024; break; }
-        case    7: { romSize = 4 * 1024; break; }
-        case    8: { romSize = 8 * 1024; break; }
-        case 0x52: { romSize = (1024 + 128); break; }
-        case 0x53: { romSize = (1024 + 256); break; }
-        case 0x54: { romSize = (1024 + 512); break; }
+        case    0: { romSize =  32 * KB; break; }
+        case    1: { romSize =  64 * KB; break; }
+        case    2: { romSize = 128 * KB; break; }
+        case    3: { romSize = 256 * KB; break; }
+        case    4: { romSize = 512 * KB; break; }
+        case    5: { romSize =   1 * MB; break; }
+        case    6: { romSize =   2 * MB; break; }
+        case    7: { romSize =   4 * MB; break; }
+        case    8: { romSize =   8 * MB; break; }
+        case 0x52: { romSize = (1024 + 128) * KB; break; }
+        case 0x53: { romSize = (1024 + 256) * KB; break; }
+        case 0x54: { romSize = (1024 + 512) * KB; break; }
         default: 
         {
             std::cout << "rom size unrecognized" << std::endl;
             throw 4;
         }
     }
-    romSize *= 1024;
 
     if (usesRam)
     {
@@ -83,7 +82,7 @@ Cartridge::Cartridge(std::string filename)
             }
         }
 
-        ramSize *= 1024;
+        ramSize *= KB;
         if (ramSize)
             mbc->ramOffs = romSize;
     }

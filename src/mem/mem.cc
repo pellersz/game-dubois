@@ -10,15 +10,15 @@
 
 void Memory::init
 (
-    std::shared_ptr<Scheduler> pScheduler,
-    std::shared_ptr<Apu> pApu
+    std::shared_ptr<Scheduler> p_scheduler,
+    std::shared_ptr<Apu> p_apu
 ) 
 {
-    this->pScheduler = pScheduler;
-    this->pApu = pApu;
+    pScheduler = p_scheduler;
+    pApu = p_apu;
 }
 
-void Memory::load(std::shared_ptr<Cartridge> pCartridge) { this->pCartridge = pCartridge; }
+void Memory::load(std::shared_ptr<Cartridge> p_cartridge) { pCartridge = p_cartridge; }
 
 byte Memory::read(unsigned short addr)
 {

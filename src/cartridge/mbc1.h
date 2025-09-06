@@ -25,6 +25,7 @@ private:
     u8 bankOrRamSelector = 0;
 
     void changedBankNo();
+    void advancedBankModeAdjustOffset();
 };
 
 #endif

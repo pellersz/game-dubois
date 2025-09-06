@@ -7,6 +7,10 @@
 
 class Memory;
 
+#define KB 1024 
+#define MB 1024 * 1024
+#define ROM_BANK_SIZE 0x4000
+
 class Cartridge 
 {
 public:
