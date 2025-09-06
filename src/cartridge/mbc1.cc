@@ -33,16 +33,53 @@ void Mbc1::writeToRegister(unsigned short addr, byte val)
     else if (addr < 0x6000)
     {
         bankOrRamSelector = val & 0b0011;
+     
         if (moreThan512Kb)
             changedBankNo();
         else 
             ramOffs = pCartridge->getRomSize() + bankOrRamSelector * 8 * 1024;
+
+        if (bankMode)
+        {
+            bool done = false;
+            for (u8 bank_or_ram_selector = bankOrRamSelector, mask = 0b0100; !done && bank_or_ram_selector; bank_or_ram_selector &= ~mask)
+            {
+                int new_first_bank_offs = 0x4000 * (bank_or_ram_selector << 5);
+                if (new_first_bank_offs < pCartridge->getRomSize())
+                {
+                    firstBankOffs = new_first_bank_offs;
+                    done = true;
+                }
+                mask >>= 1;
+            }
+            if (!done)
+                firstBankOffs = 0;
+        }
     }
     else 
     {
         bankMode = val & 0b0001;
-        int new_first_bank_offs = 0x4000 * (bankOrRamSelector << 7);
-        firstBankOffs = (bankMode && new_first_bank_offs < pCartridge->getRomSize()) ? new_first_bank_offs : 0;
+        
+        if (!bankMode) 
+        {
+            firstBankOffs = 0;
+            return;
+        }
+
+        bool done = false;
+        // TODO: dry
+        for (u8 bank_or_ram_selector = bankOrRamSelector, mask = 0b0100; !done && bank_or_ram_selector; bank_or_ram_selector &= ~mask)
+        {
+            int new_first_bank_offs = 0x4000 * (bank_or_ram_selector << 5);
+            if (new_first_bank_offs < pCartridge->getRomSize())
+            {
+                firstBankOffs = new_first_bank_offs;
+                done = true;
+            }
+            mask >>= 1;
+        }
+        if (!done)
+            firstBankOffs = 0;
     }
 }
 
@@ -57,6 +94,5 @@ void Mbc1::changedBankNo()
         new_bank_selector &= secondaryMask;
 
     secondBankOffs = new_bank_selector * 0x4000;
-    //std::cout << "changed = " << secondBankOffs << std::endl;
 }
 
