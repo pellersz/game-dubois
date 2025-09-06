@@ -15,10 +15,8 @@
 #include <unistd.h>
 #include <variant>
 
-// without this, the cycle definions would be too long
-Cpu::Cpu(Memory& memory, Scheduler& scheduler, Apu& apu) : 
+Cpu::Cpu(Memory& memory, Apu& apu) : 
     memory(memory), 
-    scheduler(scheduler),
     apu(apu),
     interruptEnable(memory.buildIn(Memory::IE_REG)),
     interruptFlag(memory.buildIn(Memory::INTERRUPT_FLAG))
@@ -66,28 +64,22 @@ void Cpu::stack2StepBack() { sp += 2; }
 
 void Cpu::programCounterStep(u8 count) { pc += count; }
 
-// TODO: remove the scheduler as a dependency and just return the time elapsed for the scheduler
-void Cpu::executeNext() 
+u8 Cpu::executeNext() 
 {
     if (halted && (interruptEnable & interruptFlag))
         halted = false;
 
     if (handleInterupts())
-        return;
+        return 5 * CLOCKS_BETWEEN_EXEC;
 
     if (!halted) 
-    {
-        executeRegular(memory.read(pc));
-            return;
-    }  
+        return executeRegular(memory.read(pc));;
     
-    scheduler.push(4 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
+    return 4 * CLOCKS_BETWEEN_EXEC;
 }
 
 bool Cpu::handleInterupts() 
 {         
-    int a;
-
     if (ime && (interruptEnable & interruptFlag)) 
     {
         for (int i = 0; i < 7; ++i) 
@@ -100,12 +92,11 @@ bool Cpu::handleInterupts()
                 opPush(pc);   
                 pc = 0x40 + i * 8;
 
-                scheduler.push(5 * CLOCKS_BETWEEN_EXEC, CPU_EXEC);
                 return true;
             }
         }
     }
-    return false;
+    return 0;
 }
 
 u8 regular_bytes[] =  
@@ -150,7 +141,7 @@ u8 regular_cycles[] =
 
 // you might not like it, but this is peak instruction handling
 // also, some instructions have variable cycles, these will update the scheduler and the program counter, and use return instead of break
-void Cpu::executeRegular(byte op_code) 
+u8 Cpu::executeRegular(byte op_code) 
 {
     switch (op_code) 
     {
@@ -162,13 +153,13 @@ void Cpu::executeRegular(byte op_code)
         case 0x14: {op_0x14(); break;} case 0x15: {op_0x15(); break;} case 0x16: {op_0x16(); break;} case 0x17: {op_0x17(); break;} 
         case 0x18: {op_0x18(); break;} case 0x19: {op_0x19(); break;} case 0x1a: {op_0x1a(); break;} case 0x1b: {op_0x1b(); break;} 
         case 0x1c: {op_0x1c(); break;} case 0x1d: {op_0x1d(); break;} case 0x1e: {op_0x1e(); break;} case 0x1f: {op_0x1f(); break;} 
-        case 0x20: {op_0x20();return;} case 0x21: {op_0x21(); break;} case 0x22: {op_0x22(); break;} case 0x23: {op_0x23(); break;} 
+        case 0x20: {return op_0x20();} case 0x21: {op_0x21(); break;} case 0x22: {op_0x22(); break;} case 0x23: {op_0x23(); break;} 
         case 0x24: {op_0x24(); break;} case 0x25: {op_0x25(); break;} case 0x26: {op_0x26(); break;} case 0x27: {op_0x27(); break;} 
-        case 0x28: {op_0x28();return;} case 0x29: {op_0x29(); break;} case 0x2a: {op_0x2a(); break;} case 0x2b: {op_0x2b(); break;} 
+        case 0x28: {return op_0x28();} case 0x29: {op_0x29(); break;} case 0x2a: {op_0x2a(); break;} case 0x2b: {op_0x2b(); break;} 
         case 0x2c: {op_0x2c(); break;} case 0x2d: {op_0x2d(); break;} case 0x2e: {op_0x2e(); break;} case 0x2f: {op_0x2f(); break;} 
-        case 0x30: {op_0x30();return;} case 0x31: {op_0x31(); break;} case 0x32: {op_0x32(); break;} case 0x33: {op_0x33(); break;} 
+        case 0x30: {return op_0x30();} case 0x31: {op_0x31(); break;} case 0x32: {op_0x32(); break;} case 0x33: {op_0x33(); break;} 
         case 0x34: {op_0x34(); break;} case 0x35: {op_0x35(); break;} case 0x36: {op_0x36(); break;} case 0x37: {op_0x37(); break;} 
-        case 0x38: {op_0x38();return;} case 0x39: {op_0x39(); break;} case 0x3a: {op_0x3a(); break;} case 0x3b: {op_0x3b(); break;} 
+        case 0x38: {return op_0x38();} case 0x39: {op_0x39(); break;} case 0x3a: {op_0x3a(); break;} case 0x3b: {op_0x3b(); break;} 
         case 0x3c: {op_0x3c(); break;} case 0x3d: {op_0x3d(); break;} case 0x3e: {op_0x3e(); break;} case 0x3f: {op_0x3f(); break;} 
         case 0x40: {op_0x40(); break;} case 0x41: {op_0x41(); break;} case 0x42: {op_0x42(); break;} case 0x43: {op_0x43(); break;} 
         case 0x44: {op_0x44(); break;} case 0x45: {op_0x45(); break;} case 0x46: {op_0x46(); break;} case 0x47: {op_0x47(); break;} 
@@ -202,26 +193,26 @@ void Cpu::executeRegular(byte op_code)
         case 0xb4: {op_0xb4(); break;} case 0xb5: {op_0xb5(); break;} case 0xb6: {op_0xb6(); break;} case 0xb7: {op_0xb7(); break;} 
         case 0xb8: {op_0xb8(); break;} case 0xb9: {op_0xb9(); break;} case 0xba: {op_0xba(); break;} case 0xbb: {op_0xbb(); break;} 
         case 0xbc: {op_0xbc(); break;} case 0xbd: {op_0xbd(); break;} case 0xbe: {op_0xbe(); break;} case 0xbf: {op_0xbf(); break;} 
-        case 0xc0: {op_0xc0();return;} case 0xc1: {op_0xc1(); break;} case 0xc2: {op_0xc2();return;} case 0xc3: {op_0xc3();return;} 
-        case 0xc4: {op_0xc4();return;} case 0xc5: {op_0xc5(); break;} case 0xc6: {op_0xc6(); break;} case 0xc7: {op_0xc7();return;} 
-        case 0xc8: {op_0xc8();return;} case 0xc9: {op_0xc9(); break;} case 0xca: {op_0xca();return;} case 0xcb: {op_0xcb();return;} 
-        case 0xcc: {op_0xcc();return;} case 0xcd: {op_0xcd();return;} case 0xce: {op_0xce(); break;} case 0xcf: {op_0xcf();return;} 
-        case 0xd0: {op_0xd0();return;} case 0xd1: {op_0xd1(); break;} case 0xd2: {op_0xd2();return;} case 0xd3: {op_0xd3(); break;} 
-        case 0xd4: {op_0xd4();return;} case 0xd5: {op_0xd5(); break;} case 0xd6: {op_0xd6(); break;} case 0xd7: {op_0xd7();return;} 
-        case 0xd8: {op_0xd8();return;} case 0xd9: {op_0xd9(); break;} case 0xda: {op_0xda();return;} case 0xdb: {op_0xdb(); break;} 
-        case 0xdc: {op_0xdc();return;} case 0xdd: {op_0xdd(); break;} case 0xde: {op_0xde(); break;} case 0xdf: {op_0xdf();return;} 
+        case 0xc0: {return op_0xc0();} case 0xc1: {op_0xc1(); break;} case 0xc2: {return op_0xc2();} case 0xc3: {return op_0xc3();} 
+        case 0xc4: {return op_0xc4();} case 0xc5: {op_0xc5(); break;} case 0xc6: {op_0xc6(); break;} case 0xc7: {return op_0xc7();} 
+        case 0xc8: {return op_0xc8();} case 0xc9: {op_0xc9(); break;} case 0xca: {return op_0xca();} case 0xcb: {return op_0xcb();} 
+        case 0xcc: {return op_0xcc();} case 0xcd: {return op_0xcd();} case 0xce: {op_0xce(); break;} case 0xcf: {return op_0xcf();} 
+        case 0xd0: {return op_0xd0();} case 0xd1: {op_0xd1(); break;} case 0xd2: {return op_0xd2();} case 0xd3: {op_0xd3(); break;} 
+        case 0xd4: {return op_0xd4();} case 0xd5: {op_0xd5(); break;} case 0xd6: {op_0xd6(); break;} case 0xd7: {return op_0xd7();} 
+        case 0xd8: {return op_0xd8();} case 0xd9: {op_0xd9(); break;} case 0xda: {return op_0xda();} case 0xdb: {op_0xdb(); break;} 
+        case 0xdc: {return op_0xdc();} case 0xdd: {op_0xdd(); break;} case 0xde: {op_0xde(); break;} case 0xdf: {return op_0xdf();} 
         case 0xe0: {op_0xe0(); break;} case 0xe1: {op_0xe1(); break;} case 0xe2: {op_0xe2(); break;} case 0xe3: {op_0xe3(); break;} 
-        case 0xe4: {op_0xe4(); break;} case 0xe5: {op_0xe5(); break;} case 0xe6: {op_0xe6(); break;} case 0xe7: {op_0xe7();return;} 
-        case 0xe8: {op_0xe8(); break;} case 0xe9: {op_0xe9();return;} case 0xea: {op_0xea(); break;} case 0xeb: {op_0xeb(); break;} 
-        case 0xec: {op_0xec(); break;} case 0xed: {op_0xed(); break;} case 0xee: {op_0xee(); break;} case 0xef: {op_0xef();return;} 
+        case 0xe4: {op_0xe4(); break;} case 0xe5: {op_0xe5(); break;} case 0xe6: {op_0xe6(); break;} case 0xe7: {return op_0xe7();} 
+        case 0xe8: {op_0xe8(); break;} case 0xe9: {return op_0xe9();} case 0xea: {op_0xea(); break;} case 0xeb: {op_0xeb(); break;} 
+        case 0xec: {op_0xec(); break;} case 0xed: {op_0xed(); break;} case 0xee: {op_0xee(); break;} case 0xef: {return op_0xef();} 
         case 0xf0: {op_0xf0(); break;} case 0xf1: {op_0xf1(); break;} case 0xf2: {op_0xf2(); break;} case 0xf3: {op_0xf3(); break;} 
-        case 0xf4: {op_0xf4(); break;} case 0xf5: {op_0xf5(); break;} case 0xf6: {op_0xf6(); break;} case 0xf7: {op_0xf7();return;} 
+        case 0xf4: {op_0xf4(); break;} case 0xf5: {op_0xf5(); break;} case 0xf6: {op_0xf6(); break;} case 0xf7: {return op_0xf7();} 
         case 0xf8: {op_0xf8(); break;} case 0xf9: {op_0xf9(); break;} case 0xfa: {op_0xfa(); break;} case 0xfb: {op_0xfb(); break;} 
-        case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {op_0xff();return;}     
+        case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {return op_0xff();}     
     }
 
     programCounterStep(regular_bytes[op_code]);
-    scheduler.push(regular_cycles[op_code], CPU_EXEC);
+    return regular_cycles[op_code];
 }
 
 u8 cb_cycles[] = 
@@ -245,7 +236,7 @@ u8 cb_cycles[] =
 };
 
 // you might not like it, but this is peak instruction handling
-void Cpu::executeBC(byte op_code) 
+u8 Cpu::executeBC(byte op_code) 
 {
     switch (op_code) 
     {
@@ -316,7 +307,7 @@ void Cpu::executeBC(byte op_code)
     }
 
     programCounterStep(2);
-    scheduler.push(cb_cycles[op_code], CPU_EXEC);
+    return cb_cycles[op_code];
 }
 
 int read_number(std::string str)
@@ -349,7 +340,7 @@ void Cpu::test(std::string filename)
     int val2 = -1;
     bool left_paren = false;
     Memory other_mem;
-    Cpu central_dog_unit(other_mem, scheduler, apu);
+    Cpu other_cpu(other_mem, apu);
     std::string name;
     int addrs[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     int addr_counter = 0;
@@ -388,21 +379,21 @@ void Cpu::test(std::string filename)
                 bool fucked = false;
                 if 
                 (
-                    a != central_dog_unit.a   ||
-                    f != central_dog_unit.f   ||
-                    b != central_dog_unit.b   ||
-                    c != central_dog_unit.c   ||
-                    d != central_dog_unit.d   ||
-                    e != central_dog_unit.e   ||
-                    h != central_dog_unit.h   ||
-                    l != central_dog_unit.l   ||
-                    sp != central_dog_unit.sp ||
-                    pc != central_dog_unit.pc
+                    a != other_cpu.a   ||
+                    f != other_cpu.f   ||
+                    b != other_cpu.b   ||
+                    c != other_cpu.c   ||
+                    d != other_cpu.d   ||
+                    e != other_cpu.e   ||
+                    h != other_cpu.h   ||
+                    l != other_cpu.l   ||
+                    sp != other_cpu.sp ||
+                    pc != other_cpu.pc
                 ) 
                     fucked = true;
     
                 for(int i = 0; i < addr_counter; i++)
-                    if(*memory.getDataPointerToAddress(addrs[i]) != *central_dog_unit.memory.getDataPointerToAddress(addrs[i]))
+                    if(*memory.getDataPointerToAddress(addrs[i]) != *other_cpu.memory.getDataPointerToAddress(addrs[i]))
                         fucked = true;
 
                 if (name == "    \"name\": \"88 55 51\"," || name == "    \"name\": \"88 fa cf\"," || name == "    \"name\": \"88 96 f8\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"f1 22 11\",")
@@ -417,9 +408,9 @@ void Cpu::test(std::string filename)
                     for(int i = 0; i < addr_counter; ++i) 
                         std::cout << std::hex << (int) memory.read(addrs[i]) << " ";
 
-                    std::cout << std::endl << "does not match" << std::endl << "cpu: " << central_dog_unit.toString() << std::endl << "memory: ";
+                    std::cout << std::endl << "does not match" << std::endl << "cpu: " << other_cpu.toString() << std::endl << "memory: ";
                     for(int i = 0; i < addr_counter; ++i) 
-                        std::cout << std::hex << (int) central_dog_unit.memory.read(addrs[i]) << " ";
+                        std::cout << std::hex << (int) other_cpu.memory.read(addrs[i]) << " ";
                     exit(0);
                 }
                 else 
@@ -482,25 +473,25 @@ void Cpu::test(std::string filename)
         else if (state == 3)
         {
             if (str.find("\"a\"") != std::variant_npos) 
-                central_dog_unit.a = read_number(str);
+                other_cpu.a = read_number(str);
             else if (str.find("\"f\"") != std::variant_npos) 
-                central_dog_unit.f = read_number(str);
+                other_cpu.f = read_number(str);
             else if (str.find("\"b\"") != std::variant_npos) 
-                central_dog_unit.b = read_number(str);
+                other_cpu.b = read_number(str);
             else if (str.find("\"c\"") != std::variant_npos) 
-                central_dog_unit.c = read_number(str);
+                other_cpu.c = read_number(str);
             else if (str.find("\"d\"") != std::variant_npos) 
-                central_dog_unit.d = read_number(str);
+                other_cpu.d = read_number(str);
             else if (str.find("\"e\"") != std::variant_npos) 
-                central_dog_unit.e = read_number(str);
+                other_cpu.e = read_number(str);
             else if (str.find("\"h\"") != std::variant_npos) 
-                central_dog_unit.h = read_number(str);
+                other_cpu.h = read_number(str);
             else if (str.find("\"l\"") != std::variant_npos) 
-                central_dog_unit.l = read_number(str);
+                other_cpu.l = read_number(str);
             else if (str.find("\"pc\"") != std::variant_npos) 
-                central_dog_unit.pc = read_number(str);
+                other_cpu.pc = read_number(str);
             else if (str.find("\"sp\"") != std::variant_npos) 
-                central_dog_unit.sp = read_number(str);
+                other_cpu.sp = read_number(str);
             else if (str.find("\"ram\"") != std::variant_npos) 
                 state = 4;
             else if (str.find("}") != std::variant_npos) 
@@ -517,7 +508,7 @@ void Cpu::test(std::string filename)
                 else 
                 {
                     addrs[addr_counter++] = val1;
-                    central_dog_unit.memory.write(val1, val2);
+                    other_cpu.memory.write(val1, val2);
                     val1 = -1;
                     left_paren = false;
                 }

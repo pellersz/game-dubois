@@ -29,7 +29,7 @@ private:
     Speaker speaker;
     Apu apu = Apu(memory, speaker);
     Scheduler scheduler = Scheduler(memory, controller, ppu, screen, apu);
-    Cpu cpu = Cpu(memory, scheduler, apu);
+    Cpu cpu = Cpu(memory, apu);
     std::shared_ptr<Cartridge> pCartridge = nullptr;
 };
 

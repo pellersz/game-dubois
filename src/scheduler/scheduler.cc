@@ -88,7 +88,7 @@ bool Scheduler::pop()
             // since only the cpu cares about controller input, it only should update before it
             // TODO: move this to the controller handling still
             controller.updatePressed();
-            pCpu->executeNext();
+            push(pCpu->executeNext(), CPU_EXEC);
 
             // std::cout << pCpu->toString() << " ";
             if ((last_boot_rom != bootRomMapping) && (bootRomMapping == 1))

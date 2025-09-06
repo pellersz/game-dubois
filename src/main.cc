@@ -3,6 +3,7 @@
 #include <iostream>
 
 // TODO: make it so that you can alt-tab
+// TODO: forward declarations
 int main(int argc, char** argv) 
 {
     if (argc == 1)

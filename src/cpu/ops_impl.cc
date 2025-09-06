@@ -391,35 +391,33 @@ void Cpu::opCall(word addr)
     pc = addr;
 }
 
-void Cpu::opCall(bool jump, word addr)
+int Cpu::opCall(bool jump, word addr)
 {
     if (jump) 
     {
         opCall(addr);
-        scheduler.push(C(6), CPU_EXEC);
-        return;
+        return 6 * CLOCKS_BETWEEN_EXEC;
     }
-    scheduler.push(C(3), CPU_EXEC);
     programCounterStep(3);
+    return 3 * CLOCKS_BETWEEN_EXEC;
 }
 
 void Cpu::opJp(word addr) { pc = addr; }
 
-void Cpu::opJp(bool jump, word addr)
+int  Cpu::opJp(bool jump, word addr)
 {
     if (jump) 
     {
         opJp(addr);
-        scheduler.push(C(4), CPU_EXEC);
-        return;
+        return 4 * CLOCKS_BETWEEN_EXEC;
     }
-    scheduler.push(C(3), CPU_EXEC);
     programCounterStep(3);
+    return 3 * CLOCKS_BETWEEN_EXEC;
 }
 
 void Cpu::opJr(offs addr) { pc += addr; }
 
-void Cpu::opJr(bool jump, offs addr)
+int  Cpu::opJr(bool jump, offs addr)
 {
     u8 time = C(2);
     if (jump)
@@ -427,22 +425,21 @@ void Cpu::opJr(bool jump, offs addr)
         opJr(addr);
         time = C(3);
     }
-    scheduler.push(time, CPU_EXEC);
     programCounterStep(2);
+    return time;
 }
 
 void Cpu::opRet() { opPop(pc); }
 
-void Cpu::opRet(bool jump)
+int  Cpu::opRet(bool jump)
 {
     if (jump)
     {
         opRet();
-        scheduler.push(C(5), CPU_EXEC);
-        return;
+        return 5 * CLOCKS_BETWEEN_EXEC;
     }
-    scheduler.push(C(2), CPU_EXEC);
     programCounterStep(1); 
+    return 2 * CLOCKS_BETWEEN_EXEC;
 }
 
 void Cpu::opReti()
@@ -451,11 +448,11 @@ void Cpu::opReti()
     opEi();
 }
 
-void Cpu::opRst(u8 addr) 
+int  Cpu::opRst(u8 addr) 
 { 
     opPush(pc + 1);   
     pc = addr;
-    scheduler.push(C(4), CPU_EXEC);
+    return 4 * CLOCKS_BETWEEN_EXEC;
 }
 
 // carry flag
@@ -628,7 +625,7 @@ void Cpu::op_0x1e() { opLd(e, memory.read(pc + 1)); }
 
 void Cpu::op_0x1f() { opRra(); } 
 
-void Cpu::op_0x20() { opJr(!getZF(), memory.read(pc + 1)); } 
+int  Cpu::op_0x20() { return opJr(!getZF(), memory.read(pc + 1)); } 
 
 void Cpu::op_0x21() { opLd(l, h, memory(pc + 1)); } 
 
@@ -649,7 +646,7 @@ void Cpu::op_0x26() { opLd(h, memory.read(pc + 1)); }
 
 void Cpu::op_0x27() { opDaa(); } 
 
-void Cpu::op_0x28() { opJr(getZF(), memory.read(pc + 1)); }
+int  Cpu::op_0x28() { return opJr(getZF(), memory.read(pc + 1)); }
 
 void Cpu::op_0x29() { opAdd(getHL()); } 
 
@@ -669,7 +666,7 @@ void Cpu::op_0x2e() { opLd(l, memory.read(pc + 1)); }
 
 void Cpu::op_0x2f() { opCpl(); } 
 
-void Cpu::op_0x30() { opJr(!getCF(), memory.read(pc + 1)); } 
+int  Cpu::op_0x30() { return opJr(!getCF(), memory.read(pc + 1)); } 
 
 void Cpu::op_0x31() { opLd(sp, memory(pc + 1)); } 
 
@@ -702,7 +699,7 @@ void Cpu::op_0x36()
 
 void Cpu::op_0x37() { opScf(); } 
 
-void Cpu::op_0x38() { opJr(getCF(), memory.read(pc + 1)); } 
+int  Cpu::op_0x38() { return opJr(getCF(), memory.read(pc + 1)); } 
 
 void Cpu::op_0x39() { opAdd(sp); } 
 
@@ -1005,27 +1002,27 @@ void Cpu::op_0xbe() { opCp(memory.read(getHL())); }
 
 void Cpu::op_0xbf() { opCp(a); } 
 
-void Cpu::op_0xc0() { opRet(!getZF()); } 
+int  Cpu::op_0xc0() { return opRet(!getZF()); } 
 
 void Cpu::op_0xc1() { opPop(c, b); } 
 
-void Cpu::op_0xc2() { opJp(!getZF(), memory(pc + 1)); } 
+int  Cpu::op_0xc2() { return opJp(!getZF(), memory(pc + 1)); } 
 
-void Cpu::op_0xc3() 
+int  Cpu::op_0xc3() 
 { 
     opJp(memory(pc + 1)); 
-    scheduler.push(C(4), CPU_EXEC);
+    return 4 * CLOCKS_BETWEEN_EXEC;
 } 
 
-void Cpu::op_0xc4() { opCall(!getZF(), memory(pc + 1)); } 
+int  Cpu::op_0xc4() { return opCall(!getZF(), memory(pc + 1)); } 
 
 void Cpu::op_0xc5() { opPush(getBC()); } 
 
 void Cpu::op_0xc6() { opAdd(memory.read(pc + 1)); } 
 
-void Cpu::op_0xc7() { opRst(8 * 0); } 
+int  Cpu::op_0xc7() { return opRst(8 * 0); } 
 
-void Cpu::op_0xc8() { opRet(getZF()); } 
+int  Cpu::op_0xc8() { return opRet(getZF()); } 
 
 // This is not how it should be, but it'll make do
 void Cpu::op_0xc9() 
@@ -1034,35 +1031,35 @@ void Cpu::op_0xc9()
     pc -= 1;
 } 
 
-void Cpu::op_0xca() { opJp(getZF(), memory(pc + 1)); } 
+int Cpu::op_0xca() { return opJp(getZF(), memory(pc + 1)); } 
 
-void Cpu::op_0xcb() { executeBC(memory.read(pc + 1)); } 
+int  Cpu::op_0xcb() { return executeBC(memory.read(pc + 1)); } 
 
-void Cpu::op_0xcc() { opCall(getZF(), memory(pc + 1)); } 
+int  Cpu::op_0xcc() { return opCall(getZF(), memory(pc + 1)); } 
 
-void Cpu::op_0xcd() { opCall(true, memory(pc + 1)); } 
+int  Cpu::op_0xcd() { return opCall(true, memory(pc + 1)); } 
 
 void Cpu::op_0xce() { opAdc(memory.read(pc + 1)); } 
 
-void Cpu::op_0xcf() { opRst(8 * 1); } 
+int  Cpu::op_0xcf() { return opRst(8 * 1); } 
 
-void Cpu::op_0xd0() { opRet(!getCF()); } 
+int  Cpu::op_0xd0() { return opRet(!getCF()); } 
 
 void Cpu::op_0xd1() { opPop(e, d); } 
 
-void Cpu::op_0xd2() { opJp(!getCF(), memory(pc + 1)); } 
+int  Cpu::op_0xd2() { return opJp(!getCF(), memory(pc + 1)); } 
 
 void Cpu::op_0xd3() { opNop(); }   // I'm gonna be generous, and not crash the console when it finds an unknown op code 
 
-void Cpu::op_0xd4() { opCall(!getCF(), memory(pc + 1)); } 
+int  Cpu::op_0xd4() { return opCall(!getCF(), memory(pc + 1)); } 
 
 void Cpu::op_0xd5() { opPush(getDE()); } 
 
 void Cpu::op_0xd6() { opSub(memory.read(pc + 1)); } 
 
-void Cpu::op_0xd7() { opRst(8 * 2); } 
+int  Cpu::op_0xd7() { return opRst(8 * 2); } 
 
-void Cpu::op_0xd8() { opRet(getCF()); } 
+int  Cpu::op_0xd8() { return opRet(getCF()); } 
 
 void Cpu::op_0xd9() 
 { 
@@ -1070,17 +1067,17 @@ void Cpu::op_0xd9()
     pc -= 1;
 } 
 
-void Cpu::op_0xda() { opJp(getCF(), memory(pc + 1)); } 
+int  Cpu::op_0xda() { return opJp(getCF(), memory(pc + 1)); } 
 
 void Cpu::op_0xdb() { opNop(); } 
 
-void Cpu::op_0xdc() { opCall(getCF(), memory(pc + 1)); } 
+int  Cpu::op_0xdc() { return opCall(getCF(), memory(pc + 1)); } 
 
 void Cpu::op_0xdd() { opNop(); } 
 
 void Cpu::op_0xde() { opSbc(memory.read(pc + 1)); } 
 
-void Cpu::op_0xdf() { opRst(8 * 3); } 
+int  Cpu::op_0xdf() { return opRst(8 * 3); } 
 
 void Cpu::op_0xe0() 
 {
@@ -1104,14 +1101,14 @@ void Cpu::op_0xe5() { opPush(getHL()); }
 
 void Cpu::op_0xe6() { opAnd(memory.read(pc + 1)); } 
 
-void Cpu::op_0xe7() { opRst(8 * 4); } 
+int  Cpu::op_0xe7() { return opRst(8 * 4); } 
 
 void Cpu::op_0xe8() { opAddSP(memory.read(pc + 1)); } 
 
-void Cpu::op_0xe9() 
+int  Cpu::op_0xe9() 
 {
     opJp(getHL()); 
-    scheduler.push(C(1), CPU_EXEC);
+    return 1 * CLOCKS_BETWEEN_EXEC;
 } 
 
 void Cpu::op_0xea() 
@@ -1128,7 +1125,7 @@ void Cpu::op_0xed() { opNop(); }
 
 void Cpu::op_0xee() { opXor(memory.read(pc + 1)); } 
 
-void Cpu::op_0xef() { opRst(8 * 5); } 
+int  Cpu::op_0xef() { return opRst(8 * 5); } 
 
 void Cpu::op_0xf0() { opLd(a, memory.read(0xff00 + memory.read(pc + 1)));} 
 
@@ -1148,7 +1145,7 @@ void Cpu::op_0xf5() { opPush(getAF()); }
 
 void Cpu::op_0xf6() { opOr(memory.read(pc + 1)); } 
 
-void Cpu::op_0xf7() { opRst(8 * 6); } 
+int  Cpu::op_0xf7() { return opRst(8 * 6); } 
 
 void Cpu::op_0xf8() 
 { 
@@ -1171,7 +1168,7 @@ void Cpu::op_0xfd() { opNop(); }
 
 void Cpu::op_0xfe() { opCp(memory.read(pc + 1)); } 
 
-void Cpu::op_0xff() { opRst(8 * 7); } 
+int  Cpu::op_0xff() { return opRst(8 * 7); } 
 
 
 /////////////////////////////////////////////////////////////////

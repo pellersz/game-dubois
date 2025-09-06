@@ -8,7 +8,6 @@
 // used to populate arrays in a compact manner
 #define C(no) (Cpu::CLOCKS_BETWEEN_EXEC * no)
 
-class Scheduler;
 class Memory;
 
 class Cpu 
@@ -16,9 +15,9 @@ class Cpu
 public:
     static const u8 CLOCKS_BETWEEN_EXEC = 4;
 
-    Cpu(Memory&, Scheduler&, Apu&);
+    Cpu(Memory&, Apu&);
 
-    void executeNext();
+    u8 executeNext();
 
     word getPC();
     void setPC(word);
@@ -52,7 +51,6 @@ protected:
     bool halted = false;
 
     Memory& memory;
-    Scheduler& scheduler;
     Apu& apu;
 
     byte& interruptEnable;
@@ -81,8 +79,8 @@ protected:
 
     bool handleInterupts();
 
-    void executeRegular(byte);
-    void executeBC(byte);
+    u8 executeRegular(byte);
+    u8 executeBC(byte);
     
     // load
     void opLd(byte&, byte);
@@ -145,15 +143,15 @@ protected:
 
     // jump and subroutine
     void opCall(word);
-    void opCall(bool, word);
+    int  opCall(bool, word);
     void opJp(word);
-    void opJp(bool, word);
+    int  opJp(bool, word);
     void opJr(offs);
-    void opJr(bool, offs);
+    int  opJr(bool, offs);
     void opRet();
-    void opRet(bool);
+    int  opRet(bool);
     void opReti();
-    void opRst(u8);
+    int  opRst(u8);
 
     // carry flag
     void opCcf();
@@ -180,10 +178,10 @@ protected:
     void op_0x08();  void op_0x09();  void op_0x0a();  void op_0x0b();  void op_0x0c();  void op_0x0d();  void op_0x0e();  void op_0x0f(); 
     void op_0x10();  void op_0x11();  void op_0x12();  void op_0x13();  void op_0x14();  void op_0x15();  void op_0x16();  void op_0x17(); 
     void op_0x18();  void op_0x19();  void op_0x1a();  void op_0x1b();  void op_0x1c();  void op_0x1d();  void op_0x1e();  void op_0x1f(); 
-    void op_0x20();  void op_0x21();  void op_0x22();  void op_0x23();  void op_0x24();  void op_0x25();  void op_0x26();  void op_0x27(); 
-    void op_0x28();  void op_0x29();  void op_0x2a();  void op_0x2b();  void op_0x2c();  void op_0x2d();  void op_0x2e();  void op_0x2f(); 
-    void op_0x30();  void op_0x31();  void op_0x32();  void op_0x33();  void op_0x34();  void op_0x35();  void op_0x36();  void op_0x37(); 
-    void op_0x38();  void op_0x39();  void op_0x3a();  void op_0x3b();  void op_0x3c();  void op_0x3d();  void op_0x3e();  void op_0x3f(); 
+    int  op_0x20();  void op_0x21();  void op_0x22();  void op_0x23();  void op_0x24();  void op_0x25();  void op_0x26();  void op_0x27(); 
+    int  op_0x28();  void op_0x29();  void op_0x2a();  void op_0x2b();  void op_0x2c();  void op_0x2d();  void op_0x2e();  void op_0x2f(); 
+    int  op_0x30();  void op_0x31();  void op_0x32();  void op_0x33();  void op_0x34();  void op_0x35();  void op_0x36();  void op_0x37(); 
+    int  op_0x38();  void op_0x39();  void op_0x3a();  void op_0x3b();  void op_0x3c();  void op_0x3d();  void op_0x3e();  void op_0x3f(); 
     void op_0x40();  void op_0x41();  void op_0x42();  void op_0x43();  void op_0x44();  void op_0x45();  void op_0x46();  void op_0x47(); 
     void op_0x48();  void op_0x49();  void op_0x4a();  void op_0x4b();  void op_0x4c();  void op_0x4d();  void op_0x4e();  void op_0x4f(); 
     void op_0x50();  void op_0x51();  void op_0x52();  void op_0x53();  void op_0x54();  void op_0x55();  void op_0x56();  void op_0x57(); 
@@ -200,14 +198,14 @@ protected:
     void op_0xa8();  void op_0xa9();  void op_0xaa();  void op_0xab();  void op_0xac();  void op_0xad();  void op_0xae();  void op_0xaf(); 
     void op_0xb0();  void op_0xb1();  void op_0xb2();  void op_0xb3();  void op_0xb4();  void op_0xb5();  void op_0xb6();  void op_0xb7(); 
     void op_0xb8();  void op_0xb9();  void op_0xba();  void op_0xbb();  void op_0xbc();  void op_0xbd();  void op_0xbe();  void op_0xbf(); 
-    void op_0xc0();  void op_0xc1();  void op_0xc2();  void op_0xc3();  void op_0xc4();  void op_0xc5();  void op_0xc6();  void op_0xc7(); 
-    void op_0xc8();  void op_0xc9();  void op_0xca();  void op_0xcb();  void op_0xcc();  void op_0xcd();  void op_0xce();  void op_0xcf(); 
-    void op_0xd0();  void op_0xd1();  void op_0xd2();  void op_0xd3();  void op_0xd4();  void op_0xd5();  void op_0xd6();  void op_0xd7(); 
-    void op_0xd8();  void op_0xd9();  void op_0xda();  void op_0xdb();  void op_0xdc();  void op_0xdd();  void op_0xde();  void op_0xdf(); 
-    void op_0xe0();  void op_0xe1();  void op_0xe2();  void op_0xe3();  void op_0xe4();  void op_0xe5();  void op_0xe6();  void op_0xe7(); 
-    void op_0xe8();  void op_0xe9();  void op_0xea();  void op_0xeb();  void op_0xec();  void op_0xed();  void op_0xee();  void op_0xef(); 
-    void op_0xf0();  void op_0xf1();  void op_0xf2();  void op_0xf3();  void op_0xf4();  void op_0xf5();  void op_0xf6();  void op_0xf7(); 
-    void op_0xf8();  void op_0xf9();  void op_0xfa();  void op_0xfb();  void op_0xfc();  void op_0xfd();  void op_0xfe();  void op_0xff(); 
+    int  op_0xc0();  void op_0xc1();  int  op_0xc2();  int  op_0xc3();  int  op_0xc4();  void op_0xc5();  void op_0xc6();  int  op_0xc7(); 
+    int  op_0xc8();  void op_0xc9();  int  op_0xca();  int  op_0xcb();  int  op_0xcc();  int  op_0xcd();  void op_0xce();  int  op_0xcf(); 
+    int  op_0xd0();  void op_0xd1();  int  op_0xd2();  void op_0xd3();  int  op_0xd4();  void op_0xd5();  void op_0xd6();  int  op_0xd7(); 
+    int  op_0xd8();  void op_0xd9();  int  op_0xda();  void op_0xdb();  int  op_0xdc();  void op_0xdd();  void op_0xde();  int  op_0xdf(); 
+    void op_0xe0();  void op_0xe1();  void op_0xe2();  void op_0xe3();  void op_0xe4();  void op_0xe5();  void op_0xe6();  int  op_0xe7(); 
+    void op_0xe8();  int  op_0xe9();  void op_0xea();  void op_0xeb();  void op_0xec();  void op_0xed();  void op_0xee();  int  op_0xef(); 
+    void op_0xf0();  void op_0xf1();  void op_0xf2();  void op_0xf3();  void op_0xf4();  void op_0xf5();  void op_0xf6();  int  op_0xf7(); 
+    void op_0xf8();  void op_0xf9();  void op_0xfa();  void op_0xfb();  void op_0xfc();  void op_0xfd();  void op_0xfe();  int  op_0xff(); 
 
     void opCb_0x00();  void opCb_0x01();  void opCb_0x02();  void opCb_0x03();  void opCb_0x04();  void opCb_0x05();  void opCb_0x06();  void opCb_0x07(); 
     void opCb_0x08();  void opCb_0x09();  void opCb_0x0a();  void opCb_0x0b();  void opCb_0x0c();  void opCb_0x0d();  void opCb_0x0e();  void opCb_0x0f(); 
