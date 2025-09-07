@@ -111,6 +111,32 @@ Cartridge::~Cartridge()
     }
 }
 
+void Cartridge::loadRam(std::string filename)
+{
+    int file_size = getFileSize(filename);
+
+    if (file_size == -1) 
+    {
+        std::cout << "\"" << filename << "\": could not get file size" << std::endl;
+        return;
+    }
+
+    if (file_size != ramSize)
+    {
+        std::cout << "The supplied ram save file's size does not match with the cartridge's ram size" << std::endl;
+        return;
+    }
+        
+    std::ifstream f(filename);
+    if (f.fail())
+    {
+        std::cout << "\"" << filename << "\": could not open file for reading" << std::endl;
+        return;
+    }
+
+    f.read((char *)data.data() + romSize, ramSize);
+}
+
 long Cartridge::getFileSize(std::string filename) 
 {
     struct stat stat_buf;

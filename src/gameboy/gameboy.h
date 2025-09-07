@@ -18,6 +18,7 @@ public:
     
     void load(std::shared_ptr<Cartridge>);
     void unload();
+    void loadRam(std::string);
     
     void run(bool);
 

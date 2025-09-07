@@ -20,6 +20,7 @@ public:
 
     Cartridge(std::string);
     ~Cartridge();
+    void loadRam(std::string);
    
     int getSize();
     int getRomSize();

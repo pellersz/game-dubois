@@ -37,8 +37,6 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     nr42(memory.buildIn(Memory::NR42)),
     nr43(memory.buildIn(Memory::NR43))
 { 
-    last_boot_rom = memory.read(Memory::BOOT_ROM_MAPPING);
-
     push(0, CPU_EXEC);
     push(0, UPDATE_DIV);
     push(0, UPDATE_TIMA);

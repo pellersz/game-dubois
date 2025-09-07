@@ -113,7 +113,7 @@ private:
     byte& nr42;
     byte& nr43;
     
-    byte last_boot_rom;
+    byte last_boot_rom = 0;
     byte last_ly = 255;
 
     bool pop();
