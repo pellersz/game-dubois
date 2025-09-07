@@ -10,8 +10,8 @@
 GameBoy::GameBoy() 
 { 
     // TODO: somehow get this thing to not throw warnings
-    scheduler.init(std::shared_ptr<Cpu>(&cpu)); 
-    memory.init(std::shared_ptr<Scheduler>(&scheduler), std::shared_ptr<Apu>(&apu));
+    scheduler.init(&cpu); 
+    memory.init(&scheduler, &apu);
 }
 
 const byte boot_rom[] = 

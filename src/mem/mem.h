@@ -11,7 +11,7 @@ class Apu;
 class Memory 
 {
 public:
-    void init(std::shared_ptr<Scheduler>, std::shared_ptr<Apu>);
+    void init(Scheduler*, Apu*);
     void load(std::shared_ptr<Cartridge>);
     byte read(unsigned short);
     void write(unsigned short, byte);
@@ -97,10 +97,11 @@ private:
     byte workRam[0x2000];
     byte oam[0xa0];
     byte last0x100[0x100];
+    byte* cartridgePtrError();
     
-    std::shared_ptr<Scheduler> pScheduler;
-    std::shared_ptr<Cartridge> pCartridge;
-    std::shared_ptr<Apu> pApu;
+    Scheduler *pScheduler;
+    Apu *pApu;
+    std::weak_ptr<Cartridge> pCartridge;
 };
 
 #endif

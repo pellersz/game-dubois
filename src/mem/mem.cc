@@ -10,8 +10,8 @@
 
 void Memory::init
 (
-    std::shared_ptr<Scheduler> p_scheduler,
-    std::shared_ptr<Apu> p_apu
+    Scheduler *p_scheduler,
+    Apu *p_apu
 ) 
 {
     pScheduler = p_scheduler;
@@ -22,6 +22,12 @@ void Memory::load(std::shared_ptr<Cartridge> p_cartridge) { pCartridge = p_cartr
 
 byte Memory::read(unsigned short addr)
 {
+    auto access_cartridge = pCartridge.lock();
+    if (!access_cartridge)
+    {
+        std::cout << "Cartridge pointer expired" << std::endl;
+        return 0xff;
+    }
     //if (addr == LCD_Y)
     //    return 0x90;
     switch (addr >> 12)
@@ -30,18 +36,18 @@ byte Memory::read(unsigned short addr)
         case 1:
         case 2:
         case 3:
-            return pCartridge->readBank(addr);
+            return access_cartridge->readBank(addr);
         case 4:
         case 5:
         case 6:
         case 7:
-            return pCartridge->readBankN(addr - 0x4000);
+            return access_cartridge->readBankN(addr - 0x4000);
         case 8:
         case 9:
             return videoRam[addr - 0x8000];
         case 10:
         case 11:
-            return pCartridge->readRam(addr - 0xa000);
+            return access_cartridge->readRam(addr - 0xa000);
         case 12:
         case 13:
             return workRam[addr - 0xc000];
@@ -65,6 +71,13 @@ byte Memory::read(unsigned short addr)
 
 void Memory::write(unsigned short addr, byte val)
 {
+    auto access_cartridge = pCartridge.lock();
+    if (!access_cartridge)
+    {
+        std::cout << "Cartridge pointer expired" << std::endl;
+        return;
+    }
+
     switch (addr >> 12)
     {
         case 0:
@@ -76,7 +89,7 @@ void Memory::write(unsigned short addr, byte val)
         case 6:
         case 7:
         {
-            pCartridge->writeToRegister(addr, val);
+            access_cartridge->writeToRegister(addr, val);
             return;
         }
         case 8:
@@ -88,7 +101,7 @@ void Memory::write(unsigned short addr, byte val)
         case 10:
         case 11:
         {
-            pCartridge->writeToRam(addr - 0xa000, val);
+            access_cartridge->writeToRam(addr - 0xa000, val);
             return;
         }
         case 12:
@@ -362,24 +375,43 @@ void Memory::writeWord(unsigned short addr, word val)
 
 byte* Memory::getDataPointerToAddress(unsigned short addr)
 {
+    auto access_cartridge = pCartridge.lock();
+    //if (!access_cartridge)
+    //{
+    //    std::cout << "Cartridge pointer expired" << std::endl;
+    //    return NULL;
+    //}
+
     switch (addr >> 12)
     {
         case 0:
         case 1:
         case 2:
         case 3:
-            return pCartridge->getBankPointer(addr);
+        {
+            if (!access_cartridge)
+                return cartridgePtrError();
+            return access_cartridge->getBankPointer(addr);
+        }
         case 4:
         case 5:
         case 6:
         case 7:
-            return pCartridge->getBankNPointer(addr - 0x4000);
+        {
+            if (!access_cartridge)
+                return cartridgePtrError();
+            return access_cartridge->getBankNPointer(addr - 0x4000);
+        }
         case 8:
         case 9:
             return videoRam + addr - 0x8000;
         case 10:
         case 11:
-            return pCartridge->getRamPointer(addr - 0xa000);
+        {
+            if (!access_cartridge)
+                return cartridgePtrError();
+            return access_cartridge->getRamPointer(addr - 0xa000);
+        }
         case 12:
         case 13:
             return workRam + addr - 0xc000;
@@ -408,4 +440,10 @@ void Memory::oamDma(byte val)
 }
 
 byte& Memory::buildIn(unsigned short addr) { return *getDataPointerToAddress(addr); }
+
+byte* Memory::cartridgePtrError() 
+{
+    std::cout << "Cartridge pointer expired" << std::endl;
+    return NULL;
+}
 

@@ -1,6 +1,7 @@
 #ifndef MBC1_H
 #define MBC1_H 
 
+#include "cartridge.h"
 #include "mbc.h"
 #include "mem.h"
 #include "types.h"
@@ -8,7 +9,7 @@
 class Mbc1: public Mbc 
 {
 public:
-    virtual void init(std::shared_ptr<Cartridge>) override;
+    virtual void init(Cartridge*) override;
     
     virtual void writeToRegister(unsigned short, byte) override;
 

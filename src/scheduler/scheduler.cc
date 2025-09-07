@@ -48,7 +48,7 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     push(100, WAIT);
 }
 
-void Scheduler::init(std::shared_ptr<Cpu> cpu_ptr) { pCpu = cpu_ptr; }
+void Scheduler::init(Cpu* p_cpu) { pCpu = p_cpu; }
 
 void Scheduler::push(unsigned int duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 

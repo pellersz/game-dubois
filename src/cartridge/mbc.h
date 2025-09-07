@@ -15,12 +15,12 @@ public:
     int ramOffs = -1;
     bool ramEnabled = false;
 
-    virtual void init(std::shared_ptr<Cartridge> p_cartridge) { pCartridge = p_cartridge; };
+    virtual void init(Cartridge* p_cartridge) { pCartridge = p_cartridge; };
 
     virtual void writeToRegister(unsigned short, byte) {}
 
 protected:
-    std::shared_ptr<Cartridge> pCartridge = nullptr;
+    Cartridge *pCartridge;
 };
 
 #endif 

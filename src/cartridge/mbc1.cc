@@ -2,15 +2,17 @@
 #include "cartridge.h"
 #include "mbc.h"
 #include "mem.h"
+#include <iostream>
 #include <memory>
 
-void Mbc1::init(std::shared_ptr<Cartridge> p_cartridge) 
+void Mbc1::init(Cartridge* p_cartridge) 
 {
     Mbc::init(p_cartridge);
-    moreThan512Kb = p_cartridge->getRomSize() > 512 * KB;
-    bankNo = p_cartridge->getRomSize() / ROM_BANK_SIZE; 
+
+    moreThan512Kb = pCartridge->getRomSize() > 512 * KB;
+    bankNo = pCartridge->getRomSize() / ROM_BANK_SIZE; 
     
-    for (; !(secondaryMask & ((p_cartridge->getRomSize() / ROM_BANK_SIZE) - 1)); secondaryMask >>= 1)
+    for (; !(secondaryMask & ((pCartridge->getRomSize() / ROM_BANK_SIZE) - 1)); secondaryMask >>= 1)
         initialMask &= ~secondaryMask;
     
     secondaryMask = ~secondaryMask;
@@ -45,6 +47,7 @@ void Mbc1::writeToRegister(unsigned short addr, byte val)
         if (!bankMode) 
         {
             firstBankOffs = 0;
+            
             ramOffs = pCartridge->getRomSize();
             return;
         }
@@ -69,9 +72,11 @@ void Mbc1::changedBankNo()
 void Mbc1::advancedBankModeAdjustOffset() 
 {
     bool done = false;
+
     for (u8 bank_or_ram_selector = bankOrRamSelector, mask = 0b0100; !done && bank_or_ram_selector; bank_or_ram_selector &= ~mask)
     {
         int new_first_bank_offs = ROM_BANK_SIZE * (bank_or_ram_selector << 5);
+        
         if (new_first_bank_offs < pCartridge->getRomSize())
         {
             firstBankOffs = new_first_bank_offs;

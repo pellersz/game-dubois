@@ -56,7 +56,7 @@ public:
     constexpr static const unsigned short TIMA_PERIODS[4] = { 1024, 16, 64, 256 };
 
     Scheduler(Memory&, Controller&, Ppu&, Screen&, Apu&);
-    void init(std::shared_ptr<Cpu>);
+    void init(Cpu *);
 
     void push(unsigned int, Process);
     void remove(Process);
@@ -90,7 +90,7 @@ private:
     time_point<std::chrono::system_clock> next_dot_time = system_clock::now() + WAITING_TIME;
     unsigned long long time = 0;
 
-    std::shared_ptr<Cpu> pCpu = nullptr;
+    Cpu *pCpu = nullptr;
     Memory& memory;
     Controller& controller;
     Ppu& ppu;

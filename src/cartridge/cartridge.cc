@@ -98,7 +98,7 @@ Cartridge::Cartridge(std::string filename)
         }
     }
 
-    pMbc->init(std::shared_ptr<Cartridge>(this));
+    pMbc->init(this);
 }
 
 Cartridge::~Cartridge() 
@@ -107,7 +107,7 @@ Cartridge::~Cartridge()
     {
         std::string save_name = name + ".sav";
         std::ofstream f(save_name);
-        f.write((char *)data.data() + pMbc->ramOffs, ramSize);
+        f.write((char *)data.data() + romSize, ramSize);
     }
 }
 
