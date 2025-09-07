@@ -4,6 +4,7 @@
 #include "types.h"
 #include <memory>
 #include <string>
+#include <vector>
 
 class Memory;
 class Mbc;
@@ -15,7 +16,7 @@ class Mbc;
 class Cartridge 
 {
 public:
-    byte *data;
+    std::vector<byte> data;
 
     Cartridge(std::string);
     ~Cartridge();
@@ -37,6 +38,9 @@ private:
     int size;
     int romSize;
     int ramSize = 0;
+    bool batteryBacked;
+
+    std::string name;
 
     std::unique_ptr<Mbc> pMbc;
 

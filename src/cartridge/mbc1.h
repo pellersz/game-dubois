@@ -20,7 +20,6 @@ private:
     u8 initialMask = 0b11111111;
     u8 secondaryMask = 1 << 7;
 
-    bool ramEnable = 0;
     u8 bankSelectorLow5 = 1;
     u8 bankOrRamSelector = 0;
 

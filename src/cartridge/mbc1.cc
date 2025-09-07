@@ -19,7 +19,7 @@ void Mbc1::init(std::shared_ptr<Cartridge> p_cartridge)
 void Mbc1::writeToRegister(unsigned short addr, byte val) 
 {
     if      (addr < 0x2000)
-        ramEnable = ((val & 0b1111) == 0xa);
+        ramEnabled = ((val & 0b1111) == 0xa);
     else if (addr < 0x4000) 
     {
         bankSelectorLow5 = val & 0b00011111;
@@ -35,9 +35,7 @@ void Mbc1::writeToRegister(unsigned short addr, byte val)
      
         if (moreThan512Kb)
             changedBankNo();
-        else 
-            ramOffs = pCartridge->getRomSize() + bankOrRamSelector * 8 * KB;
-
+        
         if (bankMode)
             advancedBankModeAdjustOffset();
     }
@@ -47,6 +45,7 @@ void Mbc1::writeToRegister(unsigned short addr, byte val)
         if (!bankMode) 
         {
             firstBankOffs = 0;
+            ramOffs = pCartridge->getRomSize();
             return;
         }
 
@@ -82,4 +81,8 @@ void Mbc1::advancedBankModeAdjustOffset()
     }
     if (!done)
         firstBankOffs = 0;
+
+    int new_ram_offs = pCartridge->getRomSize() + bankOrRamSelector * 8 * KB;
+    if (new_ram_offs < pCartridge->getSize())
+        ramOffs = new_ram_offs;
 }

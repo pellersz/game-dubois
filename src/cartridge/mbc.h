@@ -13,6 +13,7 @@ public:
     int firstBankOffs  = 0;
     int secondBankOffs = 0x4000;
     int ramOffs = -1;
+    bool ramEnabled = false;
 
     virtual void init(std::shared_ptr<Cartridge> p_cartridge) { pCartridge = p_cartridge; };
 

@@ -5,6 +5,7 @@
 #include "types.h"
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -19,24 +20,27 @@ Cartridge::Cartridge(std::string filename)
         std::cout << "\"" << filename << "\": could not get file size" << std::endl;
         throw 1;
     }
-    data = new byte[size];
-    
-    FILE* file = fopen(filename.c_str(), "r");
-    if (file == NULL)
+        
+    std::ifstream f(filename);
+    if (f.fail())
     {
         std::cout << "\"" << filename << "\": could not open file for reading" << std::endl;
         throw 2;
     }
+    data.resize(size);
+    f.read((char *)data.data(), size);
 
-    fread(data, 1, size, file); 
+    name = filename;
+    if (name.substr(name.length() - 3, 3) == ".gb")
+        name = name.substr(0, name.length() - 3);
 
     bool usesRam;
-
     switch (data[0x147])
     {
-        case 0: { pMbc = std::make_unique<Mbc>(); usesRam = false; break; }
-        case 1: { pMbc = std::make_unique<Mbc1>(); usesRam = false; break; }
-        case 2: { pMbc = std::make_unique<Mbc1>(); usesRam =  true; break; }
+        case 0: { pMbc = std::make_unique<Mbc >(); usesRam = false; batteryBacked = false; break; }
+        case 1: { pMbc = std::make_unique<Mbc1>(); usesRam = false; batteryBacked = false; break; }
+        case 2: { pMbc = std::make_unique<Mbc1>(); usesRam =  true; batteryBacked = false; break; }
+        case 3: { pMbc = std::make_unique<Mbc1>(); usesRam =  true; batteryBacked =  true; break; }
         default: 
         { 
             std::cout << "cartridge type unimplemented or unrecognized" << std::endl;
@@ -65,6 +69,9 @@ Cartridge::Cartridge(std::string filename)
         }
     }
 
+    if (size != romSize)
+        std::cout << "Warning: the rom's size does not match the rom size indicated by the header" << std::endl;
+
     if (usesRam)
     {
         switch (data[0x149])
@@ -81,16 +88,28 @@ Cartridge::Cartridge(std::string filename)
                 throw 5;
             }
         }
-
         ramSize *= KB;
+        
         if (ramSize)
-            pMbc->ramOffs = romSize;
+        {
+            pMbc->ramOffs = size;
+            size += ramSize;
+            data.resize(size);
+        }
     }
 
     pMbc->init(std::shared_ptr<Cartridge>(this));
 }
 
-Cartridge::~Cartridge() { delete[] data; }
+Cartridge::~Cartridge() 
+{
+    if (batteryBacked)
+    {
+        std::string save_name = name + ".sav";
+        std::ofstream f(save_name);
+        f.write((char *)data.data() + pMbc->ramOffs, ramSize);
+    }
+}
 
 long Cartridge::getFileSize(std::string filename) 
 {
@@ -107,17 +126,26 @@ int Cartridge::getRamSize() { return ramSize; }
 
 byte Cartridge::readBank(unsigned short offs) { return data[pMbc->firstBankOffs + offs]; }
 
-byte* Cartridge::getBankPointer(unsigned short offs) { return data + pMbc->firstBankOffs + offs; }
+byte* Cartridge::getBankPointer(unsigned short offs) { return data.data() + pMbc->firstBankOffs + offs; }
 
 byte Cartridge::readBankN(unsigned short offs) { return data[pMbc->secondBankOffs + offs]; }
 
-byte* Cartridge::getBankNPointer(unsigned short offs) { return data + pMbc->secondBankOffs + offs; }
+byte* Cartridge::getBankNPointer(unsigned short offs) { return data.data() + pMbc->secondBankOffs + offs; }
 
-byte Cartridge::readRam(unsigned short offs) { return data[pMbc->ramOffs + offs]; }
+byte Cartridge::readRam(unsigned short offs) 
+{ 
+    if (pMbc->ramEnabled) 
+        return data[pMbc->ramOffs + offs]; 
+    return 0xff;
+}
 
-byte* Cartridge::getRamPointer(unsigned short offs) { return (pMbc->ramOffs != -1) ? data + pMbc->ramOffs + offs : NULL; }
+byte* Cartridge::getRamPointer(unsigned short offs) { return (pMbc->ramOffs != -1) ? data.data() + pMbc->ramOffs + offs : NULL; }
 
 void Cartridge::writeToRegister(unsigned short offs, byte val) { pMbc->writeToRegister(offs, val); }
 
-void Cartridge::writeToRam(unsigned short offs, byte val) { if (pMbc->ramOffs != -1) data[pMbc->ramOffs + offs] = val; }
+void Cartridge::writeToRam(unsigned short offs, byte val) 
+{ 
+    if (pMbc->ramEnabled) 
+        data[pMbc->ramOffs + offs] = val; 
+}
 
