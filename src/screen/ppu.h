@@ -9,8 +9,6 @@ class Screen;
 class Ppu 
 {
 public:
-    static const u8 TIME_UNIT = 1;
-
     Ppu(Memory&, Screen&);
     
     void oamScan();
@@ -44,6 +42,7 @@ private:
     byte& viewY;
     byte& winX;
     byte& winY;
+    byte* oam;
 
     class ObjectLine 
     {

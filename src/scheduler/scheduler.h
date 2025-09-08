@@ -3,7 +3,6 @@
 
 #include "controller.h"
 #include "cpu.h"
-#include <memory>
 #include <queue>
 #include "apu.h"
 #include <unistd.h>
@@ -41,8 +40,6 @@ enum Process
 using namespace std::chrono;
 
 typedef std::pair<unsigned long long, Process> ProcessStart;
-
-// TODO: more constants
 
 class Scheduler 
 {

@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "controller.h"
 #include "scheduler.h"
 #include "apu.h"
 #include "types.h"
@@ -11,11 +12,13 @@
 void Memory::init
 (
     Scheduler *p_scheduler,
-    Apu *p_apu
+    Apu *p_apu,
+    Controller *p_controller
 ) 
 {
     pScheduler = p_scheduler;
     pApu = p_apu;
+    pController = p_controller;
 }
 
 void Memory::load(std::shared_ptr<Cartridge> p_cartridge) { pCartridge = p_cartridge; }
@@ -125,6 +128,12 @@ void Memory::write(unsigned short addr, byte val)
                 byte& value_to_change = last0x100[addr - 0xff00];
                 switch (addr) 
                 {
+                    case Memory::JOYPAD: 
+                    { 
+                        value_to_change = val;
+                        pController->updatePressed();
+                        break; 
+                    }
                     case Memory::DIVIDER_REGISTER: { value_to_change = 0; break; }
                     case Memory::OAM_DMA_ADDR:  
                     { 

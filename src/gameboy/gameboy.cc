@@ -9,9 +9,8 @@
 
 GameBoy::GameBoy() 
 { 
-    // TODO: somehow get this thing to not throw warnings
     scheduler.init(&cpu); 
-    memory.init(&scheduler, &apu);
+    memory.init(&scheduler, &apu, &controller);
 }
 
 const byte boot_rom[] = 

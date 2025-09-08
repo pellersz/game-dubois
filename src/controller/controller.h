@@ -26,7 +26,11 @@ public:
 private:
     // vector for identifying which buttons are pressed
     volatile byte pressedVector = 0;
+    
     Memory& memory;
+
+    byte& joypad;
+    byte& interruptFlag;
 };
 
 #endif

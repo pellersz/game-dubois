@@ -7,11 +7,12 @@
 class Cartridge;
 class Scheduler;
 class Apu;
+class Controller;
 
 class Memory 
 {
 public:
-    void init(Scheduler*, Apu*);
+    void init(Scheduler*, Apu*, Controller*);
     void load(std::shared_ptr<Cartridge>);
     byte read(unsigned short);
     void write(unsigned short, byte);
@@ -101,6 +102,7 @@ private:
     
     Scheduler *pScheduler;
     Apu *pApu;
+    Controller *pController;
     std::weak_ptr<Cartridge> pCartridge;
 };
 

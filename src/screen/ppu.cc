@@ -13,26 +13,27 @@ Ppu::Ppu(Memory& memory, Screen& screen) :
     viewX(memory.buildIn(Memory::VIEW_X)),
     viewY(memory.buildIn(Memory::VIEW_Y)),
     winX(memory.buildIn(Memory::WINDOW_X)),
-    winY(memory.buildIn(Memory::WINDOW_Y))
+    winY(memory.buildIn(Memory::WINDOW_Y)),
+    oam(memory.getDataPointerToAddress(Memory::OAM))
 {}
 
-// TODO: specialized memory reads for components
 void Ppu::oamScan() 
 {
     bool is_16_bit = lcdc & 0b0100;
  
     numberOfObjects = 0;
-    for (unsigned short obj_ind = 0xfe00; obj_ind < 0xfea0 && numberOfObjects < 10; obj_ind += 4) 
+    for (unsigned short obj_ind = 0; obj_ind < 0xa0 && numberOfObjects < 10; obj_ind += 4) 
     {
-        short pos_y = memory.read(obj_ind) - 16;
+        short pos_y = oam[obj_ind] - 16;
         if ((pos_y <= lcdY) && (pos_y + 8 + 8 * is_16_bit > lcdY)) 
         {
-            objects[numberOfObjects].posX         = memory.read(obj_ind + 1);
+            objects[numberOfObjects].posX         = oam[obj_ind + 1];
             objects[numberOfObjects].internalY    = lcdY - pos_y;
-            objects[numberOfObjects].tileIndex    = memory.read(obj_ind + 2);
-            objects[numberOfObjects++].attributes = memory.read(obj_ind + 3);
+            objects[numberOfObjects].tileIndex    = oam[obj_ind + 2];
+            objects[numberOfObjects++].attributes = oam[obj_ind + 3];
         }
     }
+
 }
 
 void Ppu::drawLine() 
@@ -66,7 +67,7 @@ void Ppu::drawBackgroundTile
         memory(Memory::TILES +                 tile_offs * TILE_BYTE_SIZE + 2 * y_offs) : 
         memory(Memory::TILES + 0x1000 + (offs) tile_offs * TILE_BYTE_SIZE + 2 * y_offs) ;
 
-    for(u8 x = lcd_x + 7; x > lcd_x; --x) 
+    for(short x = lcd_x + 7; x > lcd_x; --x) 
     {
         screen(lcd_y, x) = COLORS[color_indices[(data & 0b0001) + ((data >> 7) & 0b0010)]];
         data >>= 1;
@@ -215,7 +216,12 @@ void Ppu::drawObjects()
 
 void Ppu::hBlank() {}
 
-void Ppu::vBlank() {}
+void Ppu::vBlank() 
+{
+    screen.updateFrame();
+    resetWindowY();
+    ++lcdY;
+}
 
 void Ppu::resetWindowY() { winYCounter = 0; }
 

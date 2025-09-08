@@ -2,7 +2,11 @@
 #include "mem.h"
 #include "types.h"
 
-Controller::Controller(Memory& memory) : memory(memory) {}
+Controller::Controller(Memory& memory) : 
+    memory(memory), 
+    joypad(memory.buildIn(Memory::JOYPAD)),
+    interruptFlag(memory.buildIn(Memory::INTERRUPT_FLAG))
+{}
    
 void Controller::buttonPressed(byte button) { pressedVector &= ~button; }
 
@@ -10,7 +14,6 @@ void Controller::buttonReleased(byte button) { pressedVector |= button; }
 
 void Controller::updatePressed() 
 {
-    byte joypad = memory.read(Memory::JOYPAD);
     byte tmp = joypad;
 
     byte new_val;
@@ -19,9 +22,9 @@ void Controller::updatePressed()
     else
         new_val = (joypad & 0b11110000) + (pressedVector >> 4);
 
-    memory.write(Memory::JOYPAD, new_val);
+    joypad = new_val;
 
     if (new_val < tmp)
-        memory.write(Memory::INTERRUPT_FLAG, memory.read(Memory::INTERRUPT_FLAG) | 0b00010000);       
+        interruptFlag = interruptFlag | 0b00010000;       
 }
 

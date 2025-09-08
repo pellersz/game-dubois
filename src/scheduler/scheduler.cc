@@ -10,7 +10,6 @@
 #include "types.h"
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <chrono>
 #include <unistd.h>
 
@@ -50,8 +49,7 @@ void Scheduler::init(Cpu* p_cpu) { pCpu = p_cpu; }
 
 void Scheduler::push(unsigned int duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
-// This is acceptable because there are not that many events at a time
-
+// This is acceptable because there are not that many events at a time, and the this is not used too much
 void Scheduler::remove(Process process) {
     std::priority_queue<
         ProcessStart,
@@ -83,9 +81,6 @@ bool Scheduler::pop()
     {
         case CPU_EXEC:
         {
-            // since only the cpu cares about controller input, it only should update before it
-            // TODO: move this to the controller handling still
-            controller.updatePressed();
             push(pCpu->executeNext(), CPU_EXEC);
 
             // std::cout << pCpu->toString() << " ";
@@ -99,9 +94,9 @@ bool Scheduler::pop()
         }
         case UPDATE_DIV: 
         {
-            push((unsigned short) 256, UPDATE_DIV);
             ++divider;
 
+            push(256, UPDATE_DIV);
             break;
         } 
         case UPDATE_TIMA: 
@@ -122,27 +117,24 @@ bool Scheduler::pop()
         case VBLANK_START: 
         { 
             interruptFlag |= 0b0001; 
-            // TODO: these sould be in one vblank() call
-            screen.updateFrame();
-            ppu.resetWindowY();
-            ++lcdY;
-
-            push(456 * Ppu::TIME_UNIT, VBLANK);
+            ppu.vBlank();
  
             lcdStat = (lcdStat & 0b11111100) + 0b01;
             statInterruptCheck();
 
+            push(456, VBLANK);
             break;
         }
         case VBLANK: 
         {
             if (++lcdY < 154) 
             {
-                push(456 * Ppu::TIME_UNIT, VBLANK);
+                push(456, VBLANK);
                 break;
             }
             lcdY = 0;
-            push(456 * Ppu::TIME_UNIT, OAM_SCAN);
+
+            push(456, OAM_SCAN);
             break;
         }
         case LYC_LY_CMP: 
@@ -168,18 +160,18 @@ bool Scheduler::pop()
             lcdStat = (lcdStat & 0b11111100) | 0b10;
             statInterruptCheck();
 
-            push(80 * Ppu::TIME_UNIT, DRAW_PIXELS);
+            push(80, DRAW_PIXELS);
             break;
         }
         case DRAW_PIXELS:
         {
             ppu.drawLine();
-            push(172 * Ppu::TIME_UNIT, HBLANK);
             ++lcdY;
 
             lcdStat = (lcdStat & 0b11111100) | 0b11;
             statInterruptCheck();
 
+            push(172, HBLANK);
             break;
         }
         case HBLANK:
@@ -191,11 +183,11 @@ bool Scheduler::pop()
 
             if (lcdY < 143) 
             {
-                push(87 * Ppu::TIME_UNIT, OAM_SCAN);
+                push(87, OAM_SCAN);
                 break;
             }
 
-            push(87 * Ppu::TIME_UNIT, VBLANK_START);
+            push(87, VBLANK_START);
             break;
         }
         case HANDLE_CONTROL: 
@@ -241,9 +233,10 @@ bool Scheduler::pop()
                 controller.buttonPressed(Controller::SELECT);
             else 
                 controller.buttonReleased(Controller::SELECT);
-            
-            push(1000, HANDLE_CONTROL);
 
+            controller.updatePressed();
+
+            push(1000, HANDLE_CONTROL);
             break;
         }
         case CH1_SWEEP: 
@@ -313,18 +306,20 @@ bool Scheduler::pop()
         case CH4_TIME:
         {
             apu.incrementTimer(Ch4);
+            
             push(MASTER_CLOCK_FREQUENCY / SOUND_TIMER_FREQUENCY, CH4_TIME);
             break;           
         }
         case SAMPLE: 
         { 
             apu.sample();
+            
             push(88, SAMPLE);
             break; 
         }
         case WAIT:
         {
-            // TODO: adjust because it seems a bit too fast
+            // TODO: adjust because it seems a bit too fast, or maybe the sound is going too fast
             if (next_dot_time > system_clock::now())
             {
                 while (next_dot_time > system_clock::now());
@@ -421,6 +416,7 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at)
             {
                 std::cout << action << " could not be interpreted, to see possible actions press 'h'" << std::endl;
                 done = false; 
+                break;
             }
         }
     }
@@ -445,7 +441,6 @@ void Scheduler::debugRun()
     next_dot_time = system_clock::now() + WAITING_TIME;
 
     std::ofstream f("log");
-    //f << pCpu->toString() << std::endl;
 
     while (go_next && !glfwWindowShouldClose(screen.getWindow())) 
     {
@@ -466,9 +461,9 @@ void Scheduler::debugRun()
                     handleDebugStop(mode, stop_at);
                 }
             }
-            //if (!interrupt)
             go_next = pop();
-        } else
+        } 
+        else
             tick();
     }
 }
@@ -489,7 +484,6 @@ void Scheduler::statInterruptCheck()
 
 void Scheduler::tick() 
 {
-    // TODO: do something with the time
     apu.tickPeriod(Ch1, 1);
     apu.tickPeriod(Ch2, 1);
     apu.tickPeriod(Ch3, 2);
