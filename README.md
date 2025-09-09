@@ -11,6 +11,9 @@ As a shorthand for configuring, building and running, the full\_run.sh script ca
 ### Running:
 
 To emulate a rom, the rom's path needs to be specified with the "-c" command line flag. 
+
 To additionally load with custom ram use the "-r" flag and specify the path after it. 
+
 To start in cpu debug mode use the "-d" flag.
+
 ex: `game\_boi -c "rom\_path" -r "custom\_ram_path" -d` (this command will open the rom at rom\_path, loaded with the ram at custom\_ram_path in debug mode)
