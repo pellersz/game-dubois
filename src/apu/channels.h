@@ -69,7 +69,7 @@ public:
     Channel4() { type = 4; }
     
     unsigned short lfsr = 0;
-    bool bit_8 = 0;
+    bool bit8 = 0;
 };
 
 class Channels 

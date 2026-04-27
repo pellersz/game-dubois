@@ -13,7 +13,7 @@ GameBoy::GameBoy()
     memory.init(&scheduler, &apu, &controller);
 }
 
-const byte boot_rom[] = 
+const byte bootRom[] = 
 {
      49, 254, 255, 175,  33, 255, 159,  50, 203, 124,  32, 251,  33,  38, 255,  14, 
      17,  62, 128,  50, 226,  12,  62, 243, 226,  50,  62, 119, 119,  62, 252, 224, 
@@ -33,10 +33,10 @@ const byte boot_rom[] =
     245,   6,  25, 120, 134,  35,   5,  32, 251, 134,  32, 254,  62,   1, 224,  80
 };
 
-void GameBoy::load(std::shared_ptr<Cartridge> p_cartridge) 
+void GameBoy::load(std::shared_ptr<Cartridge> pCartridge) 
 { 
-    memory.load(p_cartridge);
-    pCartridge = p_cartridge;
+    memory.load(pCartridge);
+    this->pCartridge = pCartridge;
 }
 
 void GameBoy::unload() { pCartridge = nullptr; }
@@ -51,16 +51,16 @@ void GameBoy::run(bool debug)
 
     if (!debug)
     {
-        byte* boot_rom_memory = memory.getDataPointerToAddress(0);
+        byte* bootRomMemory = memory.getDataPointerToAddress(0);
         byte buf[256];
-        memcpy(buf, boot_rom_memory, 256);
-        memcpy(boot_rom_memory, boot_rom, 256);
+        memcpy(buf, bootRomMemory, 256);
+        memcpy(bootRomMemory, bootRom, 256);
 
         
         scheduler.run();
 
         cpu.setPC(0x100);
-        memcpy(boot_rom_memory, buf, 256);
+        memcpy(bootRomMemory, buf, 256);
         scheduler.run();
         return;
     }

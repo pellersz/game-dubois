@@ -8,12 +8,12 @@
 
 class Mbc1: public Mbc 
 {
-public:
+  public:
     virtual void init(Cartridge*) override;
     
     virtual void writeToRegister(unsigned short, byte) override;
 
-private:
+  private:
     bool moreThan512Kb = false;
     bool bankMode = false;
 

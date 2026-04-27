@@ -105,23 +105,23 @@ Cartridge::~Cartridge()
 {
     if (batteryBacked)
     {
-        std::string save_name = name + ".sav";
-        std::ofstream f(save_name);
+        std::string saveName = name + ".sav";
+        std::ofstream f(saveName);
         f.write((char *)data.data() + romSize, ramSize);
     }
 }
 
 void Cartridge::loadRam(std::string filename)
 {
-    int file_size = getFileSize(filename);
+    int fileSize = getFileSize(filename);
 
-    if (file_size == -1) 
+    if (fileSize == -1) 
     {
         std::cout << "\"" << filename << "\": could not get file size" << std::endl;
         return;
     }
 
-    if (file_size != ramSize)
+    if (fileSize != ramSize)
     {
         std::cout << "The supplied ram save file's size does not match with the cartridge's ram size" << std::endl;
         return;
@@ -139,9 +139,9 @@ void Cartridge::loadRam(std::string filename)
 
 long Cartridge::getFileSize(std::string filename) 
 {
-    struct stat stat_buf;
-    int rc = stat(filename.c_str(), &stat_buf);
-    return rc == 0 ? stat_buf.st_size : -1;
+    struct stat statBuf;
+    int rc = stat(filename.c_str(), &statBuf);
+    return rc == 0 ? statBuf.st_size : -1;
 }
 
 int Cartridge::getSize() { return size; }

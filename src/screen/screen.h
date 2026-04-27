@@ -5,7 +5,7 @@
 #include "GLFW/glfw3.h"
 
 class Screen {
-public:
+  public:
     static const u8 LCD_HEIGHT = 144;
     static const u8 LCD_WIDTH = 160;
 
@@ -19,7 +19,7 @@ public:
     void fillWhite(u8);
     void updateFrame();
 
-private:
+  private:
     //these are slightly different from the lcd dimensions because my rounded windows would hide some pixels
     static const u8 WIN_HEIGHT = 150;
     static const u8 WIN_WIDTH = 170;

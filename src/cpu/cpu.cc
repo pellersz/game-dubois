@@ -99,7 +99,7 @@ bool Cpu::handleInterupts()
     return 0;
 }
 
-u8 regular_bytes[] =  
+u8 regularBytes[] =  
 {
     1, 3, 1, 1, 1, 1, 2, 1, 3, 1, 1, 1, 1, 1, 2, 1,
     2, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1,
@@ -119,7 +119,7 @@ u8 regular_bytes[] =
     2, 1, 1, 1, 0, 1, 2, 1, 2, 1, 3, 1, 0, 0, 2, 1
 };
 
-u8 regular_cycles[] = 
+u8 regularCycles[] = 
 {
     C(1), C(3), C(2), C(2), C(1), C(1), C(2), C(1), C(5), C(2), C(2), C(2), C(1), C(1), C(2), C(1),
     C(1), C(3), C(2), C(2), C(1), C(1), C(2), C(1), C(3), C(2), C(2), C(2), C(1), C(1), C(2), C(1), 
@@ -141,9 +141,9 @@ u8 regular_cycles[] =
 
 // you might not like it, but this is peak instruction handling
 // also, some instructions have variable cycles, these will update the scheduler and the program counter, and use return instead of break
-u8 Cpu::executeRegular(byte op_code) 
+u8 Cpu::executeRegular(byte opCode) 
 {
-    switch (op_code) 
+    switch (opCode) 
     {
         case 0x00: {op_0x00(); break;} case 0x01: {op_0x01(); break;} case 0x02: {op_0x02(); break;} case 0x03: {op_0x03(); break;} 
         case 0x04: {op_0x04(); break;} case 0x05: {op_0x05(); break;} case 0x06: {op_0x06(); break;} case 0x07: {op_0x07(); break;} 
@@ -211,11 +211,11 @@ u8 Cpu::executeRegular(byte op_code)
         case 0xfc: {op_0xfc(); break;} case 0xfd: {op_0xfd(); break;} case 0xfe: {op_0xfe(); break;} case 0xff: {return op_0xff();}     
     }
 
-    programCounterStep(regular_bytes[op_code]);
-    return regular_cycles[op_code];
+    programCounterStep(regularBytes[opCode]);
+    return regularCycles[opCode];
 }
 
-u8 cb_cycles[] = 
+u8 cbCycles[] = 
 {
     C(2), C(2), C(2), C(2), C(2), C(2), C(4), C(2), C(2), C(2), C(2), C(2), C(2), C(2), C(4), C(2),
     C(2), C(2), C(2), C(2), C(2), C(2), C(4), C(2), C(2), C(2), C(2), C(2), C(2), C(2), C(4), C(2),
@@ -236,9 +236,9 @@ u8 cb_cycles[] =
 };
 
 // you might not like it, but this is peak instruction handling
-u8 Cpu::executeBC(byte op_code) 
+u8 Cpu::executeBC(byte opCode) 
 {
-    switch (op_code) 
+    switch (opCode) 
     {
         case 0x00: {opCb_0x00(); break;} case 0x01: {opCb_0x01(); break;} case 0x02: {opCb_0x02(); break;} case 0x03: {opCb_0x03(); break;} 
         case 0x04: {opCb_0x04(); break;} case 0x05: {opCb_0x05(); break;} case 0x06: {opCb_0x06(); break;} case 0x07: {opCb_0x07(); break;} 
@@ -307,10 +307,10 @@ u8 Cpu::executeBC(byte op_code)
     }
 
     programCounterStep(2);
-    return cb_cycles[op_code];
+    return cbCycles[opCode];
 }
 
-int read_number(std::string str)
+int readNumber(std::string str)
 {
     int res = 0;
     for (int i = 0; i < str.size(); i++) 
@@ -322,9 +322,9 @@ int read_number(std::string str)
 // ideally i would get a library with json parsing, but cmake said no, so we are doing it by hand very inflexibly
 void Cpu::test(std::string filename)
 {
-    struct stat stat_buf;
-    int rc = stat(filename.c_str(), &stat_buf);
-    int size = rc == 0 ? stat_buf.st_size : -1;
+    struct stat statBuf;
+    int rc = stat(filename.c_str(), &statBuf);
+    int size = rc == 0 ? statBuf.st_size : -1;
 
     if (size == -1) 
     {
@@ -338,14 +338,12 @@ void Cpu::test(std::string filename)
 
     int val1 = -1;
     int val2 = -1;
-    bool left_paren = false;
-    Memory other_mem;
-    Cpu other_cpu(other_mem, apu);
+    bool leftParen = false;
+    Memory otherMem;
+    Cpu otherCpu(otherMem, apu);
     std::string name;
     int addrs[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    int addr_counter = 0;
-
-    std::cout << "we in this " << std::endl;
+    int addrCounter = 0;
 
     while (std::getline(file, str)) 
     {
@@ -369,7 +367,7 @@ void Cpu::test(std::string filename)
             {
                 std::string before = toString();
                 std::stringstream s;
-                for(int i = 0; i < addr_counter; ++i) 
+                for(int i = 0; i < addrCounter; ++i) 
                     s << std::hex << (int) memory.read(addrs[i]) << " ";
 
                 std::cout << toString() << std::endl;
@@ -379,21 +377,21 @@ void Cpu::test(std::string filename)
                 bool fucked = false;
                 if 
                 (
-                    a != other_cpu.a   ||
-                    f != other_cpu.f   ||
-                    b != other_cpu.b   ||
-                    c != other_cpu.c   ||
-                    d != other_cpu.d   ||
-                    e != other_cpu.e   ||
-                    h != other_cpu.h   ||
-                    l != other_cpu.l   ||
-                    sp != other_cpu.sp ||
-                    pc != other_cpu.pc
+                    a != otherCpu.a   ||
+                    f != otherCpu.f   ||
+                    b != otherCpu.b   ||
+                    c != otherCpu.c   ||
+                    d != otherCpu.d   ||
+                    e != otherCpu.e   ||
+                    h != otherCpu.h   ||
+                    l != otherCpu.l   ||
+                    sp != otherCpu.sp ||
+                    pc != otherCpu.pc
                 ) 
                     fucked = true;
     
-                for(int i = 0; i < addr_counter; i++)
-                    if(*memory.getDataPointerToAddress(addrs[i]) != *other_cpu.memory.getDataPointerToAddress(addrs[i]))
+                for(int i = 0; i < addrCounter; i++)
+                    if(*memory.getDataPointerToAddress(addrs[i]) != *otherCpu.memory.getDataPointerToAddress(addrs[i]))
                         fucked = true;
 
                 if (name == "    \"name\": \"88 55 51\"," || name == "    \"name\": \"88 fa cf\"," || name == "    \"name\": \"88 96 f8\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"88 78 b7\"," || name == "    \"name\": \"f1 22 11\",")
@@ -405,18 +403,18 @@ void Cpu::test(std::string filename)
                     std::cout << s.str();
                     std::cout << std::endl;
                     std::cout << "into:" << std::endl << "cpu: " << toString() << std::endl << "memory: ";
-                    for(int i = 0; i < addr_counter; ++i) 
+                    for(int i = 0; i < addrCounter; ++i) 
                         std::cout << std::hex << (int) memory.read(addrs[i]) << " ";
 
-                    std::cout << std::endl << "does not match" << std::endl << "cpu: " << other_cpu.toString() << std::endl << "memory: ";
-                    for(int i = 0; i < addr_counter; ++i) 
-                        std::cout << std::hex << (int) other_cpu.memory.read(addrs[i]) << " ";
+                    std::cout << std::endl << "does not match" << std::endl << "cpu: " << otherCpu.toString() << std::endl << "memory: ";
+                    for(int i = 0; i < addrCounter; ++i) 
+                        std::cout << std::hex << (int) otherCpu.memory.read(addrs[i]) << " ";
                     exit(0);
                 }
                 else 
                     std::cout << "we got this" << std::endl;
 
-                addr_counter = 0;
+                addrCounter = 0;
                 for(int i = 0; i < 10; ++i)
                     addrs[i] = -1;
             }
@@ -424,25 +422,25 @@ void Cpu::test(std::string filename)
         else if (state == 1)
         {
             if (str.find("\"a\"") != std::variant_npos) 
-                a = read_number(str);
+                a = readNumber(str);
             else if (str.find("\"f\"") != std::variant_npos) 
-                f = read_number(str);
+                f = readNumber(str);
             else if (str.find("\"b\"") != std::variant_npos) 
-                b = read_number(str);
+                b = readNumber(str);
             else if (str.find("\"c\"") != std::variant_npos) 
-                c = read_number(str);
+                c = readNumber(str);
             else if (str.find("\"d\"") != std::variant_npos) 
-                d = read_number(str);
+                d = readNumber(str);
             else if (str.find("\"e\"") != std::variant_npos) 
-                e = read_number(str);
+                e = readNumber(str);
             else if (str.find("\"h\"") != std::variant_npos) 
-                h = read_number(str);
+                h = readNumber(str);
             else if (str.find("\"l\"") != std::variant_npos) 
-                l = read_number(str);
+                l = readNumber(str);
             else if (str.find("\"pc\"") != std::variant_npos) 
-                pc = read_number(str) - 1;
+                pc = readNumber(str) - 1;
             else if (str.find("\"sp\"") != std::variant_npos) 
-                sp = read_number(str);
+                sp = readNumber(str);
             else if (str.find("\"ram\"") != std::variant_npos) 
                 state = 2;
             else if (str.find("}") != std::variant_npos) 
@@ -451,47 +449,47 @@ void Cpu::test(std::string filename)
         else if (state == 2) 
         {
             if(str.find("[") != std::variant_npos) 
-                left_paren = true;
+                leftParen = true;
             else if(str.find("]") != std::variant_npos) 
             {
-                if(!left_paren)
+                if(!leftParen)
                     state = 1;
                 else 
                 {
                     *memory.getDataPointerToAddress(val1) = val2;
                     val1 = -1;
-                    left_paren = false;
+                    leftParen = false;
                 }
             }
             else {
                 if(val1 == -1) 
-                    val1 = read_number(str);
+                    val1 = readNumber(str);
                 else 
-                    val2 = read_number(str);
+                    val2 = readNumber(str);
             }
         }  
         else if (state == 3)
         {
             if (str.find("\"a\"") != std::variant_npos) 
-                other_cpu.a = read_number(str);
+                otherCpu.a = readNumber(str);
             else if (str.find("\"f\"") != std::variant_npos) 
-                other_cpu.f = read_number(str);
+                otherCpu.f = readNumber(str);
             else if (str.find("\"b\"") != std::variant_npos) 
-                other_cpu.b = read_number(str);
+                otherCpu.b = readNumber(str);
             else if (str.find("\"c\"") != std::variant_npos) 
-                other_cpu.c = read_number(str);
+                otherCpu.c = readNumber(str);
             else if (str.find("\"d\"") != std::variant_npos) 
-                other_cpu.d = read_number(str);
+                otherCpu.d = readNumber(str);
             else if (str.find("\"e\"") != std::variant_npos) 
-                other_cpu.e = read_number(str);
+                otherCpu.e = readNumber(str);
             else if (str.find("\"h\"") != std::variant_npos) 
-                other_cpu.h = read_number(str);
+                otherCpu.h = readNumber(str);
             else if (str.find("\"l\"") != std::variant_npos) 
-                other_cpu.l = read_number(str);
+                otherCpu.l = readNumber(str);
             else if (str.find("\"pc\"") != std::variant_npos) 
-                other_cpu.pc = read_number(str);
+                otherCpu.pc = readNumber(str);
             else if (str.find("\"sp\"") != std::variant_npos) 
-                other_cpu.sp = read_number(str);
+                otherCpu.sp = readNumber(str);
             else if (str.find("\"ram\"") != std::variant_npos) 
                 state = 4;
             else if (str.find("}") != std::variant_npos) 
@@ -500,25 +498,25 @@ void Cpu::test(std::string filename)
         else if (state == 4) 
         {
             if(str.find("[") != std::variant_npos) 
-                left_paren = true;
+                leftParen = true;
             else if(str.find("]") != std::variant_npos) 
             {
-                if(!left_paren)
+                if(!leftParen)
                     state = 3;
                 else 
                 {
-                    addrs[addr_counter++] = val1;
-                    other_cpu.memory.write(val1, val2);
+                    addrs[addrCounter++] = val1;
+                    otherCpu.memory.write(val1, val2);
                     val1 = -1;
-                    left_paren = false;
+                    leftParen = false;
                 }
             }
             else 
             {
                 if(val1 == -1) 
-                    val1 = read_number(str);
+                    val1 = readNumber(str);
                 else 
-                    val2 = read_number(str);
+                    val2 = readNumber(str);
             }
         }
     }
@@ -526,16 +524,16 @@ void Cpu::test(std::string filename)
 
 void Cpu::setAfterBootRomState()
 {
-    a = 0x01;
-    f = 0xb0;
-    b = 0x00;
-    c = 0x13;
-    d = 0x00;
-    e = 0xd8;
-    h = 0x01;
-    l = 0x4d;
+    a  = 0x0001;
+    f  = 0x00b0;
+    b  = 0x0000;
+    c  = 0x0013;
+    d  = 0x0000;
+    e  = 0x00d8;
+    h  = 0x0001;
+    l  = 0x004d;
     sp = 0xfffe;
-    pc = 0x100;
+    pc = 0x0100;
 }
 
 std::string Cpu::toString() 

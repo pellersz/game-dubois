@@ -45,7 +45,7 @@ Scheduler::Scheduler(Memory& memory, Controller& controller, Ppu& ppu, Screen& s
     push(100, WAIT);
 }
 
-void Scheduler::init(Cpu* p_cpu) { pCpu = p_cpu; }
+void Scheduler::init(Cpu* pCpu) { this->pCpu = pCpu; }
 
 void Scheduler::push(unsigned int duration, Process process) { schedule.push(ProcessStart(time + duration, process)); }
 
@@ -55,16 +55,16 @@ void Scheduler::remove(Process process) {
         ProcessStart,
         std::vector<ProcessStart>,
         ProcessGreater 
-    > new_schedule;
+    > newSchedule;
 
     while (!schedule.empty()) 
     {
         if (schedule.top().second != process)
-            new_schedule.push(schedule.top());
+            newSchedule.push(schedule.top());
         schedule.pop();
     }
 
-    schedule = new_schedule;
+    schedule = newSchedule;
 }
 
 void Scheduler::replace(Process process, unsigned short duration) 
@@ -75,7 +75,7 @@ void Scheduler::replace(Process process, unsigned short duration)
 
 bool Scheduler::pop() 
 {
-    bool go_next = true;
+    bool goNext = true;
 
     switch (schedule.top().second) 
     {
@@ -84,10 +84,10 @@ bool Scheduler::pop()
             push(pCpu->executeNext(), CPU_EXEC);
 
             // std::cout << pCpu->toString() << " ";
-            if ((last_boot_rom != bootRomMapping) && (bootRomMapping == 1))
+            if ((lastBootRom != bootRomMapping) && (bootRomMapping == 1))
             {
-                last_boot_rom = bootRomMapping;
-                go_next = false;
+                lastBootRom = bootRomMapping;
+                goNext = false;
             }
 
             break; 
@@ -142,13 +142,13 @@ bool Scheduler::pop()
             push(4, LYC_LY_CMP);
             if (lcdY == lcdCmp) 
             {
-                if (last_ly != lcdY) 
+                if (lastLy != lcdY) 
                 {
                     lcdStat |= 0b0100;
                     statInterruptCheck();
                     break;
                 }
-                last_ly = lcdY;
+                lastLy = lcdY;
             }
             lcdStat &= 0b11111011;
             break;
@@ -320,13 +320,13 @@ bool Scheduler::pop()
         case WAIT:
         {
             // TODO: adjust because it seems a bit too fast, or maybe the sound is going too fast
-            if (next_dot_time > system_clock::now())
+            if (nextDotTime > system_clock::now())
             {
-                while (next_dot_time > system_clock::now());
-                next_dot_time += WAITING_TIME;
+                while (nextDotTime > system_clock::now());
+                nextDotTime += WAITING_TIME;
             }
             else 
-                next_dot_time = system_clock::now() + WAITING_TIME;
+                nextDotTime = system_clock::now() + WAITING_TIME;
 
             push(TIME_BETWEEN_WAIT, WAIT);
             break;
@@ -334,7 +334,7 @@ bool Scheduler::pop()
     };
 
     schedule.pop(); 
-    return go_next;
+    return goNext;
 }
 
 void Scheduler::run() 
@@ -345,19 +345,19 @@ void Scheduler::run()
         return;
     } 
 
-    bool go_next = true;
-    next_dot_time = system_clock::now() + WAITING_TIME;
+    bool goNext = true;
+    nextDotTime = system_clock::now() + WAITING_TIME;
 
-    while (go_next && !glfwWindowShouldClose(screen.getWindow())) 
+    while (goNext && !glfwWindowShouldClose(screen.getWindow())) 
     {
         if (schedule.top().first <= time)
-            go_next = pop();
+            goNext = pop();
         else
             tick();
     }
 }
 
-void Scheduler::handleDebugStop(bool& mode, int& stop_at) 
+void Scheduler::handleDebugStop(bool& mode, int& stopAt) 
 {
     char action;
     bool done = false;
@@ -366,23 +366,23 @@ void Scheduler::handleDebugStop(bool& mode, int& stop_at)
         done = true;
         std::cin >> action;
         switch (action) {
-            case 'n': { stop_at = -1; break; }
+            case 'n': { stopAt = -1; break; }
             case 'c': 
             { 
                 if (!mode)
-                    stop_at = 0xffff; 
+                    stopAt = 0xffff; 
                 break; 
             }
             case 'b': 
             {
                 mode = false;
-                std::cin >> std::hex >> stop_at; 
+                std::cin >> std::hex >> stopAt; 
                 break; 
             }
             case 'f':
             {
                 mode = true;
-                std::cin >> std::hex >> stop_at; 
+                std::cin >> std::hex >> stopAt; 
                 break; 
             }
             case 'm': 
@@ -431,18 +431,18 @@ void Scheduler::debugRun()
     } 
 
     bool mode;
-    int stop_at;
+    int stopAt;
 
     std::cout << "Where are we stopping?" << std::endl;
-    handleDebugStop(mode, stop_at);
+    handleDebugStop(mode, stopAt);
     std::cout << std::endl;
 
-    bool go_next = true;
-    next_dot_time = system_clock::now() + WAITING_TIME;
+    bool goNext = true;
+    nextDotTime = system_clock::now() + WAITING_TIME;
 
     std::ofstream f("log");
 
-    while (go_next && !glfwWindowShouldClose(screen.getWindow())) 
+    while (goNext && !glfwWindowShouldClose(screen.getWindow())) 
     {
         if (schedule.top().first <= time)
         {
@@ -452,16 +452,16 @@ void Scheduler::debugRun()
                     f << pCpu->toString() << std::endl;
                 if
                 (
-                    (stop_at == -1)                              || 
-                    (!mode && (stop_at == pCpu->getPC()))        || 
-                    (mode && (stop_at == memory.read(pCpu->getPC())))
+                    (stopAt == -1)                              || 
+                    (!mode && (stopAt == pCpu->getPC()))        || 
+                    (mode && (stopAt == memory.read(pCpu->getPC())))
                 )
                 {
                     std::cout << pCpu->toString() << "\n" << pCpu->getAsm() << "\n" << std::endl;
-                    handleDebugStop(mode, stop_at);
+                    handleDebugStop(mode, stopAt);
                 }
             }
-            go_next = pop();
+            goNext = pop();
         } 
         else
             tick();

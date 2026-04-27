@@ -12,7 +12,7 @@ class Apu;
 
 class Cpu 
 {
-public:
+  public:
     static const u8 CLOCKS_BETWEEN_EXEC = 4;
 
     Cpu(Memory&, Apu&);
@@ -28,7 +28,7 @@ public:
     std::string toString();
     std::string getAsm();
         
-protected:
+  protected:
     // I would encapsulate this, but it would mean writing 10000 getters and setters
     static const byte CF_MASK    = 0b00011111;
     static const byte HF_MASK    = 0b00101111;

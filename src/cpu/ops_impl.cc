@@ -15,10 +15,10 @@ void Cpu::opLd(word& dest, word src) { dest = src; }
 
 void Cpu::opLd(word addr, byte src) { memory.write(addr, src); }
 
-void Cpu::opLd(byte& dest_lo, byte& dest_hi, word src) 
+void Cpu::opLd(byte& destLo, byte& destHi, word src) 
 { 
-    dest_hi = src >> 8;
-    dest_lo = src;
+    destHi = src >> 8;
+    destLo = src;
 }
 
 // arithmetic
@@ -36,10 +36,10 @@ void Cpu::opAdd(byte val)
 void Cpu::opAdd(word val) 
 {
     word tmp = getHL();
-    word new_val = tmp + val;
-    setHL(new_val); 
-    setCF(new_val < tmp); 
-    setHF((new_val & 0b111111111111) < (tmp & 0b111111111111));
+    word newVal = tmp + val;
+    setHL(newVal); 
+    setCF(newVal < tmp); 
+    setHF((newVal & 0b111111111111) < (tmp & 0b111111111111));
     setNF(false);
 }
 
@@ -116,11 +116,11 @@ void Cpu::opInc(byte& lo, byte& hi) { hi += !(++lo); }
 
 void Cpu::opIncMemory(unsigned short addr) 
 { 
-    byte old_val = memory.read(addr);
-    byte new_val = old_val + 1;
-    memory.write(addr, new_val); 
-    setZF(!new_val); 
-    setHF((new_val & 0b1111) < (old_val & 0b1111));
+    byte oldVal = memory.read(addr);
+    byte newVal = oldVal + 1;
+    memory.write(addr, newVal); 
+    setZF(!newVal); 
+    setHF((newVal & 0b1111) < (oldVal & 0b1111));
     setNF(false);
 }
 
@@ -138,11 +138,11 @@ void Cpu::opDec(byte& lo, byte& hi) { hi -= (--lo == (byte)(-1)); }
 
 void Cpu::opDecMemory(unsigned short addr) 
 {
-    byte old_val = memory.read(addr);
-    byte new_val = old_val - 1;
-    memory.write(addr, new_val); 
-    setZF(!new_val); 
-    setHF((new_val & 0b1111) > (old_val & 0b1111));
+    byte oldVal = memory.read(addr);
+    byte newVal = oldVal - 1;
+    memory.write(addr, newVal); 
+    setZF(!newVal); 
+    setHF((newVal & 0b1111) > (oldVal & 0b1111));
     setNF(true);
 
 }
@@ -198,9 +198,9 @@ void Cpu::opSet(byte shift, unsigned short addr) { memory.write(addr, memory.rea
 
 void Cpu::opRl(byte& dest) 
 {
-    bool new_CF = dest & 0b10000000;
+    bool newCF = dest & 0b10000000;
     dest = (dest << 1) + getCF();
-    setCF(new_CF);
+    setCF(newCF);
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
 }
@@ -208,9 +208,9 @@ void Cpu::opRl(byte& dest)
 void Cpu::opRl(unsigned short addr)
 {
     byte res = memory.read(addr);
-    bool new_CF = res & 0b10000000;
+    bool newCF = res & 0b10000000;
     res = (res << 1) + getCF();
-    setCF(new_CF);
+    setCF(newCF);
     setZF(!res);
     f &= ZF_MASK | CF_MASK;
     memory.write(addr, res);
@@ -218,18 +218,18 @@ void Cpu::opRl(unsigned short addr)
 
 void Cpu::opRla()
 {
-    bool new_CF = a & 0b10000000;
+    bool newCF = a & 0b10000000;
     a = (a << 1) + getCF();
-    setCF(new_CF);
+    setCF(newCF);
     setZF(!a);
     f &= CF_MASK;
 }
 
 void Cpu::opRlc(byte& dest)
 {
-    bool last_set = dest & 0b10000000;
-    dest = (dest << 1) + last_set;
-    setCF(last_set);
+    bool lastSet = dest & 0b10000000;
+    dest = (dest << 1) + lastSet;
+    setCF(lastSet);
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
 }
@@ -237,9 +237,9 @@ void Cpu::opRlc(byte& dest)
 void Cpu::opRlc(unsigned short addr)
 {
     byte res = memory.read(addr);
-    bool last_set = res & 0b10000000;
-    res = (res << 1) + last_set;
-    setCF(last_set);
+    bool lastSet = res & 0b10000000;
+    res = (res << 1) + lastSet;
+    setCF(lastSet);
     setZF(!res);
     f &= ZF_MASK | CF_MASK;
     memory.write(addr, res);
@@ -247,18 +247,18 @@ void Cpu::opRlc(unsigned short addr)
 
 void Cpu::opRlca()
 {
-    bool last_set = a & 0b10000000;
-    a = (a << 1) + last_set;
-    setCF(last_set);
+    bool lastSet = a & 0b10000000;
+    a = (a << 1) + lastSet;
+    setCF(lastSet);
     setZF(!a);
     f &= CF_MASK;
 }
 
 void Cpu::opRr(byte& dest)
 {
-    bool new_CF = dest & 0b00000001;
+    bool newCF = dest & 0b00000001;
     dest = (dest >> 1) + getCF() * 0b10000000;
-    setCF(new_CF);
+    setCF(newCF);
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
 }
@@ -266,9 +266,9 @@ void Cpu::opRr(byte& dest)
 void Cpu::opRr(unsigned short addr)
 {
     byte res = memory.read(addr);
-    bool new_CF = res & 0b00000001;
+    bool newCF = res & 0b00000001;
     res = (res >> 1) + getCF() * 0b10000000;
-    setCF(new_CF);
+    setCF(newCF);
     setZF(!res);
     f &= ZF_MASK | CF_MASK;
     memory.write(addr, res);
@@ -276,18 +276,18 @@ void Cpu::opRr(unsigned short addr)
 
 void Cpu::opRra()
 {
-    bool new_CF = a & 0b00000001;
+    bool newCF = a & 0b00000001;
     a = (a >> 1) + getCF() * 0b10000000;
-    setCF(new_CF);
+    setCF(newCF);
     setZF(!a);
     f &= CF_MASK;
 }
 
 void Cpu::opRrc(byte& dest)
 {
-    bool last_set = dest & 0b00000001;
-    dest = (dest >> 1) + last_set * 0b10000000;
-    setCF(last_set);
+    bool lastSet = dest & 0b00000001;
+    dest = (dest >> 1) + lastSet * 0b10000000;
+    setCF(lastSet);
     setZF(!dest);
     f &= ZF_MASK | CF_MASK;
 }
@@ -295,9 +295,9 @@ void Cpu::opRrc(byte& dest)
 void Cpu::opRrc(unsigned short addr)
 {
     byte res = memory.read(addr);
-    bool last_set = res & 0b00000001;
-    res = (res >> 1) + last_set * 0b10000000;
-    setCF(last_set);
+    bool lastSet = res & 0b00000001;
+    res = (res >> 1) + lastSet * 0b10000000;
+    setCF(lastSet);
     setZF(!res);
     f &= ZF_MASK | CF_MASK;
     memory.write(addr, res);
@@ -305,9 +305,9 @@ void Cpu::opRrc(unsigned short addr)
 
 void Cpu::opRrca()
 {
-    bool lowest_bit = a & 0b00000001;
-    a = (a >> 1) + lowest_bit * 0b10000000;
-    setCF(lowest_bit);
+    bool lowestBit = a & 0b00000001;
+    a = (a >> 1) + lowestBit * 0b10000000;
+    setCF(lowestBit);
     setZF(!a);
     f &= CF_MASK;
 }
@@ -487,10 +487,10 @@ void Cpu::opPop(word& reg)
     stack2StepBack();
 }
 
-void Cpu::opPop(byte& reg_lo, byte& reg_hi)
+void Cpu::opPop(byte& regLo, byte& regHi)
 {
-    reg_lo = memory.read(sp);
-    reg_hi = memory.read(sp + 1);
+    regLo = memory.read(sp);
+    regHi = memory.read(sp + 1);
     stack2StepBack();
 }
 

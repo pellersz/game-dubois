@@ -11,7 +11,7 @@ class Controller;
 
 class Memory 
 {
-public:
+  public:
     void init(Scheduler*, Apu*, Controller*);
     void load(std::shared_ptr<Cartridge>);
     byte read(unsigned short);
@@ -93,7 +93,7 @@ public:
     static const unsigned short BG_OBJ_PALLETTES = 0xff69;  //ends before 0xff6b
     static const unsigned short WRAM_BANK_SELECT = 0xff70; 
 
-private: 
+  private: 
     byte videoRam[0x2000];
     byte workRam[0x2000];
     byte oam[0xa0];

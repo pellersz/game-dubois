@@ -15,7 +15,7 @@ class Mbc;
 
 class Cartridge 
 {
-public:
+  public:
     std::vector<byte> data;
 
     Cartridge(std::string);
@@ -35,7 +35,7 @@ public:
     void writeToRegister(unsigned short, byte);
     void writeToRam(unsigned short, byte);
 
-private:
+  private:
     int size;
     int romSize;
     int ramSize = 0;

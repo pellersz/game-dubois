@@ -13,7 +13,7 @@
 #include <memory>
 
 class GameBoy {
-public:
+  public:
     GameBoy();
     
     void load(std::shared_ptr<Cartridge>);
@@ -22,7 +22,7 @@ public:
     
     void run(bool);
 
-private:
+  private:
     Memory memory;
     Controller controller = Controller(memory);
     Screen screen;

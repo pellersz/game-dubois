@@ -16,15 +16,15 @@ void Controller::updatePressed()
 {
     byte tmp = joypad;
 
-    byte new_val;
+    byte newVal;
     if (~joypad & 0b00100000) 
-        new_val = (joypad & 0b11110000) + (pressedVector & 0b00001111);
+        newVal = (joypad & 0b11110000) + (pressedVector & 0b00001111);
     else
-        new_val = (joypad & 0b11110000) + (pressedVector >> 4);
+        newVal = (joypad & 0b11110000) + (pressedVector >> 4);
 
-    joypad = new_val;
+    joypad = newVal;
 
-    if (new_val < tmp)
+    if (newVal < tmp)
         interruptFlag = interruptFlag | 0b00010000;       
 }
 

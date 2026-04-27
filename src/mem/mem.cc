@@ -11,22 +11,22 @@
 
 void Memory::init
 (
-    Scheduler *p_scheduler,
-    Apu *p_apu,
-    Controller *p_controller
+    Scheduler *pScheduler,
+    Apu *pApu,
+    Controller *pController
 ) 
 {
-    pScheduler = p_scheduler;
-    pApu = p_apu;
-    pController = p_controller;
+    this->pScheduler = pScheduler;
+    this->pApu = pApu;
+    this->pController = pController;
 }
 
-void Memory::load(std::shared_ptr<Cartridge> p_cartridge) { pCartridge = p_cartridge; }
+void Memory::load(std::shared_ptr<Cartridge> pCartridge) { this->pCartridge = pCartridge; }
 
 byte Memory::read(unsigned short addr)
 {
-    auto access_cartridge = pCartridge.lock();
-    if (!access_cartridge)
+    auto accessCartridge = pCartridge.lock();
+    if (!accessCartridge)
     {
         std::cout << "Cartridge pointer expired" << std::endl;
         return 0xff;
@@ -39,18 +39,18 @@ byte Memory::read(unsigned short addr)
         case 1:
         case 2:
         case 3:
-            return access_cartridge->readBank(addr);
+            return accessCartridge->readBank(addr);
         case 4:
         case 5:
         case 6:
         case 7:
-            return access_cartridge->readBankN(addr - 0x4000);
+            return accessCartridge->readBankN(addr - 0x4000);
         case 8:
         case 9:
             return videoRam[addr - 0x8000];
         case 10:
         case 11:
-            return access_cartridge->readRam(addr - 0xa000);
+            return accessCartridge->readRam(addr - 0xa000);
         case 12:
         case 13:
             return workRam[addr - 0xc000];
@@ -74,8 +74,8 @@ byte Memory::read(unsigned short addr)
 
 void Memory::write(unsigned short addr, byte val)
 {
-    auto access_cartridge = pCartridge.lock();
-    if (!access_cartridge)
+    auto accessCartridge = pCartridge.lock();
+    if (!accessCartridge)
     {
         std::cout << "Cartridge pointer expired" << std::endl;
         return;
@@ -92,7 +92,7 @@ void Memory::write(unsigned short addr, byte val)
         case 6:
         case 7:
         {
-            access_cartridge->writeToRegister(addr, val);
+            accessCartridge->writeToRegister(addr, val);
             return;
         }
         case 8:
@@ -104,7 +104,7 @@ void Memory::write(unsigned short addr, byte val)
         case 10:
         case 11:
         {
-            access_cartridge->writeToRam(addr - 0xa000, val);
+            accessCartridge->writeToRam(addr - 0xa000, val);
             return;
         }
         case 12:
@@ -125,32 +125,32 @@ void Memory::write(unsigned short addr, byte val)
                 return;
             else 
             {
-                byte& value_to_change = last0x100[addr - 0xff00];
+                byte& valueToChange = last0x100[addr - 0xff00];
                 switch (addr) 
                 {
                     case Memory::JOYPAD: 
                     { 
-                        value_to_change = val;
+                        valueToChange = val;
                         pController->updatePressed();
                         break; 
                     }
-                    case Memory::DIVIDER_REGISTER: { value_to_change = 0; break; }
+                    case Memory::DIVIDER_REGISTER: { valueToChange = 0; break; }
                     case Memory::OAM_DMA_ADDR:  
                     { 
                         oamDma(val);
-                        value_to_change = val; 
+                        valueToChange = val; 
                         break; 
                     }
                     case Memory::TIMER_CONTROL: 
                     {
                         unsigned short duration = Scheduler::TIMA_PERIODS[val & 0b0011];
                         pScheduler->replace(UPDATE_TIMA, duration); 
-                        value_to_change = val;
+                        valueToChange = val;
                         break;
                     }
                     case Memory::LCD_STAT:
                     {
-                        value_to_change = (val & 0b11111100) + (value_to_change & 0b11); 
+                        valueToChange = (val & 0b11111100) + (valueToChange & 0b11); 
                         pScheduler->statInterruptCheck();
                         break;
                     }
@@ -161,15 +161,15 @@ void Memory::write(unsigned short addr, byte val)
                             u8 pace = val & 0b01110000;
                             if (!pace)
                                 pScheduler->remove(CH1_SWEEP);
-                            else if (!(value_to_change & 0b01110000))
+                            else if (!(valueToChange & 0b01110000))
                                 pScheduler->push(pace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::CH1_SWEEP_FREQUENCY, CH1_SWEEP);
-                            value_to_change = val;
+                            valueToChange = val;
                         }
                         break;
                     }
                     case Memory::NR11: 
                     { 
-                        value_to_change = val;
+                        valueToChange = val;
                         if (pApu->isOn())
                             pApu->nr11Changed();
                         break; 
@@ -181,10 +181,10 @@ void Memory::write(unsigned short addr, byte val)
                             u8 pace = val & 0b0111;
                             if (!pace) 
                                 pScheduler->remove(CH1_ENVELOPE);
-                            else if (!(value_to_change & 0b0111))
+                            else if (!(valueToChange & 0b0111))
                                 pScheduler->push(pace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH1_ENVELOPE);
 
-                            value_to_change = val;
+                            valueToChange = val;
                             pApu->nr12Changed();
                         }
                         break; 
@@ -199,25 +199,25 @@ void Memory::write(unsigned short addr, byte val)
                                 pScheduler->remove(CH1_ENVELOPE);
                                 pScheduler->remove(CH1_TIME);
 
-                                u8 sweep_pace = (last0x100[Memory::NR10 - 0xff00] >> 4) & 0b0111;
-                                if (sweep_pace) 
-                                    pScheduler->push(sweep_pace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::CH1_SWEEP_FREQUENCY, CH1_SWEEP);
+                                u8 sweepPace = (last0x100[Memory::NR10 - 0xff00] >> 4) & 0b0111;
+                                if (sweepPace) 
+                                    pScheduler->push(sweepPace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::CH1_SWEEP_FREQUENCY, CH1_SWEEP);
 
-                                u8 envelope_pace = last0x100[Memory::NR12 - 0xff00] & 0b0111;
-                                if (envelope_pace) 
-                                    pScheduler->push(envelope_pace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH1_ENVELOPE);
+                                u8 envelopePace = last0x100[Memory::NR12 - 0xff00] & 0b0111;
+                                if (envelopePace) 
+                                    pScheduler->push(envelopePace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH1_ENVELOPE);
 
                                 if (val & 0b01000000) 
                                     pScheduler->push(Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::SOUND_TIMER_FREQUENCY, CH1_TIME);
                             }
-                            value_to_change = val;
+                            valueToChange = val;
                             pApu->nr14Changed();
                         }
                         break;
                     }
                     case Memory::NR21: 
                     { 
-                        value_to_change = val;
+                        valueToChange = val;
                         if (pApu->isOn())
                             pApu->nr21Changed(); 
                         break; 
@@ -229,10 +229,10 @@ void Memory::write(unsigned short addr, byte val)
                             u8 pace = val & 0b0111;
                             if (!pace) 
                                 pScheduler->remove(CH2_ENVELOPE);
-                            else if (!(value_to_change & 0b0111))
+                            else if (!(valueToChange & 0b0111))
                                 pScheduler->push(pace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH2_ENVELOPE);
  
-                            value_to_change = val;
+                            valueToChange = val;
                             pApu->nr22Changed();
                         }
                         break; 
@@ -246,29 +246,29 @@ void Memory::write(unsigned short addr, byte val)
                                 pScheduler->remove(CH2_ENVELOPE);
                                 pScheduler->remove(CH2_TIME);
 
-                                u8 envelope_pace = last0x100[Memory::NR22 - 0xff00] & 0b0111;
-                                if (envelope_pace) 
-                                    pScheduler->push(envelope_pace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH2_ENVELOPE);
+                                u8 envelopePace = last0x100[Memory::NR22 - 0xff00] & 0b0111;
+                                if (envelopePace) 
+                                    pScheduler->push(envelopePace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH2_ENVELOPE);
 
                                 if (val & 0b01000000) 
                                     pScheduler->push(Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::SOUND_TIMER_FREQUENCY, CH2_TIME);
                             }
     
-                            value_to_change = val;
+                            valueToChange = val;
                             pApu->nr24Changed();
                         }
                         break;
                     }
                     case Memory::NR30:
                     {
-                        value_to_change = val;
+                        valueToChange = val;
                         if (pApu->isOn())
                             pApu->nr30Changed();
                         break;
                     } 
                     case Memory::NR32:
                     {
-                        value_to_change = val;
+                        valueToChange = val;
                         if (pApu->isOn())
                             pApu->nr32Changed();
                         break;
@@ -285,7 +285,7 @@ void Memory::write(unsigned short addr, byte val)
                                     pScheduler->push(Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::SOUND_TIMER_FREQUENCY, CH3_TIME);
                             }
 
-                            value_to_change = val;
+                            valueToChange = val;
                             pApu->nr34Changed();
                         }
                         break;
@@ -297,17 +297,17 @@ void Memory::write(unsigned short addr, byte val)
                             u8 pace = val & 0b0111;
                             if (!pace) 
                                 pScheduler->remove(CH4_ENVELOPE);
-                            else if (!(value_to_change & 0b0111))
+                            else if (!(valueToChange & 0b0111))
                                 pScheduler->push(pace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH4_ENVELOPE);
 
-                            value_to_change = val;
+                            valueToChange = val;
                             pApu->nr42Changed();
                         }
                         break; 
                     }
                     case Memory::NR43:
                     {
-                        value_to_change = val;
+                        valueToChange = val;
                         if (pApu->isOn())
                             pApu->nr43Changed();
                         break;
@@ -332,40 +332,40 @@ void Memory::write(unsigned short addr, byte val)
 
                                 pScheduler->push(Scheduler::CH4_SHIFT_TIME / (divider * shift), CH4_SHIFT);
 
-                                u8 envelope_pace = last0x100[Memory::NR42 - 0xff00] & 0b0111;
-                                if (envelope_pace) 
-                                    pScheduler->push(envelope_pace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH4_ENVELOPE);
+                                u8 envelopePace = last0x100[Memory::NR42 - 0xff00] & 0b0111;
+                                if (envelopePace) 
+                                    pScheduler->push(envelopePace * Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::ENVELOPE_FREQUENCY, CH4_ENVELOPE);
 
                                 if (val & 0b01000000) 
                                     pScheduler->push(Scheduler::MASTER_CLOCK_FREQUENCY / Scheduler::SOUND_TIMER_FREQUENCY, CH4_TIME);
 
                             }
  
-                            value_to_change = val;
+                            valueToChange = val;
                             pApu->nr44Changed();
                         }
                         break;
                     }
                     case Memory::NR51: 
                     {
-                        value_to_change = val;
+                        valueToChange = val;
                         if (pApu->isOn())
                             pApu->soundPanningChanged(); 
                         break; 
                     }
                     case Memory::NR52: 
                     { 
-                        bool on_before = value_to_change & 0b10000000;
-                        value_to_change = (val & 0b11110000) + (value_to_change & 0b00001111);
-                        bool on_now = value_to_change & 0b10000000;
-                        if (!on_before && on_now)
+                        bool onBefore = valueToChange & 0b10000000;
+                        valueToChange = (val & 0b11110000) + (valueToChange & 0b00001111);
+                        bool onNow = valueToChange & 0b10000000;
+                        if (!onBefore && onNow)
                             pScheduler->push(0, SAMPLE);
-                        else if (on_before && !on_now)
+                        else if (onBefore && !onNow)
                             pScheduler->remove(SAMPLE);
                         pApu->audioMasterChanged(); 
                         break; 
                     }
-                    default:{ value_to_change = val; break; }
+                    default:{ valueToChange = val; break; }
                 }
             }
         }
@@ -384,12 +384,7 @@ void Memory::writeWord(unsigned short addr, word val)
 
 byte* Memory::getDataPointerToAddress(unsigned short addr)
 {
-    auto access_cartridge = pCartridge.lock();
-    //if (!access_cartridge)
-    //{
-    //    std::cout << "Cartridge pointer expired" << std::endl;
-    //    return NULL;
-    //}
+    auto accessCartridge = pCartridge.lock();
 
     switch (addr >> 12)
     {
@@ -398,18 +393,18 @@ byte* Memory::getDataPointerToAddress(unsigned short addr)
         case 2:
         case 3:
         {
-            if (!access_cartridge)
+            if (!accessCartridge)
                 return cartridgePtrError();
-            return access_cartridge->getBankPointer(addr);
+            return accessCartridge->getBankPointer(addr);
         }
         case 4:
         case 5:
         case 6:
         case 7:
         {
-            if (!access_cartridge)
+            if (!accessCartridge)
                 return cartridgePtrError();
-            return access_cartridge->getBankNPointer(addr - 0x4000);
+            return accessCartridge->getBankNPointer(addr - 0x4000);
         }
         case 8:
         case 9:
@@ -417,9 +412,9 @@ byte* Memory::getDataPointerToAddress(unsigned short addr)
         case 10:
         case 11:
         {
-            if (!access_cartridge)
+            if (!accessCartridge)
                 return cartridgePtrError();
-            return access_cartridge->getRamPointer(addr - 0xa000);
+            return accessCartridge->getRamPointer(addr - 0xa000);
         }
         case 12:
         case 13:

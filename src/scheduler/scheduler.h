@@ -43,7 +43,7 @@ typedef std::pair<unsigned long long, Process> ProcessStart;
 
 class Scheduler 
 {
-public: 
+  public: 
     const static int MASTER_CLOCK_FREQUENCY = 4194304;
     const static int SYSTEM_CLOCK_FREQUENCY = MASTER_CLOCK_FREQUENCY / 4;
     const static int ENVELOPE_FREQUENCY = 64;
@@ -65,7 +65,7 @@ public:
 
     void statInterruptCheck();
 
-private: 
+  private: 
 
     bool statInterruptLine = false;
 
@@ -84,7 +84,7 @@ private:
 
     const static int TIME_BETWEEN_WAIT = 500;
     constexpr static const auto WAITING_TIME = TIME_BETWEEN_WAIT * round<system_clock::duration>(duration<double>(1.0 / 4194304));
-    time_point<std::chrono::system_clock> next_dot_time = system_clock::now() + WAITING_TIME;
+    time_point<std::chrono::system_clock> nextDotTime = system_clock::now() + WAITING_TIME;
     unsigned long long time = 0;
 
     Cpu *pCpu = nullptr;
@@ -110,8 +110,8 @@ private:
     byte& nr42;
     byte& nr43;
     
-    byte last_boot_rom = 0;
-    byte last_ly = 255;
+    byte lastBootRom = 0;
+    byte lastLy = 255;
 
     bool pop();
     void tick();

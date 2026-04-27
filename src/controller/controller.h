@@ -7,7 +7,7 @@ class Memory;
 
 class Controller 
 {
-public:
+  public:
     static const byte A      = 0b00000001;
     static const byte B      = 0b00000010;
     static const byte SELECT = 0b00000100;
@@ -23,7 +23,7 @@ public:
     void buttonReleased(byte);
     void updatePressed();
 
-private:
+  private:
     // vector for identifying which buttons are pressed
     volatile byte pressedVector = 0;
     

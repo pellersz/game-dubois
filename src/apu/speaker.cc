@@ -22,33 +22,33 @@ unsigned short SampleBuffer::copy(float* dest, unsigned short count)
     }
     else 
     {
-        int currenct_count = this->count;
+        int currenctCount = this->count;
         float counter = 0;
-        float diff = (float) currenct_count / count;
+        float diff = (float) currenctCount / count;
         for(unsigned short i = 0; i < count / 2; ++i, counter += diff)
         {
-            int conter_int = counter;
-            dest[2 * i] = buffer[2 * conter_int];
-            dest[2 * i + 1] = buffer[2 * conter_int + 1];
+            int counterInt = counter;
+            dest[2 * i] = buffer[2 * counterInt];
+            dest[2 * i + 1] = buffer[2 * counterInt + 1];
         }
-        memcpy(buffer, buffer + currenct_count, sizeof(float) * (this->count - currenct_count));
-        this->count -= currenct_count;
+        memcpy(buffer, buffer + currenctCount, sizeof(float) * (this->count - currenctCount));
+        this->count -= currenctCount;
     }
     return 0;
 }
 
 Speaker::Speaker() 
 {
-    ma_device_config device_config;
+    ma_device_config deviceConfig;
  
-    device_config = ma_device_config_init(ma_device_type_playback);
-    device_config.playback.format   = ma_format_f32;
-    device_config.playback.channels = 2;
-    device_config.sampleRate        = 48000;
-    device_config.dataCallback      = dataCallback;
-    device_config.pUserData         = &sampleBuffer;
+    deviceConfig = ma_device_config_init(ma_device_type_playback);
+    deviceConfig.playback.format   = ma_format_f32;
+    deviceConfig.playback.channels = 2;
+    deviceConfig.sampleRate        = 48000;
+    deviceConfig.dataCallback      = dataCallback;
+    deviceConfig.pUserData         = &sampleBuffer;
 
-    if (ma_device_init(NULL, &device_config, &device) != MA_SUCCESS)
+    if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS)
     {
         printf("Failed to open playback device.\n");
         return;
@@ -68,39 +68,39 @@ Speaker::~Speaker() { ma_device_uninit(&device); }
 
 ma_result Speaker::apuDataRead
 (
-    ma_data_source* p_data_source, 
-    void* p_frames_out, 
-    ma_uint64 frame_count,
-    ma_uint64* p_frames_read
+    ma_data_source* pDataSource, 
+    void* pFramesOut, 
+    ma_uint64 frameCount,
+    ma_uint64* pFramesRead
 )
 {
-    SampleBuffer* p_buffer = (SampleBuffer*) p_data_source;
-    float* p_frames_out_f32 = (float*)p_frames_out;
-    p_buffer->copy(p_frames_out_f32, frame_count);
+    SampleBuffer* pBuffer = (SampleBuffer*) pDataSource;
+    float* pFramesOutF32 = (float*)pFramesOut;
+    pBuffer->copy(pFramesOutF32, frameCount);
     return MA_SUCCESS;
 }
 
-ma_result Speaker::apuDataSeek(ma_data_source* p_data_source, ma_uint64 frame_index) { return MA_NOT_IMPLEMENTED; }
+ma_result Speaker::apuDataSeek(ma_data_source* pDataSource, ma_uint64 frameIndex) { return MA_NOT_IMPLEMENTED; }
 
 ma_result Speaker::getDataFormat
 (
-    ma_data_source* p_data_source,
-    ma_format* p_format,
-    ma_uint32* p_channels,
-    ma_uint32* p_sample_rate,
-    ma_channel* p_channel_map,
-    size_t channel_map_cap
+    ma_data_source* pDataSource,
+    ma_format* pFormat,
+    ma_uint32* pChannels,
+    ma_uint32* pSampleRate,
+    ma_channel* pChannelMap,
+    size_t channelMapCap
 )
 {
-    *p_format = ma_format_f32;
-    *p_channels = 2;
-    *p_sample_rate = 48000;
+    *pFormat = ma_format_f32;
+    *pChannels = 2;
+    *pSampleRate = 48000;
     return MA_SUCCESS;
 }
 
-ma_result Speaker::getDataCursor(ma_data_source* p_data_source, ma_uint64* p_cursor) { return MA_NOT_IMPLEMENTED; }
+ma_result Speaker::getDataCursor(ma_data_source* pDataSource, ma_uint64* pCursor) { return MA_NOT_IMPLEMENTED; }
 
-ma_result Speaker::initApuData(SampleBuffer* p_buffer)
+ma_result Speaker::initApuData(SampleBuffer* pBuffer)
 {
     ma_result result;
     ma_data_source_config baseConfig;
@@ -108,21 +108,23 @@ ma_result Speaker::initApuData(SampleBuffer* p_buffer)
     baseConfig = ma_data_source_config_init();
     baseConfig.vtable = &DATA_SOURCE_VTABLE;
 
-    result = ma_data_source_init(&baseConfig, &p_buffer->base);
+    result = ma_data_source_init(&baseConfig, &pBuffer->base);
     if (result != MA_SUCCESS)
         return result;
 
     return MA_SUCCESS;
 }
 
-void Speaker::uninitApuData(SampleBuffer* p_sample_buffer) { ma_data_source_uninit(&p_sample_buffer->base); }
+void Speaker::uninitApuData(SampleBuffer* pSampleBuffer) { ma_data_source_uninit(&pSampleBuffer->base); }
 
 void Speaker::dataCallback
 (
-    ma_device* p_device,
-    void* p_output,
-    const void* p_input,
-    ma_uint32 frame_count
+    ma_device* pDevice,
+    void* pOutput,
+    const void* pInput,
+    ma_uint32 frameCount
 )
-{ apuDataRead(p_device->pUserData, p_output, frame_count, NULL); }
+{ 
+    apuDataRead(pDevice->pUserData, pOutput, frameCount, NULL); 
+}
 

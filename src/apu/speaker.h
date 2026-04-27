@@ -6,7 +6,7 @@
 
 class SampleBuffer 
 {
-public:
+  public:
     ma_data_source_base base;
     float buffer[10000] = {0};
     volatile int count = 0;
@@ -17,13 +17,13 @@ public:
 
 class Speaker 
 {   
-public:
+  public:
     SampleBuffer sampleBuffer;
 
     Speaker();
     ~Speaker();
 
-private:
+  private:
     // needed for lifetime
     ma_device device;
 

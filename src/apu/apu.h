@@ -8,7 +8,7 @@ class Speaker;
 
 class Apu 
 {
-public:
+  public:
     constexpr static const float VOLUME_UNIT = 1. / 7.5;
     constexpr static const float VLUME_UNIT  = 1. / 15;
 
@@ -50,7 +50,7 @@ public:
 
     bool isOn();
 
-private:
+  private:
     constexpr const static float SPEAKER_VOLUME_UNIT = (1. / (4 * 9.));
     constexpr static const float HPF_MULTIPLIER = 0.9930;
 

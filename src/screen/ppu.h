@@ -8,7 +8,7 @@ class Screen;
 
 class Ppu 
 {
-public:
+  public:
     Ppu(Memory&, Screen&);
     
     void oamScan();
@@ -20,7 +20,7 @@ public:
     void printTiles();
     void printUsedTiles();
 
-private:
+  private:
     static const byte WHITE      = 255;
     static const byte LIGHT_GRAY = 255 * (2. / 3);
     static const byte DARK_GRAY  = 255 * (1. / 3);
@@ -46,7 +46,7 @@ private:
 
     class ObjectLine 
     {
-    public:
+      public:
         u8 posX;
         u8 internalY;
         u8 tileIndex;

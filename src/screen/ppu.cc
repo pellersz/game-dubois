@@ -19,18 +19,18 @@ Ppu::Ppu(Memory& memory, Screen& screen) :
 
 void Ppu::oamScan() 
 {
-    bool is_16_bit = lcdc & 0b0100;
+    bool is16Bit = lcdc & 0b0100;
  
     numberOfObjects = 0;
-    for (unsigned short obj_ind = 0; obj_ind < 0xa0 && numberOfObjects < 10; obj_ind += 4) 
+    for (unsigned short objInd = 0; objInd < 0xa0 && numberOfObjects < 10; objInd += 4) 
     {
-        short pos_y = oam[obj_ind] - 16;
-        if ((pos_y <= lcdY) && (pos_y + 8 + 8 * is_16_bit > lcdY)) 
+        short posY = oam[objInd] - 16;
+        if ((posY <= lcdY) && (posY + 8 + 8 * is16Bit > lcdY)) 
         {
-            objects[numberOfObjects].posX         = oam[obj_ind + 1];
-            objects[numberOfObjects].internalY    = lcdY - pos_y;
-            objects[numberOfObjects].tileIndex    = oam[obj_ind + 2];
-            objects[numberOfObjects++].attributes = oam[obj_ind + 3];
+            objects[numberOfObjects].posX         = oam[objInd + 1];
+            objects[numberOfObjects].internalY    = lcdY - posY;
+            objects[numberOfObjects].tileIndex    = oam[objInd + 2];
+            objects[numberOfObjects++].attributes = oam[objInd + 3];
         }
     }
 
@@ -55,29 +55,29 @@ u8 Ppu::getIndexFromWord(word word) { return ((0x8000 & word) >> 14) + ((0x80 & 
 
 void Ppu::drawBackgroundTile
 (
-    u8 lcd_x,
-    u8 lcd_y,
-    u8 tile_offs, 
-    u8 y_offs, 
-    u8 *color_indices,
-    bool bg_area
+    u8 lcdX,
+    u8 lcdY,
+    u8 tileOffs, 
+    u8 yOffs, 
+    u8 *colorIndices,
+    bool bgArea
 ) 
 {
-    word data = bg_area ? 
-        memory(Memory::TILES +                 tile_offs * TILE_BYTE_SIZE + 2 * y_offs) : 
-        memory(Memory::TILES + 0x1000 + (offs) tile_offs * TILE_BYTE_SIZE + 2 * y_offs) ;
+    word data = bgArea ? 
+        memory(Memory::TILES +                 tileOffs * TILE_BYTE_SIZE + 2 * yOffs) : 
+        memory(Memory::TILES + 0x1000 + (offs) tileOffs * TILE_BYTE_SIZE + 2 * yOffs) ;
 
-    for(short x = lcd_x + 7; x > lcd_x; --x) 
+    for(short x = lcdX + 7; x > lcdX; --x) 
     {
-        screen(lcd_y, x) = COLORS[color_indices[(data & 0b0001) + ((data >> 7) & 0b0010)]];
+        screen(lcdY, x) = COLORS[colorIndices[(data & 0b0001) + ((data >> 7) & 0b0010)]];
         data >>= 1;
     } 
-    screen(lcd_y, lcd_x) = COLORS[color_indices[(data & 0b0001) + ((data >> 7) & 0b0010)]];
+    screen(lcdY, lcdX) = COLORS[colorIndices[(data & 0b0001) + ((data >> 7) & 0b0010)]];
 }
 
 void Ppu::drawBackground() 
 {
-    u8 color_indices[4] = 
+    u8 colorIndices[4] = 
     { 
         static_cast<u8>(bgPalData & 0b11), 
         static_cast<u8>((bgPalData >> 2) & 0b11),
@@ -85,35 +85,35 @@ void Ppu::drawBackground()
         static_cast<u8>((bgPalData >> 6)),
     };
 
-    bool bg_area = lcdc & 0b00010000;
-    bool bg_tile_area = lcdc & 0b00001000;
+    bool bgArea = lcdc & 0b00010000;
+    bool bgTileArea = lcdc & 0b00001000;
    
-    unsigned short tile_offs = 
-        (bg_tile_area ? Memory::TILE_M1 : Memory::TILE_M0) +
+    unsigned short tileOffs = 
+        (bgTileArea ? Memory::TILE_M1 : Memory::TILE_M0) +
         ((u8)(lcdY + viewY) / TILE_WIDTH) * TILES_PER_ROW + 
         viewX / TILE_WIDTH;
 
-    u8 y_offs = (lcdY + viewY) % TILE_WIDTH;
+    u8 yOffs = (lcdY + viewY) % TILE_WIDTH;
 
-    u8 no_wrap = TILES_PER_ROW - viewX / TILE_WIDTH;
+    u8 noWrap = TILES_PER_ROW - viewX / TILE_WIDTH;
     
      // align for whole bytes
-    for (short lcd_x = 0 - viewX % TILE_WIDTH; lcd_x < Screen::LCD_WIDTH; lcd_x += TILE_WIDTH, ++tile_offs, --no_wrap) 
+    for (short lcdX = 0 - viewX % TILE_WIDTH; lcdX < Screen::LCD_WIDTH; lcdX += TILE_WIDTH, ++tileOffs, --noWrap) 
     { 
-        if (!no_wrap)
-            tile_offs -= TILES_PER_ROW; 
+        if (!noWrap)
+            tileOffs -= TILES_PER_ROW; 
     
-        drawBackgroundTile(lcd_x, lcdY, memory.read(tile_offs), y_offs, color_indices, bg_area); 
+        drawBackgroundTile(lcdX, lcdY, memory.read(tileOffs), yOffs, colorIndices, bgArea); 
     }
 }
 
 void Ppu::drawWindow() 
 {
-    int win_x = winX - 7;
+    int winXx = winX - 7;
 
-    if (win_x < 160 && lcdY >= winY) 
+    if (winXx < 160 && lcdY >= winY) 
     {
-        u8 color_indices[4] = 
+        u8 colorIndices[4] = 
         { 
             static_cast<u8>(bgPalData & 0b11), 
             static_cast<u8>((bgPalData >> 2) & 0b11),
@@ -121,25 +121,27 @@ void Ppu::drawWindow()
             static_cast<u8>((bgPalData >> 6)),
         };
 
-        bool window_area = lcdc & 0b00010000;
-        bool window_tile_area = lcdc & 0b01000000;
+        bool windowArea = lcdc & 0b00010000;
+        bool windowTileArea = lcdc & 0b01000000;
 
-        unsigned short tile_offs = 
-            (window_tile_area ? Memory::TILE_M1 : Memory::TILE_M0) +
+        unsigned short tileOffs = 
+            (windowTileArea ? Memory::TILE_M1 : Memory::TILE_M0) +
             (winYCounter / TILE_WIDTH) * TILES_PER_ROW; 
 
-        u8 y_offs = winYCounter % TILE_WIDTH;
+        u8 yOffs = winYCounter % TILE_WIDTH;
 
-        for (u8 lcd_x = win_x; lcd_x < Screen::LCD_WIDTH; lcd_x += 8, ++tile_offs) 
+        for (u8 lcdX = winX; lcdX < Screen::LCD_WIDTH; lcdX += 8, ++tileOffs) 
+        {
             drawBackgroundTile
             (
-                lcd_x,
+                lcdX,
                 lcdY,
-                memory.read(tile_offs),
-                y_offs,
-                color_indices,
-                window_area
+                memory.read(tileOffs),
+                yOffs,
+                colorIndices,
+                windowArea
             );
+        }
 
         ++winYCounter;
     }
@@ -147,69 +149,69 @@ void Ppu::drawWindow()
 
 void Ppu::drawObjectTile
 (
-    u8 lcd_x,
-    u8 lcd_y,
-    u8 tile_offs, 
-    u8 y_offs, 
-    bool x_flip,
+    u8 lcdX,
+    u8 lcdY,
+    u8 tileOffs, 
+    u8 yOffs, 
+    bool xFlip,
     bool priority,
-    u8 *color_indices
+    u8 *colorIndices
 ) 
 {
-    byte not_prio_color;
+    byte notPrioColor;
     if (priority) 
-        not_prio_color = COLORS[bgPalData & 0b11];
+        notPrioColor = COLORS[bgPalData & 0b11];
 
-    word data = memory(Memory::TILES + tile_offs * TILE_BYTE_SIZE + 2 * y_offs);
+    word data = memory(Memory::TILES + tileOffs * TILE_BYTE_SIZE + 2 * yOffs);
    
-    offs orientation = x_flip ? 1 : -1;
-    for (int i = x_flip ? 0 : 7; (i + 1) % 9; i += orientation)
+    offs orientation = xFlip ? 1 : -1;
+    for (int i = xFlip ? 0 : 7; (i + 1) % 9; i += orientation)
     {
-        u8 index_index = (data & 0b0001) + ((data >> 7) & 0b0010);
+        u8 indexIndex = (data & 0b0001) + ((data >> 7) & 0b0010);
         data >>= 1;
-        if (index_index && (!priority || (screen(lcd_y, lcd_x + i) == not_prio_color)))
-            screen(lcd_y, lcd_x + i) = COLORS[color_indices[index_index]];
+        if (indexIndex && (!priority || (screen(lcdY, lcdX + i) == notPrioColor)))
+            screen(lcdY, lcdX + i) = COLORS[colorIndices[indexIndex]];
     }
 } 
  
 void Ppu::drawObjects() 
 {
-    bool is_16_bit = lcdc & 0b0100; 
+    bool is16Bit = lcdc & 0b0100; 
 
     for (int i = numberOfObjects - 1; i >= 0; --i)
     { 
         ObjectLine object = objects[i];
 
-        u8 lcd_x = object.posX - 8;
-        u8 tile_offs = is_16_bit ? object.tileIndex & 0xfe : object.tileIndex;        
+        u8 lcdX = object.posX - 8;
+        u8 tileOffs = is16Bit ? object.tileIndex & 0xfe : object.tileIndex;        
  
-        bool y_flip = object.attributes & 0b01000000;
-        u8 y_offs = y_flip 
-            ? (7 + is_16_bit * 8 - object.internalY) 
+        bool yFlip = object.attributes & 0b01000000;
+        u8 yOffs = yFlip 
+            ? (7 + is16Bit * 8 - object.internalY) 
             : object.internalY;
 
-        bool x_flip = object.attributes & 0b00100000;
+        bool xFlip = object.attributes & 0b00100000;
         bool priority = object.attributes & 0b10000000;
 
         bool palette = object.attributes & 0b00010000;
-        byte obj_pal_data = memory.read(palette ? Memory::OBJ_PAL_1_DATA : Memory::OBJ_PAL_0_DATA);
-        u8 color_indices[4] = 
+        byte objPalData = memory.read(palette ? Memory::OBJ_PAL_1_DATA : Memory::OBJ_PAL_0_DATA);
+        u8 colorIndices[4] = 
         { 
             0,
-            static_cast<u8>((obj_pal_data >> 2) & 0b11),
-            static_cast<u8>((obj_pal_data >> 4) & 0b11),
-            static_cast<u8>((obj_pal_data >> 6) & 0b11),
+            static_cast<u8>((objPalData >> 2) & 0b11),
+            static_cast<u8>((objPalData >> 4) & 0b11),
+            static_cast<u8>((objPalData >> 6) & 0b11),
         };
 
         drawObjectTile
         (
             object.posX - 8, 
             lcdY,
-            tile_offs,
-            y_offs,
-            x_flip,
+            tileOffs,
+            yOffs,
+            xFlip,
             priority,
-            color_indices 
+            colorIndices 
         );
     }
 }
@@ -263,14 +265,14 @@ void Ppu::printUsedTiles()
             {
                 for (int k = 0; k < 33; ++k) 
                 {
-                    u8 tile_offs = memory.read
+                    u8 tileOffs = memory.read
                     (
                         (v & 1 ? Memory::TILE_M1 : Memory::TILE_M0) +
                         i * TILES_PER_ROW + k
                     );
                     word data = v & 2 ? 
-                        memory(Memory::TILES +               tile_offs * TILE_BYTE_SIZE + 2 * j) : 
-                        memory(Memory::TILES + 0x1000 + (offs) tile_offs * TILE_BYTE_SIZE + 2 * j) ;
+                        memory(Memory::TILES +               tileOffs * TILE_BYTE_SIZE + 2 * j) : 
+                        memory(Memory::TILES + 0x1000 + (offs) tileOffs * TILE_BYTE_SIZE + 2 * j) ;
 
                     for(int x = 0; x < 8; x++) 
                     {

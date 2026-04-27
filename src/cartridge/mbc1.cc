@@ -2,12 +2,10 @@
 #include "cartridge.h"
 #include "mbc.h"
 #include "mem.h"
-#include <iostream>
-#include <memory>
 
-void Mbc1::init(Cartridge* p_cartridge) 
+void Mbc1::init(Cartridge* pCartridge) 
 {
-    Mbc::init(p_cartridge);
+    Mbc::init(pCartridge);
 
     moreThan512Kb = pCartridge->getRomSize() > 512 * KB;
     bankNo = pCartridge->getRomSize() / ROM_BANK_SIZE; 
@@ -58,28 +56,28 @@ void Mbc1::writeToRegister(unsigned short addr, byte val)
 
 void Mbc1::changedBankNo() 
 {
-    u8 new_bank_selector = bankSelectorLow5;
+    u8 newBankSelector = bankSelectorLow5;
     if (moreThan512Kb)
-        new_bank_selector += bankOrRamSelector << 5;
+        newBankSelector += bankOrRamSelector << 5;
 
-    new_bank_selector &= initialMask;
-    if (new_bank_selector > bankNo)
-        new_bank_selector &= secondaryMask;
+    newBankSelector &= initialMask;
+    if (newBankSelector > bankNo)
+        newBankSelector &= secondaryMask;
 
-    secondBankOffs = new_bank_selector * ROM_BANK_SIZE;
+    secondBankOffs = newBankSelector * ROM_BANK_SIZE;
 }
 
 void Mbc1::advancedBankModeAdjustOffset() 
 {
     bool done = false;
 
-    for (u8 bank_or_ram_selector = bankOrRamSelector, mask = 0b0100; !done && bank_or_ram_selector; bank_or_ram_selector &= ~mask)
+    for (u8 bankOrRamSelector = bankOrRamSelector, mask = 0b0100; !done && bankOrRamSelector; bankOrRamSelector &= ~mask)
     {
-        int new_first_bank_offs = ROM_BANK_SIZE * (bank_or_ram_selector << 5);
+        int newFirstBankOffs = ROM_BANK_SIZE * (bankOrRamSelector << 5);
         
-        if (new_first_bank_offs < pCartridge->getRomSize())
+        if (newFirstBankOffs < pCartridge->getRomSize())
         {
-            firstBankOffs = new_first_bank_offs;
+            firstBankOffs = newFirstBankOffs;
             done = true;
         }
         mask >>= 1;
@@ -87,7 +85,7 @@ void Mbc1::advancedBankModeAdjustOffset()
     if (!done)
         firstBankOffs = 0;
 
-    int new_ram_offs = pCartridge->getRomSize() + bankOrRamSelector * 8 * KB;
-    if (new_ram_offs < pCartridge->getSize())
-        ramOffs = new_ram_offs;
+    int newRamOffs = pCartridge->getRomSize() + bankOrRamSelector * 8 * KB;
+    if (newRamOffs < pCartridge->getSize())
+        ramOffs = newRamOffs;
 }
