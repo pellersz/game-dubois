@@ -1,6 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include "GLFW/glfw3.h"
 #include "types.h"
 
 class Memory;
@@ -21,6 +22,7 @@ class Controller
     
     void buttonPressed(byte);
     void buttonReleased(byte);
+    void handleInput(GLFWwindow*);
     void updatePressed();
 
   private:

@@ -57,7 +57,6 @@ int main(int argc, char** argv)
     if (ramPath != "")
         pCartridge->loadRam(ramPath);
 
-
     GameBoy gameboy;
     gameboy.load(pCartridge);
     

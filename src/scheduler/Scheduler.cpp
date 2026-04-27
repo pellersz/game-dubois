@@ -95,7 +95,6 @@ bool Scheduler::pop()
         case UPDATE_DIV: 
         {
             ++divider;
-
             push(256, UPDATE_DIV);
             break;
         } 
@@ -119,7 +118,7 @@ bool Scheduler::pop()
             interruptFlag |= 0b0001; 
             ppu.vBlank();
  
-            lcdStat = (lcdStat & 0b11111100) + 0b01;
+            lcdStat = (lcdStat & 0b11111100) | 0b01;
             statInterruptCheck();
 
             push(456, VBLANK);
@@ -178,7 +177,7 @@ bool Scheduler::pop()
         {
             ppu.hBlank();
             
-            lcdStat = (lcdStat & 0b11111100) + 0b00;
+            lcdStat &= 0b11111100;
             statInterruptCheck();
 
             if (lcdY < 143) 
@@ -192,49 +191,7 @@ bool Scheduler::pop()
         }
         case HANDLE_CONTROL: 
         {
-            GLFWwindow *window = screen.getWindow();
-            glfwPollEvents();
-            if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::RIGHT);
-            else 
-                controller.buttonReleased(Controller::RIGHT);
-
-            if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::LEFT);
-            else 
-                controller.buttonReleased(Controller::LEFT);
-
-            if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-                controller.buttonPressed(Controller::DOWN);
-            else 
-                controller.buttonReleased(Controller::DOWN);
-
-            if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-                controller.buttonPressed(Controller::UP);
-            else 
-                controller.buttonReleased(Controller::UP);
-
-            if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
-                controller.buttonPressed(Controller::A);
-            else 
-                controller.buttonReleased(Controller::A);
-
-            if(glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-                controller.buttonPressed(Controller::B);
-            else 
-                controller.buttonReleased(Controller::B);
-
-            if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-                controller.buttonPressed(Controller::START);
-            else 
-                controller.buttonReleased(Controller::START);
-
-            if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-                controller.buttonPressed(Controller::SELECT);
-            else 
-                controller.buttonReleased(Controller::SELECT);
-
-            controller.updatePressed();
+            controller.handleInput(screen.getWindow());
 
             push(1000, HANDLE_CONTROL);
             break;
@@ -306,14 +263,12 @@ bool Scheduler::pop()
         case CH4_TIME:
         {
             apu.incrementTimer(Ch4);
-            
             push(MASTER_CLOCK_FREQUENCY / SOUND_TIMER_FREQUENCY, CH4_TIME);
             break;           
         }
         case SAMPLE: 
         { 
             apu.sample();
-            
             push(88, SAMPLE);
             break; 
         }

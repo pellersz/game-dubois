@@ -12,6 +12,31 @@ void Controller::buttonPressed(byte button) { pressedVector &= ~button; }
 
 void Controller::buttonReleased(byte button) { pressedVector |= button; }
 
+void Controller::handleInput(GLFWwindow* window) 
+{
+    static const std::pair<int, byte> BUTTONS[] = 
+    {
+        {GLFW_KEY_RIGHT,      Controller::RIGHT },
+        {GLFW_KEY_LEFT,       Controller::LEFT  },
+        {GLFW_KEY_DOWN,       Controller::DOWN  },
+        {GLFW_KEY_UP,         Controller::UP    },
+        {GLFW_KEY_Z,          Controller::A     },
+        {GLFW_KEY_X,          Controller::B     },
+        {GLFW_KEY_ENTER,      Controller::START },
+        {GLFW_KEY_LEFT_SHIFT, Controller::SELECT},
+    };
+
+    glfwPollEvents();
+    for (int i = 0; i < 8; ++i) {
+        if(glfwGetKey(window, BUTTONS[i].first) == GLFW_PRESS)
+            buttonPressed(BUTTONS[i].second);
+        else 
+            buttonReleased(BUTTONS[i].second);
+    }
+
+    updatePressed();
+}
+
 void Controller::updatePressed() 
 {
     byte tmp = joypad;
