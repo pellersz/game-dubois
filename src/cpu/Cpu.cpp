@@ -1,7 +1,7 @@
-#include "cpu.h"
-#include "apu.h"
-#include "mem.h"
-#include "scheduler.h"
+#include "Cpu.hpp"
+#include "Apu.hpp"
+#include "Memory.hpp"
+#include "Scheduler.hpp"
 #include "types.h"
 #include <cstdlib>
 #include <fstream>

@@ -1,9 +1,9 @@
 #ifndef MBC1_H
 #define MBC1_H 
 
-#include "cartridge.h"
-#include "mbc.h"
-#include "mem.h"
+#include "Cartridge.hpp"
+#include "Mbc.hpp"
+#include "Memory.hpp"
 #include "types.h"
 
 class Mbc1: public Mbc 

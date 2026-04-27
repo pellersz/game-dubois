@@ -1,4 +1,4 @@
-#include "speaker.h"
+#include "Speaker.hpp"
 #include <cstring>
 
 void SampleBuffer::sample(float left, float right)

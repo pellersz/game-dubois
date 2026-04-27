@@ -1,13 +1,13 @@
-#include "mem.h"
-#include "controller.h"
-#include "scheduler.h"
-#include "apu.h"
+#include "Memory.hpp"
+#include "Controller.hpp"
+#include "Scheduler.hpp"
+#include "Apu.hpp"
+#include "Cartridge.hpp"
 #include "types.h"
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <unistd.h>
-#include "cartridge.h"
 
 void Memory::init
 (

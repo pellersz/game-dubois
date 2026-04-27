@@ -1,7 +1,7 @@
-#include "cpu.h"
-#include "scheduler.h"
+#include "Cpu.hpp"
+#include "Scheduler.hpp"
+#include "Memory.hpp"
 #include "types.h"
-#include "mem.h"
 
 /////////////////////////////////////////////////////////////////
 // Helper instructions

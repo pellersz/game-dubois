@@ -1,15 +1,15 @@
 #ifndef GAMEBOY_H
 #define GAMEBOY_H
 
-#include "apu.h"
-#include "controller.h"
-#include "cpu.h"
-#include "mem.h"
-#include "ppu.h"
-#include "scheduler.h"
-#include "cartridge.h"
-#include "screen.h"
-#include "speaker.h"
+#include "Apu.hpp"
+#include "Controller.hpp"
+#include "Cpu.hpp"
+#include "Memory.hpp"
+#include "Ppu.hpp"
+#include "Scheduler.hpp"
+#include "Cartridge.hpp"
+#include "Screen.hpp"
+#include "Speaker.hpp"
 #include <memory>
 
 class GameBoy {

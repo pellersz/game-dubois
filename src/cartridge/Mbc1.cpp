@@ -1,7 +1,7 @@
-#include "mbc1.h"
-#include "cartridge.h"
-#include "mbc.h"
-#include "mem.h"
+#include "Mbc1.hpp"
+#include "Cartridge.hpp"
+#include "Mbc.hpp"
+#include "Memory.hpp"
 
 void Mbc1::init(Cartridge* pCartridge) 
 {

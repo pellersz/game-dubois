@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0.0)
 
-add_library(screen screen.cc ppu.cc)
+add_library(screen Screen.cpp Ppu.cpp)
 
 target_include_directories(screen PRIVATE ../general)
 target_include_directories(screen PRIVATE ../../external/glfw)

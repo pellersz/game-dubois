@@ -1,8 +1,8 @@
-#include "gameboy.h"
-#include "cartridge.h"
-#include "cpu.h"
-#include "mem.h"
-#include "scheduler.h"
+#include "GameBoy.hpp"
+#include "Cartridge.hpp"
+#include "Cpu.hpp"
+#include "Memory.hpp"
+#include "Scheduler.hpp"
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -49,22 +49,22 @@ void GameBoy::run(bool debug)
         return;
     }
 
-    if (!debug)
+    if (debug)
     {
-        byte* bootRomMemory = memory.getDataPointerToAddress(0);
-        byte buf[256];
-        memcpy(buf, bootRomMemory, 256);
-        memcpy(bootRomMemory, bootRom, 256);
-
-        
-        scheduler.run();
-
-        cpu.setPC(0x100);
-        memcpy(bootRomMemory, buf, 256);
-        scheduler.run();
-        return;
+        cpu.setAfterBootRomState(); 
+        scheduler.debugRun();
     }
-    cpu.setAfterBootRomState(); 
-    scheduler.debugRun();
+        
+    byte* bootRomMemory = memory.getDataPointerToAddress(0);
+    byte buf[256];
+    memcpy(buf, bootRomMemory, 256);
+    memcpy(bootRomMemory, bootRom, 256);
+    
+    scheduler.run();
+
+    cpu.setPC(0x100);
+    memcpy(bootRomMemory, buf, 256);
+    scheduler.run();
+    return;
 }
 

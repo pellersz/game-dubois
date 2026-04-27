@@ -1,5 +1,5 @@
-#include "controller.h"
-#include "mem.h"
+#include "Controller.hpp"
+#include "Memory.hpp"
 #include "types.h"
 
 Controller::Controller(Memory& memory) : 

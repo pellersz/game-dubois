@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0.0)
 
-add_library(gameboy gameboy.cc)
+add_library(gameboy GameBoy.cpp)
 
 target_include_directories(gameboy PRIVATE ../cpu)
 target_include_directories(gameboy PRIVATE ../general)

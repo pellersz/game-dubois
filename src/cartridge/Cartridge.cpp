@@ -1,7 +1,7 @@
-#include "cartridge.h"
-#include "mbc.h"
-#include "mbc1.h"
-#include "mem.h"
+#include "Cartridge.hpp"
+#include "Mbc.hpp"
+#include "Mbc1.hpp"
+#include "Memory.hpp"
 #include "types.h"
 #include <cstdio>
 #include <cstring>

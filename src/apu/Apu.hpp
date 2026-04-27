@@ -1,7 +1,7 @@
 #ifndef APU_H
 #define APU_H 
 
-#include "channels.h"
+#include "Channels.hpp"
 
 class Memory;
 class Speaker;

@@ -1,7 +1,7 @@
-#include "apu.h"
-#include "channels.h"
-#include "mem.h"
-#include "speaker.h"
+#include "Apu.hpp"
+#include "Channels.hpp"
+#include "Memory.hpp"
+#include "Speaker.hpp"
 #include <unistd.h>
 
 Apu::Apu(Memory& memory, Speaker& speaker): 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0.0)
 
-add_library(mem mem.cc)
+add_library(mem Memory.cpp)
 
 target_include_directories(
     mem 

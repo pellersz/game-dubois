@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0.0)
 
-add_library(cpu cpu.cc ops_impl.cc)
+add_library(cpu Cpu.cpp ops_impl.cpp)
 
 target_include_directories(cpu PRIVATE ../general)
 target_include_directories(cpu PRIVATE ../mem)

@@ -1,10 +1,10 @@
 #ifndef SCHEDULER_H 
 #define SCHEDULER_H
 
-#include "controller.h"
-#include "cpu.h"
+#include "Controller.hpp"
+#include "Cpu.hpp"
+#include "Apu.hpp"
 #include <queue>
-#include "apu.h"
 #include <unistd.h>
 #include <chrono>
 

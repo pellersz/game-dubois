@@ -1,5 +1,5 @@
-#include "cartridge.h"
-#include "gameboy.h"
+#include "Cartridge.hpp"
+#include "GameBoy.hpp"
 #include <cstring>
 #include <iostream>
 #include <memory>

@@ -1,6 +1,6 @@
-#include "ppu.h"
-#include "mem.h"
-#include "screen.h"
+#include "Ppu.hpp"
+#include "Memory.hpp"
+#include "Screen.hpp"
 #include "types.h"
 #include <iostream>
 
